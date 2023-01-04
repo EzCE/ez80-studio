@@ -1,0 +1,10 @@
+concept/
+obj/
+bin/
+.vscode/
+src/gfx/*.c
+src/gfx/*.h
+src/font/*.inc
+convimg.out
+nul.d
+src/gfx/convimg.yaml.lst
