@@ -7,9 +7,9 @@
 ;
 ;--------------------------------------
 
-	assume adl=1
+    assume adl=1
 
-	section .text
+    section .text
 
 include 'include/ti84pceg.inc'
 
@@ -20,25 +20,25 @@ newlineCountPtr := EOF + 3
 newlineCount := newlineCountPtr + 3
 
 _files_CountLines:
-	push ix
+    push ix
     ld ix, 0
     add ix, sp
     ld hl, (ix + 6) ; name of file
     ld de, (ix + 9) ; pointer to int containing number of newlines
     pop ix
-	ld (newLineCountPtr), de
-	ex de, hl
-	ld hl, 1
-	ld (newLineCount), hl
-	ld hl, ti.OP1
-	ld (hl), ti.AppVarObj
-	inc hl
-	ld bc, 8
-	ex de, hl
-	ldir ; move name to OP1
-	call ti.ChkFindSym
-	ret c
-	call ti.ChkInRam
+    ld (newLineCountPtr), de
+    ex de, hl
+    ld hl, 1
+    ld (newLineCount), hl
+    ld hl, ti.OP1
+    ld (hl), ti.AppVarObj
+    inc hl
+    ld bc, 8
+    ex de, hl
+    ldir ; move name to OP1
+    call ti.ChkFindSym
+    ret c
+    call ti.ChkInRam
     jr z, inRam
     ld hl, 10
     add hl, de
@@ -57,27 +57,27 @@ inRam:
     ld h, a ; get program size
     inc de
     call _getEOF
-	inc de
-	inc de
-	ex de, hl
+    inc de
+    inc de
+    ex de, hl
 
 .loop:
-	push hl
-	pop bc
-	call _checkEOF
-	jr z, .return
-	push bc
-	pop hl
-	ld a, $3F ; newline so that Celtic detects line count
-	cp a, (hl)
-	jr z, .newline
+    push hl
+    pop bc
+    call _checkEOF
+    jr z, .return
+    push bc
+    pop hl
+    ld a, $3F ; newline so that Celtic detects line count
+    cp a, (hl)
+    jr z, .newline
 
 .newline:
-	ld de, (newlineCount)
-	inc de
-	ld (newlineCount), de
-	inc hl
-	jr .loop
+    ld de, (newlineCount)
+    inc de
+    ld (newlineCount), de
+    inc hl
+    jr .loop
 
 .return:
 
