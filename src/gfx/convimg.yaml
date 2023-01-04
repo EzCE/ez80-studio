@@ -4,7 +4,7 @@ palettes:
       - color: {index: 0, r: 253, g: 246, b: 227}  # Background
       - color: {index: 1, r: 165, g: 142, b: 81}   # Outline
       - color: {index: 2, r: 217, g: 193, b: 127}  # Cursor
-      - color: {index: 3, r: 101, g: 123, b: 131}  # Default text
+      - color: {index: 3, r: 38, g: 50, b: 56}     # Default text
       - color: {index: 4, r: 57, g: 111, b: 226}   # Labels
       - color: {index: 5, r: 98, g: 137, b: 40}    # Instructions
       - color: {index: 6, r: 233, g: 120, b: 17}   # Registers
