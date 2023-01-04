@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-bool files_CountLines(char *fileName, unsigned int *newlineCount);
+bool files_CountLines(char *fileName, unsigned int *newlineCount, unsigned int *lineCount);
 
 #ifdef __cplusplus
 }

@@ -23,8 +23,10 @@ struct preferences {
 };
 
 struct context {
-    char fileName[9];              // name of currently opened file
+    char fileName[9];               // name of currently opened file
     unsigned int newlineCount;      // number of newline characters
+    unsigned int totalLines;        // number of total newlines (includes word-wrap)
+    unsigned int lineStart;         // line to start drawing the page on
 };
 
 // Read preferences from the appvar, or set the default preferences if the appvar doesn't exist

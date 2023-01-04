@@ -17,19 +17,24 @@ include 'include/ti84pceg.inc'
 
 EOF := ti.appData
 newlineCountPtr := EOF + 3
-newlineCount := newlineCountPtr + 3
+newlineCount := newlineCountPtr + 3 ; number of newline characters
+lineCountPtr := newlineCount + 3
+lineCount := lineCountPtr + 3 ; number of actual lines (includes word wrap)
 
 _files_CountLines:
     push ix
     ld ix, 0
     add ix, sp
     ld hl, (ix + 6) ; name of file
-    ld de, (ix + 9) ; pointer to int containing number of newlines
+    ld de, (ix + 9) ; pointer to int containing number of newline characters
+    ld bc, (ix + 9) ; pointer to int containing number of total lines
     pop ix
-    ld (newLineCountPtr), de
+    ld (newlineCountPtr), de
+    ld (lineCountPtr), bc
     ex de, hl
     ld hl, 1
-    ld (newLineCount), hl
+    ld (newlineCount), hl
+    ld (lineCount), hl
     ld hl, ti.OP1
     ld (hl), ti.AppVarObj
     inc hl
@@ -60,26 +65,46 @@ inRam:
     inc de
     inc de
     ex de, hl
+    ld b, 39
 
 .loop:
+    push bc
     push hl
     pop bc
     call _checkEOF
     jr z, .return
     push bc
     pop hl
-    ld a, $3F ; newline so that Celtic detects line count
+    ld a, $0A
     cp a, (hl)
-    jr z, .newline
+    pop bc
+    jr z, .newlineChar
+    inc hl
+    djnz .loop
+    jr .newline
 
-.newline:
+.newlineChar:
     ld de, (newlineCount)
     inc de
     ld (newlineCount), de
+
+.newline:
+    ld de, (lineCount)
+    inc de
+    ld (lineCount), de
     inc hl
+    ld b, 0
     jr .loop
 
 .return:
+    pop bc
+    ld hl, (newlineCountPtr)
+    ld de, (newlineCount)
+    ld (hl), de
+    ld hl, (lineCountPtr)
+    ld de, (lineCount)
+    ld (hl), de
+    ret
 
 _checkEOF: ; bc = current address being read; destroys hl and a
     ld hl, (EOF)

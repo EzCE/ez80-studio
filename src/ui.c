@@ -10,14 +10,28 @@
 **/
 
 #include "defines.h"
+#include "utility.h"
 
 #include <graphx.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <fontlibc.h>
 
-// Draw the main UI elements
+// Draw scrollbar
+void ui_DrawScrollbar(unsigned int totalLines, unsigned int startLine) {
+    if (totalLines) {
+        uint8_t scrollBarLength = 223 / (totalLines / 16);
+        uint8_t scrollOffset = 223 / totalLines * startLine;
 
-void ui_DrawUIMain(uint8_t button) {
+        gfx_SetColor(BACKGROUND);
+        gfx_FillRectangle_NoClip(312, 0, 8, 223);
+        gfx_SetColor(CURSOR);
+        gfx_FillRectangle_NoClip(312, 0 + scrollOffset, 8, scrollBarLength);
+    }
+}
+
+// Draw the main UI elements
+void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLine) {
     // Clear area behind buttons and scrollbar
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(0, 225, 385, 15);
@@ -49,9 +63,12 @@ void ui_DrawUIMain(uint8_t button) {
     fontlib_DrawString("Chars");
     fontlib_SetCursorPosition(260, 227);
     fontlib_DrawString("Settings");
+
+    ui_DrawScrollbar(totalLines, startLine);
 }
 
-void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, uint8_t option) {
+// Draw a box with the menu items/cursor
+void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, uint8_t option, unsigned int optionCount, ...) {
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(x, y, width, height);
 
@@ -68,13 +85,31 @@ void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, ui
     if (x + width < 310) {
         gfx_FillRectangle_NoClip(x + width - 2, y + 2, 2, height - 2);
     }
+
+    va_list menuNames;
+    va_start(menuNames, optionCount);
+
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+
+    for (unsigned int drawYOffset = 6; drawYOffset < 6 + optionCount * 17; drawYOffset += 17) {
+        fontlib_SetCursorPosition(4, y + drawYOffset);
+        fontlib_DrawString(va_arg(menuNames, char *));
+    }
+
+    va_end(menuNames);
 }
 
+// Do this when no file is open
 void ui_NoFile(void) {
     gfx_ZeroScreen();
-    ui_DrawUIMain(0);
+    ui_DrawUIMain(0, 0, 0);
     fontlib_SetCursorPosition(81, 98);
     fontlib_DrawString("Open or create a file");
     fontlib_SetCursorPosition(103, 110);
     fontlib_DrawString("to get started.");
+}
+
+// Print a line
+void ui_PrintLine(char *, uint8_t row, unsigned int line) {
+    //fontlib_SetCursorPosition(0, )
 }

@@ -13,6 +13,7 @@
 
 #include "gfx/gfx.h"
 #include "font/fontCherry.h"
+#include "asm/files.h"
 #include "defines.h"
 #include "ui.h"
 #include "menu.h"
@@ -65,11 +66,11 @@ int main(void) {
             ui_NoFile();
             gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyTrace)) {
-            menu_Chars();
+            menu_Chars(studioContext);
             ui_NoFile();
             gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyGraph)) {
-            menu_Settings(studioPreferences);
+            menu_Settings(studioContext, studioPreferences);
             ui_NoFile();
             gfx_BlitBuffer();
         }

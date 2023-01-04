@@ -25,13 +25,13 @@ void menu_File(struct context *studioContext);
 void menu_Compile(struct context *studioContext);
 
 // Special characters menu
-void menu_Chars(void);
+void menu_Chars(struct context *studioContext);
 
 // Jump to labels
 void menu_Labels(struct context *studioContext);
 
 // Settings/preferences
-void menu_Settings(struct context *studioPreferences);
+void menu_Settings(struct context *studioContext, struct preferences *studioPreferences);
 
 #ifdef __cplusplus
 }
