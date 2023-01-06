@@ -45,7 +45,6 @@ int main(void) {
     gfx_SetDrawBuffer();
     gfx_ZeroScreen();
     ui_NoFile();
-
     gfx_BlitBuffer();
 
     while (kb_AnyKey());

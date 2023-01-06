@@ -31,6 +31,10 @@ void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, ui
 // Do this when no file is opened
 void ui_NoFile(void);
 
+char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow);
+
+void ui_UpdateAllText(char *textStart, unsigned int lineStart, unsigned int totalNewlines);
+
 #ifdef __cplusplus
 }
 #endif

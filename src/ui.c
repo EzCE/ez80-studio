@@ -110,6 +110,57 @@ void ui_NoFile(void) {
 }
 
 // Print a line
-void ui_PrintLine(char *, uint8_t row, unsigned int line) {
-    //fontlib_SetCursorPosition(0, )
+char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow) {
+    fontlib_SetForegroundColor(TEXT_DEFAULT); // Syntax highlighting later
+
+    uint8_t currentRow = *row; // We might not want to update *row
+
+    fontlib_SetCursorPosition(0, 2 + currentRow * 16);
+    fontlib_DrawInt(line, 4);
+    fontlib_DrawString(": ");
+
+    uint8_t charsDrawn = 0;
+
+    while (*string != '\n' && *string != '\0') {
+        if (*string == ';') { // Mind change this later when there's proper syntax highlighting for everything else
+            fontlib_SetForegroundColor(TEXT_COMMENT);
+        }
+
+        fontlib_DrawGlyph(*string);
+
+        charsDrawn++;
+        string++;
+
+        if (charsDrawn == 38 && *string != '\n') { // Loop to next line if the text continues past the edge
+            charsDrawn = 0;
+            currentRow++;
+
+            if (updateRow) {
+                *row = *row + 1;
+            }
+
+            if (currentRow < 14) {
+                fontlib_SetCursorPosition(42, 2 + currentRow * 16);
+            } else {
+                return string; // We can't draw anymore on the screen, so return early
+            }
+        }
+    }
+
+    string++; // Skip newline
+    return string;
+}
+
+void ui_UpdateAllText(char *textStart, unsigned int lineStart, unsigned int totalNewlines) {
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(0, 0, 310, 223);
+
+    for (uint8_t row = 0; row < 14; row++) {
+        textStart = ui_PrintLine(textStart, &row, lineStart, true);
+        lineStart++;
+
+        if (lineStart > totalNewlines) {
+            break;
+        }
+    }
 }

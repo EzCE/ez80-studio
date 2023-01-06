@@ -24,11 +24,11 @@ void menu_File(struct context *studioContext);
 // Compile code
 void menu_Compile(struct context *studioContext);
 
-// Special characters menu
-void menu_Chars(struct context *studioContext);
-
 // Jump to labels
 void menu_Labels(struct context *studioContext);
+
+// Special characters menu
+void menu_Chars(struct context *studioContext);
 
 // Settings/preferences
 void menu_Settings(struct context *studioContext, struct preferences *studioPreferences);
