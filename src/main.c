@@ -27,6 +27,12 @@ int main(void) {
     struct preferences *studioPreferences = malloc(sizeof(struct preferences));
     struct context *studioContext = malloc(sizeof(struct context));
 
+    studioContext->fileNames = malloc(0);
+    studioContext->fileName = NULL;
+    studioContext->fileIsOpen = true;
+
+    bool redraw = true;
+
     util_ReadPrefs(studioPreferences);
 
     fontlib_SetFont(fontCherry, 0);
@@ -43,9 +49,6 @@ int main(void) {
     }
 
     gfx_SetDrawBuffer();
-    gfx_ZeroScreen();
-    ui_NoFile();
-    gfx_BlitBuffer();
 
     while (kb_AnyKey());
 
@@ -54,24 +57,37 @@ int main(void) {
 
         if (kb_IsDown(kb_KeyYequ)) {
             menu_File(studioContext);
-            ui_NoFile(); // Change this later when you can open files
+            redraw = true;
             gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyWindow)) {
             menu_Compile(studioContext);
-            ui_NoFile();
+            redraw = true;
             gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyZoom)) {
             menu_Labels(studioContext);
-            ui_NoFile();
+            redraw = true;
             gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyTrace)) {
             menu_Chars(studioContext);
-            ui_NoFile();
+            redraw = true;
             gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyGraph)) {
             menu_Settings(studioContext, studioPreferences);
-            ui_NoFile();
+            redraw = true;
             gfx_BlitBuffer();
+        }
+
+        if (redraw) {
+            gfx_ZeroScreen();
+
+            if (studioContext->fileIsOpen) {
+                
+            } else {
+                ui_NoFile();
+            }
+
+            gfx_BlitBuffer();
+            redraw = false;
         }
     }
 

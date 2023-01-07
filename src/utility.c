@@ -11,8 +11,10 @@
 
 #include "utility.h"
 #include "defines.h"
+#include "asm/asm.h"
 
 #include <fileioc.h>
+#include <string.h>
 
 static void util_SetDefaults(struct preferences *studioPreferences) {
     studioPreferences->theme = LIGHT_THEME;
@@ -33,4 +35,25 @@ void util_WritePrefs(struct preferences *studioPreferences) {
     
     ti_Write(&(studioPreferences->theme), 1, 1, appvar);
     ti_SetArchiveStatus(true, appvar);
+}
+
+char *util_GetFiles(char *fileNames, unsigned int *fileCount) {
+    uint8_t fileType = '\0';
+    char *fileName;
+    void *vatPtr = NULL;
+    *fileCount = 0;
+    uint8_t currentOffset = 0;
+
+    asm_SortVAT();
+
+    while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
+        if (fileType == OS_TYPE_APPVAR) {
+            fileNames = realloc(fileNames, 9);
+            strcpy(&fileNames[currentOffset], fileName); 
+            currentOffset += 9;
+            *fileCount = *fileCount + 1;
+        }
+    }
+
+    return fileNames;
 }

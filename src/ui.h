@@ -19,11 +19,11 @@
 extern "C" {
 #endif
 
+// Draw scrollbar
+void ui_DrawScrollbar(unsigned int x, uint8_t y, uint8_t boxHeight, unsigned int totalLines, unsigned int startLine, uint8_t linesPerPage);
+
 // Draw the main UI elements - the buttons and the scroll bar
 void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLine);
-
-// Draw scrollbar
-void ui_DrawScrollbar(unsigned int totalLines, unsigned int startLine);
 
 // Draw the menu boxes
 void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, uint8_t option, unsigned int optionCount, ...);
@@ -32,6 +32,8 @@ void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, ui
 void ui_NoFile(void);
 
 char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow);
+
+void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive);
 
 void ui_UpdateAllText(char *textStart, unsigned int lineStart, unsigned int totalNewlines);
 

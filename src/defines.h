@@ -18,6 +18,10 @@
 extern "C" {
 #endif
 
+// File header for valid source files: 0xEF7A (Also uncompiled assembly header for TI-BASIC programs)
+
+#define SOURCE_HEADER       "\xEF\x7A"
+
 // Palette entries
 
 #define BACKGROUND          0

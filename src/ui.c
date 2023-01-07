@@ -18,15 +18,15 @@
 #include <fontlibc.h>
 
 // Draw scrollbar
-void ui_DrawScrollbar(unsigned int totalLines, unsigned int startLine) {
+void ui_DrawScrollbar(unsigned int x, uint8_t y, uint8_t boxHeight, unsigned int totalLines, unsigned int startLine, uint8_t linesPerPage) {
     if (totalLines) {
-        uint8_t scrollBarLength = 223 / (totalLines / 16);
-        uint8_t scrollOffset = 223 / totalLines * startLine;
+        uint8_t scrollBarLength = (float)boxHeight / ((float)totalLines / (float)linesPerPage);
+        uint8_t scrollOffset = (float)boxHeight / (float)totalLines * (float)startLine;
 
         gfx_SetColor(BACKGROUND);
-        gfx_FillRectangle_NoClip(312, 0, 8, 223);
+        gfx_FillRectangle_NoClip(x, y, 8, boxHeight);
         gfx_SetColor(CURSOR);
-        gfx_FillRectangle_NoClip(312, 0 + scrollOffset, 8, scrollBarLength);
+        gfx_FillRectangle_NoClip(x, y + scrollOffset, 8, scrollBarLength);
     }
 }
 
@@ -64,7 +64,7 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     fontlib_SetCursorPosition(260, 227);
     fontlib_DrawString("Settings");
 
-    ui_DrawScrollbar(totalLines, startLine);
+    ui_DrawScrollbar(312, 0, 223, totalLines, startLine, 14);
 }
 
 // Draw a box with the menu items/cursor
@@ -149,6 +149,19 @@ char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow
 
     string++; // Skip newline
     return string;
+}
+
+void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive) {
+    gfx_SetColor(CURSOR);
+
+    gfx_FillRectangle_NoClip(0, 1 + row * 16, 310, 1); // Highlight currently selected row
+    gfx_FillRectangle_NoClip(0, 14 + row * 16, 310, 1);
+
+    if (!cursorActive) {
+        gfx_SetColor(BACKGROUND);
+    }
+
+    gfx_FillRectangle_NoClip(41 + column * 7, 3 + row * 16, 2, 10); // Cursor
 }
 
 void ui_UpdateAllText(char *textStart, unsigned int lineStart, unsigned int totalNewlines) {
