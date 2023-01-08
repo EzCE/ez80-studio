@@ -164,15 +164,18 @@ void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive) {
     gfx_FillRectangle_NoClip(41 + column * 7, 3 + row * 16, 2, 10); // Cursor
 }
 
-void ui_UpdateAllText(char *textStart, unsigned int lineStart, unsigned int totalNewlines) {
+void ui_UpdateAllText(struct context *studioContext) {
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(0, 0, 310, 223);
 
-    for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, &row, lineStart, true);
-        lineStart++;
+    unsigned int currentLine = studioContext->lineStart + 1;
+    char *textStart = studioContext->pageDataStart;
 
-        if (lineStart > totalNewlines) {
+    for (uint8_t row = 0; row < 14; row++) {
+        textStart = ui_PrintLine(textStart, &row, currentLine, true);
+        currentLine++;
+
+        if (currentLine > studioContext->newlineCount) {
             break;
         }
     }

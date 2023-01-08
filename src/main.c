@@ -27,9 +27,13 @@ int main(void) {
     struct preferences *studioPreferences = malloc(sizeof(struct preferences));
     struct context *studioContext = malloc(sizeof(struct context));
 
-    studioContext->fileNames = malloc(0);
     studioContext->fileName = NULL;
-    studioContext->fileIsOpen = true;
+    studioContext->fileIsOpen = false;
+    studioContext->lineStart = 0;
+    studioContext->totalLines = 0;
+    studioContext->newlineCount = 0;
+    studioContext->row = 0;
+    studioContext->column = 0;
 
     bool redraw = true;
 
@@ -77,18 +81,24 @@ int main(void) {
             gfx_BlitBuffer();
         }
 
+        if (studioContext->fileIsOpen) {
+            ui_DrawCursor(studioContext->row, studioContext->column, true);
+        }
+
         if (redraw) {
             gfx_ZeroScreen();
 
             if (studioContext->fileIsOpen) {
-                
+                ui_UpdateAllText(studioContext);
+                ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
             } else {
                 ui_NoFile();
             }
 
-            gfx_BlitBuffer();
             redraw = false;
         }
+
+        gfx_BlitBuffer();
     }
 
     gfx_End();

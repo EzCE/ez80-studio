@@ -13,6 +13,7 @@
 #define UTILITY_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,8 @@ struct context {
     unsigned int newlineCount;      // number of newline characters
     unsigned int totalLines;        // number of total newlines (includes word-wrap)
     unsigned int lineStart;         // line to start drawing the page on
-    char *fileNames;                // names of all valid files
+    unsigned int row;               // current row selected
+    uint8_t column;                 // current column selected
 };
 
 // Read preferences from the appvar, or set the default preferences if the appvar doesn't exist
@@ -38,7 +40,7 @@ void util_ReadPrefs(struct preferences *studioPreferences);
 // Write the preferences to the appvar
 void util_WritePrefs(struct preferences *studioPreferences);
 
-char *util_GetFiles(char *fileNames, unsigned int *fileCount);
+char *util_GetFiles(unsigned int *fileCount);
 
 #ifdef __cplusplus
 }

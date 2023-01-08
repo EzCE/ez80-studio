@@ -13,9 +13,11 @@
 #include "menu.h"
 #include "utility.h"
 #include "ui.h"
+#include "asm/files.h"
 
 #include <graphx.h>
 #include <fontlibc.h>
+#include <fileioc.h>
 #include <keypadc.h>
 #include <stdint.h>
 #include <string.h>
@@ -168,6 +170,8 @@ static char *menu_FileOpen(char *fileNames, unsigned int fileCount) {
         fileOpened = &fileNames[(fileStartLoc + fileSelected) * 9];
     }
 
+    free(fileNames);
+
     return fileOpened;
 }
 
@@ -231,16 +235,23 @@ void menu_File(struct context *studioContext) {
 
         while (kb_AnyKey());
     } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
-        unsigned int fileCount = 0;
-
         switch (option) {
             case 0: // New file
                 break;
-            case 1: // Open file
-                studioContext->fileNames = util_GetFiles(studioContext->fileNames, &fileCount);
-                studioContext->fileName = menu_FileOpen(studioContext->fileNames, fileCount);
+            case 1: { // Open file
+                unsigned int fileCount = 0;
+                char *fileNames = util_GetFiles(&fileCount);
+                studioContext->fileName = menu_FileOpen(fileNames, fileCount);
                 studioContext->fileIsOpen = true;
+
+                uint8_t file = ti_Open(studioContext->fileName, "r");
+
+                studioContext->pageDataStart = ti_GetDataPtr(file);
+                studioContext->pageDataStart += 2;
+
+                files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
                 break;
+            }
             case 2: // Save file
                 break;
             default:

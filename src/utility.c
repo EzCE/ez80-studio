@@ -37,21 +37,28 @@ void util_WritePrefs(struct preferences *studioPreferences) {
     ti_SetArchiveStatus(true, appvar);
 }
 
-char *util_GetFiles(char *fileNames, unsigned int *fileCount) {
+char *util_GetFiles(unsigned int *fileCount) {
     uint8_t fileType = '\0';
     char *fileName;
     void *vatPtr = NULL;
     *fileCount = 0;
-    uint8_t currentOffset = 0;
+    unsigned int currentOffset = 0;
 
     asm_SortVAT();
 
     while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
         if (fileType == OS_TYPE_APPVAR) {
-            fileNames = realloc(fileNames, 9);
+            *fileCount = *fileCount + 1;
+        }
+    }
+
+    vatPtr = NULL;
+    char *fileNames = malloc(*fileCount * 9);
+
+    while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
+        if (fileType == OS_TYPE_APPVAR) {
             strcpy(&fileNames[currentOffset], fileName); 
             currentOffset += 9;
-            *fileCount = *fileCount + 1;
         }
     }
 

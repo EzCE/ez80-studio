@@ -27,7 +27,7 @@ _files_CountLines:
     add ix, sp
     ld hl, (ix + 6) ; name of file
     ld de, (ix + 9) ; pointer to int containing number of newline characters
-    ld bc, (ix + 9) ; pointer to int containing number of total lines
+    ld bc, (ix + 12) ; pointer to int containing number of total lines
     pop ix
     ld (newlineCountPtr), de
     ld (lineCountPtr), bc

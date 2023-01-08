@@ -12,6 +12,8 @@
 #ifndef UI_H
 #define UI_H
 
+#include "utility.h"
+
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -35,7 +37,7 @@ char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow
 
 void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive);
 
-void ui_UpdateAllText(char *textStart, unsigned int lineStart, unsigned int totalNewlines);
+void ui_UpdateAllText(struct context *studioContext);
 
 #ifdef __cplusplus
 }
