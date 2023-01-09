@@ -164,10 +164,10 @@ static char *menu_FileOpen(char *fileNames, unsigned int fileCount) {
         }
     }
 
-    char *fileOpened = NULL;
+    char *fileOpened = malloc(9);
 
     if (kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) {
-        fileOpened = &fileNames[(fileStartLoc + fileSelected) * 9];
+        strcpy(fileOpened, &fileNames[(fileStartLoc + fileSelected) * 9]);
     }
 
     free(fileNames);
@@ -239,6 +239,7 @@ void menu_File(struct context *studioContext) {
             case 0: // New file
                 break;
             case 1: { // Open file
+                free(studioContext->fileName);
                 unsigned int fileCount = 0;
                 char *fileNames = util_GetFiles(&fileCount);
                 studioContext->fileName = menu_FileOpen(fileNames, fileCount);
@@ -248,8 +249,11 @@ void menu_File(struct context *studioContext) {
 
                 studioContext->pageDataStart = ti_GetDataPtr(file);
                 studioContext->pageDataStart += 2;
+                studioContext->rowDataStart = studioContext->pageDataStart;
+                studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 
                 files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
+                studioContext->openEOF = files_GetEOF(studioContext->fileName);
                 break;
             }
             case 2: // Save file

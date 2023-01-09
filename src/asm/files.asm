@@ -14,12 +14,19 @@
 include 'include/ti84pceg.inc'
 
     public _files_CountLines
+    public _files_GetEOF
+    public _files_GetLineLength
+    public _files_NextLine
+    public _files_PreviousLine
 
 EOF := ti.appData
 newlineCountPtr := EOF + 3
 newlineCount := newlineCountPtr + 3 ; number of newline characters
 lineCountPtr := newlineCount + 3
 lineCount := lineCountPtr + 3 ; number of actual lines (includes word wrap)
+
+currentLineStart := lineCount + 3
+oldLineStart := currentLineStart + 3
 
 _files_CountLines:
     push ix
@@ -44,7 +51,7 @@ _files_CountLines:
     call ti.ChkFindSym
     ret c
     call ti.ChkInRam
-    jr z, inRam
+    jr z, .inRam
     ld hl, 10
     add hl, de
     ld a, c
@@ -53,7 +60,7 @@ _files_CountLines:
     add hl, bc
     ex de, hl
 
-inRam:
+.inRam:
     ld hl, 0
     ld a, (de)
     ld l, a
@@ -104,6 +111,139 @@ inRam:
     ld hl, (lineCountPtr)
     ld de, (lineCount)
     ld (hl), de
+    ret
+
+_files_GetEOF:
+    push ix
+    ld ix, 0
+    add ix, sp
+    ld de, (ix + 6) ; name of file
+    pop ix
+    ld hl, ti.OP1
+    ld (hl), ti.AppVarObj
+    inc hl
+    ld bc, 8
+    ex de, hl
+    ldir ; move name to OP1
+    call ti.ChkFindSym
+    ret c
+    call ti.ChkInRam
+    jr z, .inRam
+    ld hl, 10
+    add hl, de
+    ld a, c
+    ld bc, 0
+    ld c, a
+    add hl, bc
+    ex de, hl
+
+.inRam:
+    ld hl, 0
+    ld a, (de)
+    ld l, a
+    inc de
+    ld a, (de)
+    ld h, a ; get program size
+    inc de
+    call _getEOF
+    ld hl, (EOF)
+    ret
+
+_files_GetLineLength:
+    push ix
+    ld ix, 0
+    add ix, sp
+    ld hl, (ix + 9) ; EOF
+    ld (EOF), hl
+    ld hl, (ix + 6) ; current address
+    pop ix
+    ld bc, 0
+    ld b, 38 ; max chars per line
+
+.loop:
+    ld a, $0A
+    cp a, (hl)
+    jr z, .return
+    push bc
+    push hl
+    pop bc
+    call _checkEOF
+    push bc
+    pop hl
+    pop bc
+    jr z, .return
+    inc c
+    inc hl
+    djnz .loop
+
+.return:
+    ld a, c
+    ret
+
+_files_NextLine:
+    push ix
+    ld ix, 0
+    add ix, sp
+    ld hl, (ix + 6) ; current address
+    pop ix
+    ld b, 37 ; max chars per line
+
+.loop:
+    ld a, $0A
+    cp a, (hl)
+    jr z, .return
+    inc hl
+    djnz .loop
+
+.return:
+    inc hl
+    ret
+
+_files_PreviousLine:
+    push ix
+    ld ix, 0
+    add ix, sp
+    ld hl, (ix + 6) ; current address
+    ld (oldLineStart), hl
+    pop ix
+    dec hl
+    dec hl
+
+.loopFindStart:
+    ld a, $0A ; newline
+    cp a, (hl)
+    jr z, .next
+    ld a, $7A ; start of file header
+    cp a, (hl)
+    jr z, .next
+    dec hl
+    jr .loopFindStart
+
+.next:
+    inc hl ; skip newline
+    ld b, 37
+    ld (currentLineStart), hl
+
+.loop:
+    ld a, $0A
+    cp a, (hl)
+    jr z, .return
+    inc hl
+    djnz .loop
+    inc hl
+    push hl
+    ex de, hl
+    ld hl, (oldLineStart)
+    xor a, a
+    sbc hl, de
+    pop hl
+    jr z, .return
+    ld (currentLineStart), hl
+    ld b, 37
+    jr .loop
+
+.return:
+    ld hl, (currentLineStart)
     ret
 
 _checkEOF: ; bc = current address being read; destroys hl and a

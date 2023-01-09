@@ -17,11 +17,13 @@
 #include "defines.h"
 #include "ui.h"
 #include "menu.h"
+#include "edit.h"
 #include "utility.h"
 
 #include <graphx.h>
 #include <keypadc.h>
 #include <fileioc.h>
+#include <sys/timers.h>
 
 int main(void) {
     struct preferences *studioPreferences = malloc(sizeof(struct preferences));
@@ -62,43 +64,31 @@ int main(void) {
         if (kb_IsDown(kb_KeyYequ)) {
             menu_File(studioContext);
             redraw = true;
-            gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyWindow)) {
             menu_Compile(studioContext);
             redraw = true;
-            gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyZoom)) {
             menu_Labels(studioContext);
             redraw = true;
-            gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyTrace)) {
             menu_Chars(studioContext);
             redraw = true;
-            gfx_BlitBuffer();
         } else if (kb_IsDown(kb_KeyGraph)) {
             menu_Settings(studioContext, studioPreferences);
             redraw = true;
-            gfx_BlitBuffer();
         }
 
         if (studioContext->fileIsOpen) {
-            ui_DrawCursor(studioContext->row, studioContext->column, true);
+            edit_OpenEditor(studioContext);
         }
 
         if (redraw) {
             gfx_ZeroScreen();
-
-            if (studioContext->fileIsOpen) {
-                ui_UpdateAllText(studioContext);
-                ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
-            } else {
-                ui_NoFile();
-            }
+            ui_NoFile();
 
             redraw = false;
+            gfx_BlitBuffer();
         }
-
-        gfx_BlitBuffer();
     }
 
     gfx_End();

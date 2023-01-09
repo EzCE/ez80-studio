@@ -20,7 +20,12 @@
 // Draw scrollbar
 void ui_DrawScrollbar(unsigned int x, uint8_t y, uint8_t boxHeight, unsigned int totalLines, unsigned int startLine, uint8_t linesPerPage) {
     if (totalLines) {
-        uint8_t scrollBarLength = (float)boxHeight / ((float)totalLines / (float)linesPerPage);
+        unsigned int scrollBarLength = (float)boxHeight / ((float)totalLines / (float)linesPerPage) + 1;
+        
+        if (scrollBarLength > boxHeight) {
+            scrollBarLength = boxHeight;
+        }
+
         uint8_t scrollOffset = (float)boxHeight / (float)totalLines * (float)startLine;
 
         gfx_SetColor(BACKGROUND);
@@ -53,6 +58,7 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     gfx_Rectangle_NoClip(255, 225, 2, 15);
 
     // Button text
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(18, 227);
     fontlib_DrawString("File");
     fontlib_SetCursorPosition(71, 227);
@@ -110,7 +116,7 @@ void ui_NoFile(void) {
 }
 
 // Print a line
-char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow) {
+char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line, bool updateRow) {
     fontlib_SetForegroundColor(TEXT_DEFAULT); // Syntax highlighting later
 
     uint8_t currentRow = *row; // We might not want to update *row
@@ -121,7 +127,7 @@ char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow
 
     uint8_t charsDrawn = 0;
 
-    while (*string != '\n' && *string != '\0') {
+    while (*string != '\n' && string != openEOF + 1) {
         if (*string == ';') { // Mind change this later when there's proper syntax highlighting for everything else
             fontlib_SetForegroundColor(TEXT_COMMENT);
         }
@@ -151,8 +157,12 @@ char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow
     return string;
 }
 
-void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive) {
-    gfx_SetColor(CURSOR);
+void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
+    if (erase) {
+        gfx_SetColor(BACKGROUND);
+    } else {
+        gfx_SetColor(CURSOR);
+    }
 
     gfx_FillRectangle_NoClip(0, 1 + row * 16, 310, 1); // Highlight currently selected row
     gfx_FillRectangle_NoClip(0, 14 + row * 16, 310, 1);
@@ -172,7 +182,7 @@ void ui_UpdateAllText(struct context *studioContext) {
     char *textStart = studioContext->pageDataStart;
 
     for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, &row, currentLine, true);
+        textStart = ui_PrintLine(textStart, studioContext->openEOF, &row, currentLine, true);
         currentLine++;
 
         if (currentLine > studioContext->newlineCount) {

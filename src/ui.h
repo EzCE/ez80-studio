@@ -35,7 +35,7 @@ void ui_NoFile(void);
 
 char *ui_PrintLine(char *string, uint8_t *row, unsigned int line, bool updateRow);
 
-void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive);
+void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase);
 
 void ui_UpdateAllText(struct context *studioContext);
 

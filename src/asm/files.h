@@ -12,11 +12,21 @@
 #ifndef FILES_H
 #define FILES_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 bool files_CountLines(char *fileName, unsigned int *newlineCount, unsigned int *lineCount);
+
+char *files_GetEOF(char *fileName);
+
+uint8_t files_GetLineLength(char *rowDataStart, char *openEOF);
+
+char *files_NextLine(char *currentLine);
+
+char *files_PreviousLine(char *currentLine);
 
 #ifdef __cplusplus
 }
