@@ -32,6 +32,7 @@ int main(void) {
     studioContext->fileName = NULL;
     studioContext->fileIsOpen = false;
     studioContext->lineStart = 0;
+    studioContext->newlineStart = 0;
     studioContext->totalLines = 0;
     studioContext->newlineCount = 0;
     studioContext->row = 0;

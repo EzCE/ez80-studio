@@ -116,14 +116,19 @@ void ui_NoFile(void) {
 }
 
 // Print a line
-char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line, bool updateRow) {
+char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line, unsigned int pageStart, bool updateRow) {
     fontlib_SetForegroundColor(TEXT_DEFAULT); // Syntax highlighting later
 
     uint8_t currentRow = *row; // We might not want to update *row
 
     fontlib_SetCursorPosition(0, 2 + currentRow * 16);
-    fontlib_DrawInt(line, 4);
-    fontlib_DrawString(": ");
+
+    if ((*(string - 1) == '\n') || !(pageStart)) {
+        fontlib_DrawInt(line, 4);
+        fontlib_DrawString(": ");
+    } else {
+        fontlib_ShiftCursorPosition(42, 0);
+    }
 
     uint8_t charsDrawn = 0;
 
@@ -132,7 +137,12 @@ char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line,
             fontlib_SetForegroundColor(TEXT_COMMENT);
         }
 
-        fontlib_DrawGlyph(*string);
+        if (*string == '\t') {
+            fontlib_ShiftCursorPosition(14, 0);
+            charsDrawn++; // A tab is equivalent to two instead of just one
+        } else {
+            fontlib_DrawGlyph(*string);
+        }
 
         charsDrawn++;
         string++;
@@ -178,11 +188,11 @@ void ui_UpdateAllText(struct context *studioContext) {
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(0, 0, 310, 223);
 
-    unsigned int currentLine = studioContext->lineStart + 1;
+    unsigned int currentLine = studioContext->newlineStart + 1;
     char *textStart = studioContext->pageDataStart;
 
     for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, studioContext->openEOF, &row, currentLine, true);
+        textStart = ui_PrintLine(textStart, studioContext->openEOF, &row, currentLine, studioContext->lineStart, true);
         currentLine++;
 
         if (currentLine > studioContext->newlineCount) {

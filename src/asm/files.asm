@@ -27,8 +27,13 @@ lineCount := lineCountPtr + 3 ; number of actual lines (includes word wrap)
 
 currentLineStart := lineCount + 3
 oldLineStart := currentLineStart + 3
+fileStart := oldLineStart + 3
 
 _files_CountLines:
+    push hl
+    ld hl, -1
+    ld (hl), 2
+    pop hl
     push ix
     ld ix, 0
     add ix, sp
@@ -72,7 +77,7 @@ _files_CountLines:
     inc de
     inc de
     ex de, hl
-    ld b, 39
+    ld b, 37
 
 .loop:
     push bc
@@ -88,6 +93,9 @@ _files_CountLines:
     jr z, .newlineChar
     inc hl
     djnz .loop
+    cp a, (hl) ; skip extra newline if line was exactly the max length
+    jr z, .newline
+    inc hl
     jr .newline
 
 .newlineChar:
@@ -100,7 +108,7 @@ _files_CountLines:
     inc de
     ld (lineCount), de
     inc hl
-    ld b, 0
+    ld b, 37
     jr .loop
 
 .return:
@@ -161,9 +169,15 @@ _files_GetLineLength:
     ld b, 38 ; max chars per line
 
 .loop:
-    ld a, $0A
+    ld a, $0A ; newline
     cp a, (hl)
     jr z, .return
+    ld a, $09 ; tab
+    cp a, (hl)
+    jr nz, .loopNext
+    inc c
+
+.loopNext:
     push bc
     push hl
     pop bc
@@ -186,7 +200,7 @@ _files_NextLine:
     add ix, sp
     ld hl, (ix + 6) ; current address
     pop ix
-    ld b, 37 ; max chars per line
+    ld b, 38 ; max chars per line
 
 .loop:
     ld a, $0A
@@ -194,6 +208,9 @@ _files_NextLine:
     jr z, .return
     inc hl
     djnz .loop
+    cp a, (hl) ; skip extra newline if line was exactly the max length
+    jr z, .return
+    dec hl
 
 .return:
     inc hl
@@ -203,10 +220,15 @@ _files_PreviousLine:
     push ix
     ld ix, 0
     add ix, sp
+    ld hl, (ix + 9) ; start of file
+    ld (fileStart), hl
     ld hl, (ix + 6) ; current address
     ld (oldLineStart), hl
     pop ix
     dec hl
+    ld a, $0A
+    cp a, (hl)
+    jr nz, .loopFindStart
     dec hl
 
 .loopFindStart:
@@ -215,13 +237,14 @@ _files_PreviousLine:
     jr z, .next
     ld a, $7A ; start of file header
     cp a, (hl)
+    call z, .checkFileStart
     jr z, .next
     dec hl
     jr .loopFindStart
 
 .next:
     inc hl ; skip newline
-    ld b, 37
+    ld b, 38
     ld (currentLineStart), hl
 
 .loop:
@@ -230,6 +253,11 @@ _files_PreviousLine:
     jr z, .return
     inc hl
     djnz .loop
+    cp a, (hl) ; skip extra newline if line was exactly the max length
+    jr z, .loopNext
+    dec hl
+
+.loopNext:
     inc hl
     push hl
     ex de, hl
@@ -239,11 +267,20 @@ _files_PreviousLine:
     pop hl
     jr z, .return
     ld (currentLineStart), hl
-    ld b, 37
+    ld b, 38
     jr .loop
 
 .return:
     ld hl, (currentLineStart)
+    ret
+
+.checkFileStart:
+    ex de, hl
+    ld hl, (fileStart)
+    dec hl
+    xor a, a
+    sbc hl, de
+    ex de, hl
     ret
 
 _checkEOF: ; bc = current address being read; destroys hl and a

@@ -18,10 +18,13 @@
 #include <keypadc.h>
 #include <sys/timers.h>
 
+#include <debug.h>
+
 static void edit_RedrawEditor(struct context *studioContext) {
     gfx_ZeroScreen();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_UpdateAllText(studioContext);
+    ui_DrawCursor(studioContext->row, studioContext->column, true, false);
 }
 
 void edit_OpenEditor(struct context *studioContext) {
@@ -51,14 +54,15 @@ void edit_OpenEditor(struct context *studioContext) {
             if (kb_IsDown(kb_KeyUp)) {
                 if (studioContext->row) {
                     studioContext->row--;
-                    studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart);
+                    studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart);
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                 } else if (studioContext->lineStart) {
                     redraw = true;
                     studioContext->lineStart--;
-                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart);
-                    studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart);
+                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart);
+                    studioContext->rowDataStart = studioContext->pageDataStart;
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                 } else {
                     studioContext->column = 0;
                 }
@@ -73,6 +77,7 @@ void edit_OpenEditor(struct context *studioContext) {
                     studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
                     studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                 } else {
                     studioContext->column = studioContext->rowLength;
                 }
@@ -84,16 +89,17 @@ void edit_OpenEditor(struct context *studioContext) {
                 } else {
                     if (studioContext->row) {
                         studioContext->row--;
-                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart);
+                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart);
                         studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                         studioContext->column = studioContext->rowLength;
                     } else if (studioContext->lineStart) {
                         redraw = true;
                         studioContext->lineStart--;
-                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart);
-                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart);
+                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart);
+                        studioContext->rowDataStart = studioContext->pageDataStart;
                         studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                         studioContext->column = studioContext->rowLength;
+                        studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                     }
                 }
             } else if (kb_IsDown(kb_KeyRight)) {
@@ -112,9 +118,12 @@ void edit_OpenEditor(struct context *studioContext) {
                         studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
                         studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                         studioContext->column = 0;
+                        studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                     }
                 }
             }
+
+            dbg_printf("%d, %d, %d\n", studioContext->lineStart, studioContext->totalLines, studioContext->newlineCount);
 
             if (studioContext->column > studioContext->rowLength) {
                 studioContext->column = studioContext->rowLength;
@@ -138,9 +147,6 @@ void edit_OpenEditor(struct context *studioContext) {
             cursorActive = !cursorActive;
             timer_Set(1, 0);
 
-            gfx_BlitBuffer();
-        } else if (keyPressed) {
-            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
             gfx_BlitBuffer();
         }
 

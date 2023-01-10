@@ -250,6 +250,7 @@ void menu_File(struct context *studioContext) {
                 studioContext->pageDataStart = ti_GetDataPtr(file);
                 studioContext->pageDataStart += 2;
                 studioContext->rowDataStart = studioContext->pageDataStart;
+                studioContext->fileDataStart = studioContext->rowDataStart;
                 studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 
                 files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));

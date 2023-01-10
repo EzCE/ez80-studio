@@ -26,7 +26,7 @@ uint8_t files_GetLineLength(char *rowDataStart, char *openEOF);
 
 char *files_NextLine(char *currentLine);
 
-char *files_PreviousLine(char *currentLine);
+char *files_PreviousLine(char *currentLine, char *fileDataStart);
 
 #ifdef __cplusplus
 }

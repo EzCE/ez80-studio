@@ -25,16 +25,18 @@ struct preferences {
 
 struct context {
     bool fileIsOpen;                // is a file currently opened?
+    char *fileDataStart;            // start of opened file's data
     char *pageDataStart;            // start of current page's data
     char *rowDataStart;             // start of current row's data
     char *fileName;                 // name of currently opened file
     char *openEOF;                  // pointer to end of file
     unsigned int newlineCount;      // number of newline characters
     unsigned int totalLines;        // number of total newlines (includes word-wrap)
-    unsigned int lineStart;         // line to start drawing the page on
+    unsigned int lineStart;         // current line (includes newlines)
+    unsigned int newlineStart;      // line to start drawing the page on
     unsigned int row;               // current row selected
-    uint8_t rowLength;              //
     uint8_t column;                 // current column selected
+    uint8_t rowLength;              // length of current row (in columns)
 };
 
 // Read preferences from the appvar, or set the default preferences if the appvar doesn't exist
