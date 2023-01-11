@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-bool files_CountLines(char *fileName, unsigned int *newlineCount, unsigned int *lineCount);
+void files_CountLines(char *fileName, unsigned int *newlineCount, unsigned int *lineCount);
 
 char *files_GetEOF(char *fileName);
 

@@ -27,7 +27,7 @@ kb_IsDown(kb_KeyZoom) || \
 kb_IsDown(kb_KeyTrace) || \
 kb_IsDown(kb_KeyGraph))
 
-void edit_OpenEditor(struct context *studioContext);
+void edit_OpenEditor(struct context *studioContext, struct preferences *studioPreferences);
 
 #ifdef __cplusplus
 }

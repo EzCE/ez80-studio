@@ -98,7 +98,7 @@ void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, ui
     fontlib_SetForegroundColor(TEXT_DEFAULT);
 
     for (unsigned int drawYOffset = 6; drawYOffset < 6 + optionCount * 17; drawYOffset += 17) {
-        fontlib_SetCursorPosition(4, y + drawYOffset);
+        fontlib_SetCursorPosition(x + 4 + (2 * (x > 0)), y + drawYOffset);
         fontlib_DrawString(va_arg(menuNames, char *));
     }
 
@@ -115,8 +115,20 @@ void ui_NoFile(void) {
     fontlib_DrawString("to get started.");
 }
 
+// Check if top line was a comment
+static void ui_CheckIsComment(char *dataStart, char *fileStart) {
+    while (dataStart != fileStart && *dataStart != '\n') {
+        if (*dataStart == ';') {
+            fontlib_SetForegroundColor(TEXT_COMMENT);
+            return; // No need to keep searching
+        }
+
+        dataStart--;
+    }
+}
+
 // Print a line
-char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line, unsigned int pageStart, bool updateRow) {
+char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, uint8_t *row, unsigned int line, unsigned int pageStart, bool updateRow) {
     fontlib_SetForegroundColor(TEXT_DEFAULT); // Syntax highlighting later
 
     uint8_t currentRow = *row; // We might not want to update *row
@@ -130,6 +142,10 @@ char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line,
         fontlib_ShiftCursorPosition(42, 0);
     }
 
+    if (!(*row)) { // Ensure wrapped comments are properly highlighted
+        ui_CheckIsComment(string, fileDataStart);
+    }
+
     uint8_t charsDrawn = 0;
 
     while (*string != '\n' && string != openEOF + 1) {
@@ -137,12 +153,7 @@ char *ui_PrintLine(char *string, char *openEOF, uint8_t *row, unsigned int line,
             fontlib_SetForegroundColor(TEXT_COMMENT);
         }
 
-        if (*string == '\t') {
-            fontlib_ShiftCursorPosition(14, 0);
-            charsDrawn++; // A tab is equivalent to two instead of just one
-        } else {
-            fontlib_DrawGlyph(*string);
-        }
+        fontlib_DrawGlyph(*string);
 
         charsDrawn++;
         string++;
@@ -192,7 +203,7 @@ void ui_UpdateAllText(struct context *studioContext) {
     char *textStart = studioContext->pageDataStart;
 
     for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, studioContext->openEOF, &row, currentLine, studioContext->lineStart, true);
+        textStart = ui_PrintLine(textStart, studioContext->fileDataStart, studioContext->openEOF, &row, currentLine, studioContext->lineStart, true);
         currentLine++;
 
         if (currentLine > studioContext->newlineCount) {

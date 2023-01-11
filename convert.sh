@@ -33,6 +33,12 @@ sed -i 's/\r\n/\n/g' temp_$INPUT_FILE # Get rid of windows garbage (Hopefully no
 
 echo "Newlines converted succesfully."
 
+echo "Converting tabs..."
+
+sed -i 's/\t/  /g' temp_$INPUT_FILE
+
+echo "Tabs converted succesfully."
+
 echo "Converting to AppVar format..."
 
 convbin -j bin -k 8xv -i temp_$INPUT_FILE -o $OUTPUT_FILE.8xv -n $OUTPUT_FILE

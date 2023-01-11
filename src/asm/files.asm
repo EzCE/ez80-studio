@@ -29,11 +29,7 @@ currentLineStart := lineCount + 3
 oldLineStart := currentLineStart + 3
 fileStart := oldLineStart + 3
 
-_files_CountLines:
-    push hl
-    ld hl, -1
-    ld (hl), 2
-    pop hl
+_files_CountLines: ; I give up on this so Rocco can just fix it xD
     push ix
     ld ix, 0
     add ix, sp
@@ -172,10 +168,6 @@ _files_GetLineLength:
     ld a, $0A ; newline
     cp a, (hl)
     jr z, .return
-    ld a, $09 ; tab
-    cp a, (hl)
-    jr nz, .loopNext
-    inc c
 
 .loopNext:
     push bc

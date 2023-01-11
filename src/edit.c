@@ -12,13 +12,12 @@
 #include "edit.h"
 #include "utility.h"
 #include "ui.h"
+#include "menu.h"
 #include "asm/files.h"
 
 #include <graphx.h>
 #include <keypadc.h>
 #include <sys/timers.h>
-
-#include <debug.h>
 
 static void edit_RedrawEditor(struct context *studioContext) {
     gfx_ZeroScreen();
@@ -27,7 +26,7 @@ static void edit_RedrawEditor(struct context *studioContext) {
     ui_DrawCursor(studioContext->row, studioContext->column, true, false);
 }
 
-void edit_OpenEditor(struct context *studioContext) {
+void edit_OpenEditor(struct context *studioContext, struct preferences *studioPreferences) {
     bool keyPressed = false;
     bool cursorActive = true;
     bool redraw = false;
@@ -123,8 +122,6 @@ void edit_OpenEditor(struct context *studioContext) {
                 }
             }
 
-            dbg_printf("%d, %d, %d\n", studioContext->lineStart, studioContext->totalLines, studioContext->newlineCount);
-
             if (studioContext->column > studioContext->rowLength) {
                 studioContext->column = studioContext->rowLength;
             }
@@ -139,6 +136,27 @@ void edit_OpenEditor(struct context *studioContext) {
             }
 
             keyPressed = true;
+            timer_Set(1, 0);
+        }
+
+        if (MENU_BUTTONS) {
+            if (kb_IsDown(kb_KeyYequ)) {
+                menu_File(studioContext);
+                redraw = true;
+            } else if (kb_IsDown(kb_KeyWindow)) {
+                menu_Compile(studioContext);
+                redraw = true;
+            } else if (kb_IsDown(kb_KeyZoom)) {
+                menu_Labels(studioContext);
+                redraw = true;
+            } else if (kb_IsDown(kb_KeyTrace)) {
+                menu_Chars(studioContext);
+                redraw = true;
+            } else if (kb_IsDown(kb_KeyGraph)) {
+                menu_Settings(studioContext, studioPreferences);
+                redraw = true;
+            }
+
             timer_Set(1, 0);
         }
 

@@ -31,12 +31,11 @@ int main(void) {
 
     studioContext->fileName = NULL;
     studioContext->fileIsOpen = false;
-    studioContext->lineStart = 0;
+
+    studioContext->lineStart = 0; // The scrollbar will be weird if we don't do this
     studioContext->newlineStart = 0;
     studioContext->totalLines = 0;
     studioContext->newlineCount = 0;
-    studioContext->row = 0;
-    studioContext->column = 0;
 
     bool redraw = true;
 
@@ -80,7 +79,7 @@ int main(void) {
         }
 
         if (studioContext->fileIsOpen) {
-            edit_OpenEditor(studioContext);
+            edit_OpenEditor(studioContext, studioPreferences);
         }
 
         if (redraw) {

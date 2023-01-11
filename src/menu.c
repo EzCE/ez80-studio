@@ -247,6 +247,11 @@ void menu_File(struct context *studioContext) {
 
                 uint8_t file = ti_Open(studioContext->fileName, "r");
 
+                studioContext->lineStart = 0;
+                studioContext->newlineStart = 0;
+                studioContext->row = 0;
+                studioContext->column = 0;
+
                 studioContext->pageDataStart = ti_GetDataPtr(file);
                 studioContext->pageDataStart += 2;
                 studioContext->rowDataStart = studioContext->pageDataStart;
