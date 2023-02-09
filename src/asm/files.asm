@@ -20,29 +20,16 @@ include 'include/ti84pceg.inc'
     public _files_PreviousLine
 
 EOF := ti.appData
-newlineCountPtr := EOF + 3
-newlineCount := newlineCountPtr + 3 ; number of newline characters
-lineCountPtr := newlineCount + 3
-lineCount := lineCountPtr + 3 ; number of actual lines (includes word wrap)
 
-currentLineStart := lineCount + 3
+currentLineStart := EOF + 3
 oldLineStart := currentLineStart + 3
 fileStart := oldLineStart + 3
 
-_files_CountLines: ; I give up on this so Rocco can just fix it xD
-    push ix
-    ld ix, 0
-    add ix, sp
-    ld hl, (ix + 6) ; name of file
-    ld de, (ix + 9) ; pointer to int containing number of newline characters
-    ld bc, (ix + 12) ; pointer to int containing number of total lines
-    pop ix
-    ld (newlineCountPtr), de
-    ld (lineCountPtr), bc
-    ex de, hl
-    ld hl, 1
-    ld (newlineCount), hl
-    ld (lineCount), hl
+_files_CountLines:
+    ld iy, 0
+    add iy, sp
+    ld de, (iy + 3) ; name of file
+    push iy ; save this for later
     ld hl, ti.OP1
     ld (hl), ti.AppVarObj
     inc hl
@@ -50,7 +37,6 @@ _files_CountLines: ; I give up on this so Rocco can just fix it xD
     ex de, hl
     ldir ; move name to OP1
     call ti.ChkFindSym
-    ret c
     call ti.ChkInRam
     jr z, .inRam
     ld hl, 10
@@ -73,47 +59,50 @@ _files_CountLines: ; I give up on this so Rocco can just fix it xD
     inc de
     inc de
     ex de, hl
-    ld b, 37
+    ld de, 1 ; line count
+    ld bc, 1 ; newline count
+    ld iyl, 1 ; character count
 
 .loop:
     push bc
     push hl
+    push hl
     pop bc
     call _checkEOF
-    jr z, .return
-    push bc
     pop hl
+    pop bc
+    jr z, .return
     ld a, $0A
     cp a, (hl)
-    pop bc
-    jr z, .newlineChar
+    jr z, .hitNewline
+    ld a, 38
+    cp a, iyl
+    jr z, .hitMaxChars
+    inc iyl
     inc hl
-    djnz .loop
-    cp a, (hl) ; skip extra newline if line was exactly the max length
-    jr z, .newline
-    inc hl
-    jr .newline
+    jr .loop
 
-.newlineChar:
-    ld de, (newlineCount)
-    inc de
-    ld (newlineCount), de
-
-.newline:
-    ld de, (lineCount)
-    inc de
-    ld (lineCount), de
+.hitMaxChars:
     inc hl
-    ld b, 37
+    ld a, $0A
+    cp a, (hl)
+    jr z, .hitNewline
+    ld iyl, 1
+    inc de
+    jr .loop
+
+.hitNewline:
+    inc bc
+    inc de
+    ld iyl, 1
+    inc hl
     jr .loop
 
 .return:
-    pop bc
-    ld hl, (newlineCountPtr)
-    ld de, (newlineCount)
-    ld (hl), de
-    ld hl, (lineCountPtr)
-    ld de, (lineCount)
+    pop iy
+    ld hl, (iy + 6)
+    ld (hl), bc
+    ld hl, (iy + 9)
     ld (hl), de
     ret
 
@@ -281,7 +270,6 @@ _checkEOF: ; bc = current address being read; destroys hl and a
     or a, a
     sbc hl, bc
     ret nc
-    dec de
     cp a, a
     ret
 
