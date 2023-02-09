@@ -19,19 +19,19 @@ extern "C" {
 #endif
 
 // File options menu
-void menu_File(struct context *studioContext);
+void menu_File(struct context_t *studioContext);
 
 // Compile code
-void menu_Compile(struct context *studioContext);
+void menu_Compile(struct context_t *studioContext);
 
-// Jump to labels
-void menu_Labels(struct context *studioContext);
+// Jump to specific line
+void menu_Goto(struct context_t *studioContext);
 
 // Special characters menu
-void menu_Chars(struct context *studioContext);
+void menu_Chars(struct context_t *studioContext);
 
 // Settings/preferences
-void menu_Settings(struct context *studioContext, struct preferences *studioPreferences);
+void menu_Settings(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 #ifdef __cplusplus
 }

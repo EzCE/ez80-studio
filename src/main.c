@@ -26,8 +26,8 @@
 #include <sys/timers.h>
 
 int main(void) {
-    struct preferences *studioPreferences = malloc(sizeof(struct preferences));
-    struct context *studioContext = malloc(sizeof(struct context));
+    struct preferences_t *studioPreferences = malloc(sizeof(struct preferences_t));
+    struct context_t *studioContext = malloc(sizeof(struct context_t));
 
     studioContext->fileName = NULL;
     studioContext->fileIsOpen = false;
@@ -68,7 +68,7 @@ int main(void) {
             menu_Compile(studioContext);
             redraw = true;
         } else if (kb_IsDown(kb_KeyZoom)) {
-            menu_Labels(studioContext);
+            menu_Goto(studioContext);
             redraw = true;
         } else if (kb_IsDown(kb_KeyTrace)) {
             menu_Chars(studioContext);

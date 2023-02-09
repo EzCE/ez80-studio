@@ -19,11 +19,12 @@
 extern "C" {
 #endif
 
-struct preferences {
+struct preferences_t {
     bool theme;
+    bool highlighting;
 };
 
-struct context {
+struct context_t {
     bool fileIsOpen;                // is a file currently opened?
     char *fileDataStart;            // start of opened file's data
     char *pageDataStart;            // start of current page's data
@@ -40,12 +41,14 @@ struct context {
 };
 
 // Read preferences from the appvar, or set the default preferences if the appvar doesn't exist
-void util_ReadPrefs(struct preferences *studioPreferences);
+void util_ReadPrefs(struct preferences_t *studioPreferences);
 
 // Write the preferences to the appvar
-void util_WritePrefs(struct preferences *studioPreferences);
+void util_WritePrefs(struct preferences_t *studioPreferences);
 
 char *util_GetFiles(unsigned int *fileCount);
+
+char *util_GetStringEnd(char *string, char *openEOF);
 
 #ifdef __cplusplus
 }

@@ -11,6 +11,7 @@
 
 #include "defines.h"
 #include "utility.h"
+#include "highlight.h"
 
 #include <graphx.h>
 #include <stdint.h>
@@ -63,8 +64,10 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     fontlib_DrawString("File");
     fontlib_SetCursorPosition(71, 227);
     fontlib_DrawString("Compile");
-    fontlib_SetCursorPosition(139, 227);
-    fontlib_DrawString("Labels");
+    fontlib_SetCursorPosition(130, 227);
+    fontlib_DrawString("Goto");
+    fontlib_ShiftCursorPosition(4, 0); // Do this because a space won't fit
+    fontlib_DrawString("Line");
     fontlib_SetCursorPosition(206, 227);
     fontlib_DrawString("Chars");
     fontlib_SetCursorPosition(260, 227);
@@ -92,6 +95,10 @@ void ui_DrawMenuBox(unsigned int x, uint8_t y, uint8_t width, uint8_t height, ui
         gfx_FillRectangle_NoClip(x + width - 2, y + 2, 2, height - 2);
     }
 
+    if (y + height < 223) {
+        gfx_FillRectangle_NoClip(x, y + height - 2, width, 2);
+    }
+
     va_list menuNames;
     va_start(menuNames, optionCount);
 
@@ -116,41 +123,55 @@ void ui_NoFile(void) {
 }
 
 // Check if top line was a comment
-static void ui_CheckIsComment(char *dataStart, char *fileStart) {
+static bool ui_CheckIsComment(char *dataStart, char *fileStart) {
     while (dataStart != fileStart && *dataStart != '\n') {
         if (*dataStart == ';') {
-            fontlib_SetForegroundColor(TEXT_COMMENT);
-            return; // No need to keep searching
+            return true; // No need to keep searching
         }
 
         dataStart--;
     }
+
+    return false;
 }
 
 // Print a line
-char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, uint8_t *row, unsigned int line, unsigned int pageStart, bool updateRow) {
-    fontlib_SetForegroundColor(TEXT_DEFAULT); // Syntax highlighting later
-
+static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool highlighting, uint8_t *row, unsigned int line, unsigned int pageStart, bool updateRow) {
     uint8_t currentRow = *row; // We might not want to update *row
+    char *stringEnd = util_GetStringEnd(string, openEOF);
 
     fontlib_SetCursorPosition(0, 2 + currentRow * 16);
 
     if ((*(string - 1) == '\n') || !(pageStart)) {
+        fontlib_SetForegroundColor(TEXT_DEFAULT);
         fontlib_DrawInt(line, 4);
         fontlib_DrawString(": ");
     } else {
         fontlib_ShiftCursorPosition(42, 0);
     }
 
+    bool comment = false;
+
     if (!(*row)) { // Ensure wrapped comments are properly highlighted
-        ui_CheckIsComment(string, fileDataStart);
+        if (highlighting && ui_CheckIsComment(string, fileDataStart)) {
+            fontlib_SetForegroundColor(TEXT_COMMENT);
+            comment = true;
+        } else {
+            fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+        }
+    } else {
+        fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
     }
 
     uint8_t charsDrawn = 0;
 
     while (*string != '\n' && string != openEOF + 1) {
-        if (*string == ';') { // Mind change this later when there's proper syntax highlighting for everything else
+        if (highlighting && *string == ';') {
             fontlib_SetForegroundColor(TEXT_COMMENT);
+            comment = true;
+        } else if (string == stringEnd && !comment) {
+            stringEnd = util_GetStringEnd(string, openEOF);
+            fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
         }
 
         fontlib_DrawGlyph(*string);
@@ -195,7 +216,7 @@ void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
     gfx_FillRectangle_NoClip(41 + column * 7, 3 + row * 16, 2, 10); // Cursor
 }
 
-void ui_UpdateAllText(struct context *studioContext) {
+void ui_UpdateAllText(struct context_t *studioContext, struct preferences_t *studioPreferences) {
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(0, 0, 310, 223);
 
@@ -203,7 +224,7 @@ void ui_UpdateAllText(struct context *studioContext) {
     char *textStart = studioContext->pageDataStart;
 
     for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, studioContext->fileDataStart, studioContext->openEOF, &row, currentLine, studioContext->lineStart, true);
+        textStart = ui_PrintLine(textStart, studioContext->fileDataStart, studioContext->openEOF, studioPreferences->highlighting, &row, currentLine, studioContext->lineStart, true);
         currentLine++;
 
         if (currentLine > studioContext->newlineCount) {

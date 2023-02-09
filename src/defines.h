@@ -22,7 +22,7 @@ extern "C" {
 
 #define SOURCE_HEADER       "\xEF\x7A"
 
-// Palette entries
+// Palette entries (Also used for token types because why not, they're already here)
 
 #define BACKGROUND          0
 #define OUTLINE             1

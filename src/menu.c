@@ -14,6 +14,7 @@
 #include "utility.h"
 #include "ui.h"
 #include "asm/files.h"
+#include "gfx/gfx.h"
 
 #include <graphx.h>
 #include <fontlibc.h>
@@ -22,6 +23,33 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/timers.h>
+
+static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsigned int width, uint8_t height, char *option1, char *option2) {
+    gfx_SetDrawScreen(); // Easier to get rid of this way
+    ui_DrawMenuBox(x, y, width, height, 0, 2, option1, option2);
+
+    bool optionSelected = false;
+
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyEnter) && !kb_IsDown(kb_Key2nd) && !kb_IsDown(kb_KeyLeft)) {
+        kb_Scan();
+
+        if (kb_IsDown(kb_KeyUp) || kb_IsDown(kb_KeyDown)) {
+            optionSelected = !optionSelected;
+            ui_DrawMenuBox(x, y, width, height, optionSelected, 2, option1, option2);
+            while (kb_AnyKey());
+        }
+    }
+
+    if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
+        while (kb_AnyKey());
+        *initialOption = !optionSelected; // Not sure why it had to be ! but who knows
+        gfx_SetDrawBuffer();
+        return true; // Something was changed
+    }
+
+    gfx_SetDrawBuffer();
+    return false; // Something was not changed
+}
 
 static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsigned int fileCount, unsigned int fileStartLoc, uint8_t fileSelected, uint8_t rowsPerScreen, uint8_t boxY, uint8_t boxHeight) {
     gfx_SetColor(BACKGROUND);
@@ -49,7 +77,7 @@ static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsign
     ui_DrawScrollbar(216, boxY + 16, boxHeight - 18, totalLines, fileStartLoc / 2, rowsPerScreen);
 }
 
-static char *menu_FileOpen(char *fileNames, unsigned int fileCount) {
+static void menu_FileOpen(struct context_t *studioContext, char *fileNames, unsigned int fileCount) {
     while (kb_AnyKey());
 
     unsigned int rowsPerScreen = (fileCount + 1) / 2;
@@ -164,18 +192,40 @@ static char *menu_FileOpen(char *fileNames, unsigned int fileCount) {
         }
     }
 
-    char *fileOpened = malloc(9);
-
-    if (kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) {
-        strcpy(fileOpened, &fileNames[(fileStartLoc + fileSelected) * 9]);
+    if (kb_IsDown(kb_KeyClear)) {
+        while (kb_AnyKey());
+        free(fileNames);
+        return; // Return early
     }
 
-    free(fileNames);
+    free(studioContext->fileName);
+    char *fileOpened = malloc(9);
 
-    return fileOpened;
+    strcpy(fileOpened, &fileNames[(fileStartLoc + fileSelected) * 9]);
+    studioContext->fileName = fileOpened;
+    studioContext->fileIsOpen = true;
+
+    uint8_t file = ti_Open(studioContext->fileName, "r");
+
+    studioContext->lineStart = 0;
+    studioContext->newlineStart = 0;
+    studioContext->row = 0;
+    studioContext->column = 0;
+
+    studioContext->pageDataStart = ti_GetDataPtr(file);
+    studioContext->pageDataStart += 2;
+    studioContext->rowDataStart = studioContext->pageDataStart;
+    studioContext->fileDataStart = studioContext->rowDataStart;
+    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+
+    files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
+    studioContext->openEOF = files_GetEOF(studioContext->fileName);
+
+    ti_Close(file);
+    free(fileNames);
 }
 
-void menu_File(struct context *studioContext) {
+void menu_File(struct context_t *studioContext) {
     ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
     gfx_SwapDraw();
 
@@ -239,27 +289,9 @@ void menu_File(struct context *studioContext) {
             case 0: // New file
                 break;
             case 1: { // Open file
-                free(studioContext->fileName);
                 unsigned int fileCount = 0;
                 char *fileNames = util_GetFiles(&fileCount);
-                studioContext->fileName = menu_FileOpen(fileNames, fileCount);
-                studioContext->fileIsOpen = true;
-
-                uint8_t file = ti_Open(studioContext->fileName, "r");
-
-                studioContext->lineStart = 0;
-                studioContext->newlineStart = 0;
-                studioContext->row = 0;
-                studioContext->column = 0;
-
-                studioContext->pageDataStart = ti_GetDataPtr(file);
-                studioContext->pageDataStart += 2;
-                studioContext->rowDataStart = studioContext->pageDataStart;
-                studioContext->fileDataStart = studioContext->rowDataStart;
-                studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-
-                files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
-                studioContext->openEOF = files_GetEOF(studioContext->fileName);
+                menu_FileOpen(studioContext, fileNames, fileCount);
                 break;
             }
             case 2: // Save file
@@ -270,7 +302,7 @@ void menu_File(struct context *studioContext) {
     }
 }
 
-void menu_Compile(struct context *studioContext) {
+void menu_Compile(struct context_t *studioContext) {
     ui_DrawUIMain(2, studioContext->totalLines, studioContext->lineStart);
     gfx_SwapDraw();
 
@@ -279,16 +311,38 @@ void menu_Compile(struct context *studioContext) {
     // Do more here later!
 }
 
-void menu_Labels(struct context *studioContext) {
+void menu_Goto(struct context_t *studioContext) {
     ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
     gfx_SwapDraw();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    // Do more here later!
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(101, 207, 71, 16);
+    gfx_Rectangle_NoClip(172, 207, 36, 18);
+    gfx_Rectangle_NoClip(173, 208, 34, 16);
+
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(174, 209, 32, 14);
+
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_SetCursorPosition(104, 210);
+    fontlib_DrawString("Goto Line:");
+    gfx_BlitBuffer();
+
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyZoom)) {
+        kb_Scan();
+    }
+
+    if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
+        ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
+        gfx_BlitBuffer();
+
+        while (kb_AnyKey());
+    }
 }
 
-void menu_Chars(struct context *studioContext) {
+void menu_Chars(struct context_t *studioContext) {
     ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
     gfx_SwapDraw();
 
@@ -297,13 +351,54 @@ void menu_Chars(struct context *studioContext) {
     // Do more here later!
 }
 
-void menu_Settings(struct context *studioContext, struct preferences *studioPreferences) {
+static void menu_About(void) {
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(86, 72, 138, 92);
+
+    gfx_SetColor(OUTLINE);
+    gfx_Rectangle_NoClip(84, 56, 142, 110);
+    gfx_Rectangle_NoClip(85, 57, 140, 108);
+    gfx_FillRectangle_NoClip(86, 58, 138, 14);
+
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_SetCursorPosition(138, 58);
+    fontlib_DrawString("About");
+
+    fontlib_SetCursorPosition(87, 73);
+    fontlib_DrawString("ez80 Studio");
+    fontlib_SetCursorPosition(87, 85);
+    fontlib_DrawString("Version: "VERSION_NO);
+
+    gfx_HorizLine_NoClip(87, 98, 136);
+
+    fontlib_SetCursorPosition(87, 100);
+    fontlib_DrawString("An ez80 IDE for TI");
+    fontlib_SetCursorPosition(87, 112);
+    fontlib_DrawString("ez80 calculators.");
+
+    gfx_HorizLine_NoClip(87, 125, 136);
+
+    fontlib_SetCursorPosition(87, 127);
+    fontlib_DrawString("\xA9 2023");
+    fontlib_SetCursorPosition(87, 139);
+    fontlib_DrawString("RoccoLox Programs,");
+    fontlib_SetCursorPosition(87, 151);
+    fontlib_DrawString("TIny_Hacker.");
+
+    gfx_BlitBuffer();
+
+    while (kb_AnyKey());
+
+    while (!kb_AnyKey());
+}
+
+void menu_Settings(struct context_t *studioContext, struct preferences_t *studioPreferences) {
     ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
     gfx_SwapDraw();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    ui_DrawMenuBox(255, 202, 55, 21, 0, 1, "Themes");
+    ui_DrawMenuBox(203, 168, 107, 55, 0, 3, "Themes       \xBB", "Highlighting \xBB", "About"); // \xBB is a right arrow icon
 
     gfx_BlitBuffer(); // Since we saved the "unpressed" button, we bring it back now that it isn't pressed anymore, with the menu
 
@@ -313,7 +408,7 @@ void menu_Settings(struct context *studioContext, struct preferences *studioPref
     timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
     timer_Set(1, 0);
 
-    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyGraph) && !kb_IsDown(kb_Key2nd) && !kb_IsDown(kb_KeyEnter)) {
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyGraph)) {
         kb_Scan();
 
         if (!kb_AnyKey()) {
@@ -321,22 +416,53 @@ void menu_Settings(struct context *studioContext, struct preferences *studioPref
             timer_Set(1, 0);
         }
 
-        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000)) {
+        if ((kb_Data[7] || kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) && (!keyPressed || timer_Get(1) > 3000)) {
             if (kb_IsDown(kb_KeyUp)) {
                 if (option == 0) { // Loop the cursor
-                    option = 0;
+                    option = 2;
                 } else {
                     option -= 1;
                 }
             } else if (kb_IsDown(kb_KeyDown)) {
-                if (option == 0) { // Loop the cursor
+                if (option == 2) { // Loop the cursor
                     option = 0;
                 } else {
                     option += 1;
                 }
             }
 
-            ui_DrawMenuBox(255, 202, 55, 21, option, 1, "Themes");
+            if (kb_IsDown(kb_KeyRight) || kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) {
+                switch (option) {
+                    case 0: // Themes
+                        if (menu_MiniMenu(&(studioPreferences->theme), 158, 151, 47, 40, "Dark", "Light")) {
+
+                            if (studioPreferences->theme) {
+                                gfx_SetPalette(darkPalette, sizeof_darkPalette, 0);
+                            } else {
+                                gfx_SetPalette(lightPalette, sizeof_lightPalette, 0);
+                            }
+
+                            return; // Exit menu entirely
+                        }
+
+                        break;
+                    case 1: // Highlighting
+                        if (menu_MiniMenu(&(studioPreferences->highlighting), 172, 168, 33, 40, "On", "Off")) {
+                            return;
+                        }
+
+                        break;
+                    case 2: // About
+                        if (!kb_IsDown(kb_KeyRight)) { // Don't open with the right arrow like the other menus
+                            menu_About();
+                            return;
+                        }
+
+                        break;
+                }
+            }
+
+            ui_DrawMenuBox(203, 168, 107, 55, option, 3, "Themes       \xBB", "Highlighting \xBB", "About");
 
             gfx_BlitBuffer();
 

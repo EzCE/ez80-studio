@@ -19,14 +19,14 @@
 #include <keypadc.h>
 #include <sys/timers.h>
 
-static void edit_RedrawEditor(struct context *studioContext) {
+static void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *studioPreferences) {
     gfx_ZeroScreen();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
-    ui_UpdateAllText(studioContext);
+    ui_UpdateAllText(studioContext, studioPreferences);
     ui_DrawCursor(studioContext->row, studioContext->column, true, false);
 }
 
-void edit_OpenEditor(struct context *studioContext, struct preferences *studioPreferences) {
+void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *studioPreferences) {
     bool keyPressed = false;
     bool cursorActive = true;
     bool redraw = false;
@@ -34,7 +34,7 @@ void edit_OpenEditor(struct context *studioContext, struct preferences *studioPr
     timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
     timer_Set(1, 0);
 
-    edit_RedrawEditor(studioContext);
+    edit_RedrawEditor(studioContext, studioPreferences);
     gfx_BlitBuffer();
 
     while (!kb_IsDown(kb_KeyClear)) {
@@ -139,7 +139,12 @@ void edit_OpenEditor(struct context *studioContext, struct preferences *studioPr
             timer_Set(1, 0);
         }
 
-        if (MENU_BUTTONS) {
+        if (kb_IsDown(kb_KeyYequ) ||
+            kb_IsDown(kb_KeyWindow) ||
+            kb_IsDown(kb_KeyZoom) ||
+            kb_IsDown(kb_KeyTrace) ||
+            kb_IsDown(kb_KeyGraph)) {
+
             if (kb_IsDown(kb_KeyYequ)) {
                 menu_File(studioContext);
                 redraw = true;
@@ -147,7 +152,7 @@ void edit_OpenEditor(struct context *studioContext, struct preferences *studioPr
                 menu_Compile(studioContext);
                 redraw = true;
             } else if (kb_IsDown(kb_KeyZoom)) {
-                menu_Labels(studioContext);
+                menu_Goto(studioContext);
                 redraw = true;
             } else if (kb_IsDown(kb_KeyTrace)) {
                 menu_Chars(studioContext);
@@ -170,7 +175,7 @@ void edit_OpenEditor(struct context *studioContext, struct preferences *studioPr
 
         if (redraw) {
             redraw = false;
-            edit_RedrawEditor(studioContext);
+            edit_RedrawEditor(studioContext, studioPreferences);
             gfx_BlitBuffer();
         }
     }

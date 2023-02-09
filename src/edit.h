@@ -20,14 +20,7 @@
 extern "C" {
 #endif
 
-#define MENU_BUTTONS (\
-kb_IsDown(kb_KeyYequ) || \
-kb_IsDown(kb_KeyWindow) || \
-kb_IsDown(kb_KeyZoom) || \
-kb_IsDown(kb_KeyTrace) || \
-kb_IsDown(kb_KeyGraph))
-
-void edit_OpenEditor(struct context *studioContext, struct preferences *studioPreferences);
+void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 #ifdef __cplusplus
 }
