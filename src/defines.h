@@ -40,6 +40,12 @@ extern "C" {
 #define LIGHT_THEME         true
 #define DARK_THEME          false
 
+// Input modes
+
+#define INPUT_NUMBERS       0
+#define INPUT_UPPERCASE     1
+#define INPUT_LOWERCASE     2
+
 #ifdef __cplusplus
 }
 #endif

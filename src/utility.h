@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <keypadc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +50,10 @@ void util_WritePrefs(struct preferences_t *studioPreferences);
 char *util_GetFiles(unsigned int *fileCount);
 
 char *util_GetStringEnd(char *string, char *openEOF);
+
+char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8_t inputMode, kb_lkey_t exitKey);
+
+uint8_t util_GetSingleKeyPress(void);
 
 #ifdef __cplusplus
 }

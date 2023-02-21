@@ -330,9 +330,7 @@ void menu_Goto(struct context_t *studioContext) {
     fontlib_DrawString("Goto Line:");
     gfx_BlitBuffer();
 
-    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyZoom)) {
-        kb_Scan();
-    }
+    util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
 
     if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
         ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
