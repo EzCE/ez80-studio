@@ -125,7 +125,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
     fontlib_SetForegroundColor(TEXT_DEFAULT);
 
-    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(exitKey)) {
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_Key2nd) && !kb_IsDown(kb_KeyEnter) && !kb_IsDown(exitKey)) {
         kb_Scan();
 
         if (!kb_AnyKey() && keyPressed) {
@@ -247,7 +247,16 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
         }
     }
 
-    return input;
+    if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
+        return input;
+    }
+
+    if (kb_IsDown(kb_KeyClear)) {
+        while (kb_AnyKey());
+    }
+
+    free(input);
+    return NULL;
 }
 
 // code by jacobly from here:

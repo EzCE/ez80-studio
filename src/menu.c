@@ -52,29 +52,42 @@ static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsign
 }
 
 static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsigned int fileCount, unsigned int fileStartLoc, uint8_t fileSelected, uint8_t rowsPerScreen, uint8_t boxY, uint8_t boxHeight) {
-    gfx_SetColor(BACKGROUND);
-    gfx_FillRectangle_NoClip(86, boxY + 16, 128, boxHeight - 18);
+    if (!fileCount) {
+        gfx_SetColor(BACKGROUND);
+        gfx_FillRectangle_NoClip(86, 117, 138, 18);
 
-    gfx_SetColor(OUTLINE);
-    gfx_FillRectangle_NoClip(87 + fileSelected % 2 * 64, boxY + 17 + fileSelected / 2 * 17, 62, 16); // Cursor over selected item in menu
+        gfx_SetColor(OUTLINE);
+        gfx_Rectangle_NoClip(84, 115, 142, 22);
+        gfx_Rectangle_NoClip(85, 116, 140, 20);
 
-    unsigned int fileNameDrawing = fileStartLoc * 9; 
+        fontlib_SetForegroundColor(TEXT_DEFAULT);
+        fontlib_SetCursorPosition(106, 120);
+        fontlib_DrawString("No files found");
+    } else {
+        gfx_SetColor(BACKGROUND);
+        gfx_FillRectangle_NoClip(86, boxY + 16, 128, boxHeight - 18);
 
-    for (uint8_t drawRow = 0; drawRow < rowsPerScreen; drawRow++) {
-        fontlib_SetCursorPosition(90, boxY + 19 + drawRow * 17);
-        fontlib_DrawString(&fileNames[fileNameDrawing]);
-        fileNameDrawing += 9;
+        gfx_SetColor(OUTLINE);
+        gfx_FillRectangle_NoClip(87 + fileSelected % 2 * 64, boxY + 17 + fileSelected / 2 * 17, 62, 16); // Cursor over selected item in menu
 
-        if (fileNameDrawing == fileCount * 9) {
-            break;
+        unsigned int fileNameDrawing = fileStartLoc * 9; 
+
+        for (uint8_t drawRow = 0; drawRow < rowsPerScreen; drawRow++) {
+            fontlib_SetCursorPosition(90, boxY + 19 + drawRow * 17);
+            fontlib_DrawString(&fileNames[fileNameDrawing]);
+            fileNameDrawing += 9;
+
+            if (fileNameDrawing == fileCount * 9) {
+                break;
+            }
+
+            fontlib_SetCursorPosition(154, boxY + 19 + drawRow * 17);
+            fontlib_DrawString(&fileNames[fileNameDrawing]);
+            fileNameDrawing += 9;
         }
 
-        fontlib_SetCursorPosition(154, boxY + 19 + drawRow * 17);
-        fontlib_DrawString(&fileNames[fileNameDrawing]);
-        fileNameDrawing += 9;
+        ui_DrawScrollbar(216, boxY + 16, boxHeight - 18, totalLines, fileStartLoc / 2, rowsPerScreen);
     }
-
-    ui_DrawScrollbar(216, boxY + 16, boxHeight - 18, totalLines, fileStartLoc / 2, rowsPerScreen);
 }
 
 static void menu_FileOpen(struct context_t *studioContext, char *fileNames, unsigned int fileCount) {
@@ -118,7 +131,7 @@ static void menu_FileOpen(struct context_t *studioContext, char *fileNames, unsi
             timer_Set(1, 0);
         }
 
-        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000)) {
+        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000) && fileCount) {
             if (kb_IsDown(kb_KeyUp)) {
                 if (fileSelected < 2) {
                     if (fileStartLoc) {
