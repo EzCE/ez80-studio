@@ -14,6 +14,7 @@
 #include "utility.h"
 #include "ui.h"
 #include "asm/files.h"
+#include "asm/misc.h"
 #include "gfx/gfx.h"
 
 #include <graphx.h>
@@ -343,7 +344,40 @@ void menu_Goto(struct context_t *studioContext) {
     fontlib_DrawString("Goto Line:");
     gfx_BlitBuffer();
 
-    util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
+    char *input = util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
+
+    if (input != NULL) {
+        int targetLine = misc_StringToInt(input) - 1;
+
+        if (targetLine >= 0 && (unsigned int)targetLine < studioContext->newlineCount) {
+            studioContext->row = 0;
+            studioContext->column = 0;
+
+            while (studioContext->newlineStart != (unsigned int)targetLine) {
+                if ((unsigned int)targetLine < studioContext->newlineStart) {
+                    studioContext->lineStart--;
+                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart);
+                    studioContext->rowDataStart = studioContext->pageDataStart;
+                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
+                } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
+                    studioContext->lineStart++;
+                    studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
+                    studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
+                } else {
+                    for (unsigned int currentLine = studioContext->newlineStart; currentLine < (unsigned int)targetLine;) {
+                        studioContext->row++;
+                        studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                        currentLine += (*(studioContext->rowDataStart - 1) == '\n');
+                    }
+                    break; // Ensure it doesn't get stuck in an infinite loop if line is right at the end
+                }
+            }
+        }
+    }
 
     if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
         ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);

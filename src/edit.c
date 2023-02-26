@@ -57,11 +57,11 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                 } else if (studioContext->lineStart) {
                     redraw = true;
+                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                     studioContext->lineStart--;
                     studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart);
                     studioContext->rowDataStart = studioContext->pageDataStart;
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                 } else {
                     studioContext->column = 0;
                 }

@@ -102,6 +102,36 @@ char *util_GetStringEnd(char *string, char *openEOF) {
     return string;
 }
 
+// code by jacobly from here:
+// https://ce-programming.github.io/toolchain/libraries/keypadc.html#getting-getcsc-codes-with-keypadc
+static uint8_t util_GetSingleKeyPress(void) {
+    uint8_t only_key = 0;
+    kb_Scan();
+
+    for (uint8_t key = 1, group = 7; group; --group) {
+        for (uint8_t mask = 1; mask; mask <<= 1, ++key) {
+            if (kb_Data[group] & mask) {
+                if (only_key) {
+                    return false;
+                } else {
+                    only_key = key;
+                }
+            }
+        }
+    }
+
+    return only_key;
+}
+
+char util_KeyToChar(uint8_t key, uint8_t mode) {
+    static const char chars[3][56] = 
+    {{'\0', '\0', '\0', '\0', '\0','\0', '\0', '\0', '\0', '\0', '+', '-', '*', '/', '^', '\0', '\0', '\0', '3', '6', '9', ')', '\0', '\0', '\0', '.', '2', '5', '8', '(', '\0', '\0', '\0', '0', '1', '4', '7', ',', '\0', '\0', 'X', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
+    {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\"', 'W', 'R', 'M', 'H', '\0', '\0', '?', '\0', 'V', 'Q', 'L', 'G', '\0', '\0', ':', 'Z', 'U', 'P', 'K', 'F', 'C', '\0', ' ', 'Y', 'T', 'O', 'J', 'E', 'B', 'X', '\0', 'X', 'S', 'N', 'I', 'D', 'A', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
+    {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\"', 'w', 'r', 'm', 'h', '\0', '\0', '?', '\0', 'v', 'q', 'l', 'g', '\0', '\0', ':', 'z', 'u', 'p', 'k', 'f', 'c', '\0', ' ', 'y', 't', 'o', 'j', 'e', 'b', '\0', '\0', 'x', 's', 'n', 'i', 'd' ,'a', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}};
+
+    return chars[mode][key];
+}
+
 char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8_t inputMode, kb_lkey_t exitKey) {
     bool keyPressed = false;
     bool cursorActive = true;
@@ -112,14 +142,11 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
     timer_Set(1, 0);
 
     char *input = malloc(stringLength);
+    char inputChar = '\0';
 
     for (uint8_t i = 0; i <= stringLength; i++) {
         input[i] = '\0';
     }
-
-    const char *charNums = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""369\0\0\0\0\0""258\0\0\0\0""0147\0\0\0X\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-    const char *charUpper = "\0\0\0\0\0\0\0\0\0\0\0WRMH\0\0\0[VQLG\0\0\0ZUPKFC\0\0YTOJEBX\0XSNIDA\0\0\0\0\0\0\0\0";
-    const char *charLower = "\0\0\0\0\0\0\0\0\0\0\0wrmh\0\0\0[vqlg\0\0\0zupkfc\0\0ytojeb\0\0xsnida\0\0\0\0\0\0\0\0";
 
     uint8_t key = 0;
 
@@ -139,7 +166,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
             gfx_SetColor(BACKGROUND);
             gfx_FillRectangle_NoClip(x, y, charCount * 7 + 2, 12);
 
-            if (kb_IsDown(kb_KeyClear) || kb_IsDown(exitKey)) {
+            if (kb_IsDown(kb_KeyClear) || kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter) || kb_IsDown(exitKey)) {
                 break;
             } else if (kb_IsDown(kb_KeyLeft)) {
                 if (currentOffset) {
@@ -176,41 +203,23 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                 } else {
                     inputMode++;
                 }
+
+                while (kb_AnyKey());
             } else if (charCount < stringLength - 1) {
                 if (!keyPressed) {
                     key = util_GetSingleKeyPress();
                 }
 
-                if (inputMode == INPUT_LOWERCASE) {
-                    if (charLower[key]) {
-                        for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
-                            input[i] = input[i - 1];
-                        }
+                inputChar = util_KeyToChar(key, inputMode);
 
-                        input[currentOffset] = charLower[key];
-                        charCount++;
-                        currentOffset++;
+                if (inputChar) {
+                    for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
+                        input[i] = input[i - 1];
                     }
-                } else if (inputMode == INPUT_UPPERCASE) {
-                    if (charUpper[key]) {
-                        for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
-                            input[i] = input[i - 1];
-                        }
 
-                        input[currentOffset] = charUpper[key];
-                        charCount++;
-                        currentOffset++;
-                    }
-                } else {
-                    if (charNums[key]) {
-                        for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
-                            input[i] = input[i - 1];
-                        }
-
-                        input[currentOffset] = charNums[key];
-                        charCount++;
-                        currentOffset++;
-                    }
+                    input[currentOffset] = inputChar;
+                    charCount++;
+                    currentOffset++;
                 }
             }
 
@@ -257,25 +266,4 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
     free(input);
     return NULL;
-}
-
-// code by jacobly from here:
-// https://ce-programming.github.io/toolchain/libraries/keypadc.html#getting-getcsc-codes-with-keypadc
-uint8_t util_GetSingleKeyPress(void) {
-    uint8_t only_key = 0;
-    kb_Scan();
-
-    for (uint8_t key = 1, group = 7; group; --group) {
-        for (uint8_t mask = 1; mask; mask <<= 1, ++key) {
-            if (kb_Data[group] & mask) {
-                if (only_key) {
-                    return false;
-                } else {
-                    only_key = key;
-                }
-            }
-        }
-    }
-
-    return only_key;
 }
