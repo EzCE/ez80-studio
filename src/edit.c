@@ -66,7 +66,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     studioContext->column = 0;
                 }
             } else if (kb_IsDown(kb_KeyDown)) {
-                if (studioContext->row < 13 && studioContext->lineStart + studioContext->row != studioContext->totalLines) {
+                if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
                     studioContext->row++;
                     studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
@@ -105,7 +105,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 if (studioContext->column < studioContext->rowLength) {
                     studioContext->column++;
                 } else {
-                    if (studioContext->row < 13 && studioContext->lineStart + studioContext->row != studioContext->totalLines) {
+                    if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
                         studioContext->row++;
                         studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
                         studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);

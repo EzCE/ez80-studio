@@ -355,11 +355,11 @@ void menu_Goto(struct context_t *studioContext) {
 
             while (studioContext->newlineStart != (unsigned int)targetLine) {
                 if ((unsigned int)targetLine < studioContext->newlineStart) {
+                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                     studioContext->lineStart--;
                     studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart);
                     studioContext->rowDataStart = studioContext->pageDataStart;
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                 } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
                     studioContext->lineStart++;
                     studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);

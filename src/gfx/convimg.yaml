@@ -10,7 +10,8 @@ palettes:
       - color: {index: 6, r: 233, g: 120, b: 17}   # Registers
       - color: {index: 7, r: 211, g: 54, b: 130}   # Numbers
       - color: {index: 8, r: 108, g: 113, b: 196}  # Parenthesis
-      - color: {index: 9, r: 101, g: 123, b: 131}  # Comments
+      - color: {index: 9, r: 255, g: 124, b: 89}   # Strings
+      - color: {index: 10, r: 101, g: 123, b: 131} # Comments
   - name: darkPalette
     fixed-entries:
       - color: {index: 0, r: 38, g: 50, b: 56}     # Background
@@ -22,7 +23,8 @@ palettes:
       - color: {index: 6, r: 57, g: 111, b: 226}   # Registers
       - color: {index: 7, r: 158, g: 206, b: 88}   # Numbers
       - color: {index: 8, r: 255, g: 203, b: 107}  # Parenthesis
-      - color: {index: 9, r: 98, g: 137, b: 40}    # Comments
+      - color: {index: 9, r: 255, g: 124, b: 89}   # Strings
+      - color: {index: 10, r: 98, g: 137, b: 40}   # Comments
 
 
 outputs:

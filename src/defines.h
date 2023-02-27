@@ -33,7 +33,8 @@ extern "C" {
 #define TEXT_REGISTER       6
 #define TEXT_NUMBER         7
 #define TEXT_PARENTHESIS    8
-#define TEXT_COMMENT        9
+#define TEXT_STRING         9
+#define TEXT_COMMENT        10
 
 // Preferences
 
