@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+bool files_CheckFileExists(char *fileName);
+
 void files_CountLines(char *fileName, unsigned int *newlineCount, unsigned int *lineCount);
 
 char *files_GetEOF(char *fileName);

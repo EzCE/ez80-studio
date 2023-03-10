@@ -13,6 +13,7 @@
 
 include 'include/ti84pceg.inc'
 
+    public _files_CheckFileExists
     public _files_CountLines
     public _files_GetEOF
     public _files_GetLineLength
@@ -24,6 +25,22 @@ EOF := ti.appData
 currentLineStart := EOF + 3
 oldLineStart := currentLineStart + 3
 fileStart := oldLineStart + 3
+
+_files_CheckFileExists:
+    ld iy, 0
+    add iy, sp
+    ld de, (iy + 3) ; name of file
+    ld hl, ti.OP1
+    ld (hl), ti.AppVarObj
+    inc hl
+    ld bc, 8
+    ex de, hl
+    ldir ; move name to OP1
+    call ti.ChkFindSym
+    ld a, 0
+    ret c
+    inc a
+    ret
 
 _files_CountLines:
     ld iy, 0

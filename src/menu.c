@@ -25,6 +25,41 @@
 #include <string.h>
 #include <sys/timers.h>
 
+static bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
+    bool returnVal = true;
+
+    gfx_BlitScreen();
+    gfx_SetDrawScreen();
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(x, y, buttonWidth, 16);
+    fontlib_SetCursorPosition(x + (buttonWidth - 21) / 2, y + 2);
+    fontlib_DrawString("Yes");
+    fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
+    fontlib_DrawString("No");
+    gfx_SetDrawBuffer();
+    gfx_FillRectangle_NoClip(x + buttonWidth + 2, y, buttonWidth, 16);
+    fontlib_SetCursorPosition(x + (buttonWidth - 21) / 2, y + 2);
+    fontlib_DrawString("Yes");
+    fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
+    fontlib_DrawString("No");
+
+    while(kb_AnyKey());
+
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyEnter) && !kb_IsDown(kb_Key2nd)) {
+        kb_Scan();
+
+        if (kb_IsDown(kb_KeyLeft) || kb_IsDown(kb_KeyRight)) {
+            gfx_SwapDraw();
+            returnVal = !returnVal;
+            while(kb_AnyKey());
+        }
+    }
+
+    while(kb_AnyKey());
+
+    return returnVal;
+}
+
 static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsigned int width, uint8_t height, char *option1, char *option2) {
     gfx_SetDrawScreen(); // Easier to get rid of this way
     ui_DrawMenuBox(x, y, width, height, 0, 2, option1, option2);
@@ -88,6 +123,68 @@ static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsign
         }
 
         ui_DrawScrollbar(216, boxY + 16, boxHeight - 18, totalLines, fileStartLoc / 2, rowsPerScreen);
+    }
+}
+
+static void menu_FileNew(struct context_t *studioContext) {
+    while (kb_AnyKey());
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(123, 95, 64, 32);
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(125, 111, 60, 14);
+
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_SetCursorPosition(127, 97);
+    fontlib_DrawString("New file");
+    gfx_BlitBuffer();
+
+    char *newFile = util_StringInputBox(126, 112, 9, INPUT_UPPERCASE, kb_KeyClear);
+
+    if (newFile != NULL) {
+        if (files_CheckFileExists(newFile)) {
+            gfx_SetColor(OUTLINE);
+            gfx_FillRectangle_NoClip(82, 82, 146, 60);
+            gfx_SetColor(BACKGROUND);
+            gfx_FillRectangle_NoClip(84, 122, 142, 18);
+            fontlib_SetForegroundColor(TEXT_DEFAULT);
+            fontlib_SetCursorPosition(85, 84);
+            fontlib_DrawString("A file aready exists");
+            fontlib_SetCursorPosition(104, 96);
+            fontlib_DrawString("with that name.");
+            fontlib_SetCursorPosition(110, 108);
+            fontlib_DrawString("Overwrite it?");
+            gfx_BlitBuffer();
+
+            if(!menu_YesNo(85, 123, 69)) {
+                return; // Don't make the file
+            }
+
+            ti_DeleteVar(newFile, OS_TYPE_APPVAR);
+        }
+
+        free(studioContext->fileName);
+
+        studioContext->fileName = newFile;
+        studioContext->fileIsOpen = true;
+
+        uint8_t file = ti_Open(studioContext->fileName, "w");
+        uint16_t header = 0x7AEF;
+        ti_Write(&header, 2, 1, file);
+
+        studioContext->lineStart = 0;
+        studioContext->newlineStart = 0;
+        studioContext->row = 0;
+        studioContext->column = 0;
+
+        studioContext->pageDataStart = ti_GetDataPtr(file);
+        studioContext->rowDataStart = studioContext->pageDataStart;
+        studioContext->fileDataStart = studioContext->rowDataStart;
+        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+
+        files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
+        studioContext->openEOF = files_GetEOF(studioContext->fileName);
+
+        ti_Close(file);
     }
 }
 
@@ -301,6 +398,7 @@ void menu_File(struct context_t *studioContext) {
     } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
         switch (option) {
             case 0: // New file
+                menu_FileNew(studioContext);
                 break;
             case 1: { // Open file
                 unsigned int fileCount = 0;
@@ -377,6 +475,8 @@ void menu_Goto(struct context_t *studioContext) {
                 }
             }
         }
+
+        free(input);
     }
 
     if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
