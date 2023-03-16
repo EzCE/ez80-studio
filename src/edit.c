@@ -146,7 +146,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
             kb_IsDown(kb_KeyGraph)) {
 
             if (kb_IsDown(kb_KeyYequ)) {
-                menu_File(studioContext);
+                menu_File(studioContext, studioPreferences);
                 redraw = true;
             } else if (kb_IsDown(kb_KeyWindow)) {
                 menu_Compile(studioContext);

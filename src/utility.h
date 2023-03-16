@@ -31,6 +31,7 @@ struct context_t {
     char *pageDataStart;            // start of current page's data
     char *rowDataStart;             // start of current row's data
     char *fileName;                 // name of currently opened file
+    uint16_t fileSize;              // size of the currently opened file
     char *openEOF;                  // pointer to end of file
     unsigned int newlineCount;      // number of newline characters
     unsigned int totalLines;        // number of total newlines (includes word-wrap)

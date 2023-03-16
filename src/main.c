@@ -5,8 +5,8 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2023
  * License: GPL-3.0
- * Last Build: March 10, 2023
- * Version: 0.4.0
+ * Last Build: March 16, 2023
+ * Version: 0.5.0
  * 
  * --------------------------------------
 **/
@@ -62,7 +62,7 @@ int main(void) {
         kb_Scan();
 
         if (kb_IsDown(kb_KeyYequ)) {
-            menu_File(studioContext);
+            menu_File(studioContext, studioPreferences);
             redraw = true;
         } else if (kb_IsDown(kb_KeyWindow)) {
             menu_Compile(studioContext);
@@ -92,6 +92,8 @@ int main(void) {
     }
 
     gfx_End();
+
+    asm("call $00214C0\n\tcall $0020E9C"); // Delete temporary programs
 
     util_WritePrefs(studioPreferences);
 

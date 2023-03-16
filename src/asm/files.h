@@ -18,11 +18,11 @@
 extern "C" {
 #endif
 
+char *files_ReadFile(char *fileName);
+
 bool files_CheckFileExists(char *fileName);
 
-void files_CountLines(char *fileName, unsigned int *newlineCount, unsigned int *lineCount);
-
-char *files_GetEOF(char *fileName);
+void files_CountLines(char *data, unsigned int *newlineCount, unsigned int *lineCount, char *openEOF);
 
 uint8_t files_GetLineLength(char *rowDataStart, char *openEOF);
 

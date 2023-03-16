@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 // File options menu
-void menu_File(struct context_t *studioContext);
+void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 // Compile code
 void menu_Compile(struct context_t *studioContext);

@@ -13,9 +13,9 @@
 
 include 'include/ti84pceg.inc'
 
+    public _files_ReadFile
     public _files_CheckFileExists
     public _files_CountLines
-    public _files_GetEOF
     public _files_GetLineLength
     public _files_NextLine
     public _files_PreviousLine
@@ -25,6 +25,64 @@ EOF := ti.appData
 currentLineStart := EOF + 3
 oldLineStart := currentLineStart + 3
 fileStart := oldLineStart + 3
+
+_files_ReadFile:
+    call ti.DeleteTempPrograms
+    call ti.CleanAll
+    ld hl, $FFFF
+    call ti.EnoughMem
+    jr nc, .continue
+    ld hl, 0
+    ret
+
+.continue:
+    ld hl, tempVar
+    call ti.Mov9ToOP1
+    ld a, ti.TempProgObj
+    ld hl, 65505
+    call ti.CreateVar
+    inc de
+    inc de
+    push de
+    ld iy, 0
+    add iy, sp
+    ld de, (iy + 6)
+    ld hl, ti.OP1
+    ld (hl), ti.AppVarObj
+    inc hl
+    ld bc, 8
+    ex de, hl
+    ldir ; move name to OP1
+    call ti.ChkFindSym
+    ret c
+    call ti.ChkInRam
+    jr z, .inRam
+    ld hl, 10
+    add hl, de
+    ld a, c
+    ld bc, 0
+    ld c, a
+    add hl, bc
+
+.inRam:
+    ld bc, 0
+    ld c, (hl)
+    inc hl
+    ld b, (hl) ; get file size
+    inc hl
+    pop de
+    push de
+
+.loop:
+    ld a, b
+    or a, c
+    jr z, .return
+    ldi
+    jr .loop
+
+.return:
+    pop hl
+    ret
 
 _files_CheckFileExists:
     ld iy, 0
@@ -45,37 +103,10 @@ _files_CheckFileExists:
 _files_CountLines:
     ld iy, 0
     add iy, sp
-    ld de, (iy + 3) ; name of file
+    ld hl, (iy + 12) ; end of file
+    ld (EOF), hl
+    ld hl, (iy + 3) ; data start
     push iy ; save this for later
-    ld hl, ti.OP1
-    ld (hl), ti.AppVarObj
-    inc hl
-    ld bc, 8
-    ex de, hl
-    ldir ; move name to OP1
-    call ti.ChkFindSym
-    call ti.ChkInRam
-    jr z, .inRam
-    ld hl, 10
-    add hl, de
-    ld a, c
-    ld bc, 0
-    ld c, a
-    add hl, bc
-    ex de, hl
-
-.inRam:
-    ld hl, 0
-    ld a, (de)
-    ld l, a
-    inc de
-    ld a, (de)
-    ld h, a ; get program size
-    inc de
-    call _getEOF
-    inc de
-    inc de
-    ex de, hl
     ld de, 1 ; line count
     ld bc, 1 ; newline count
     ld iyl, 1 ; character count
@@ -121,42 +152,6 @@ _files_CountLines:
     ld (hl), bc
     ld hl, (iy + 9)
     ld (hl), de
-    ret
-
-_files_GetEOF:
-    push ix
-    ld ix, 0
-    add ix, sp
-    ld de, (ix + 6) ; name of file
-    pop ix
-    ld hl, ti.OP1
-    ld (hl), ti.AppVarObj
-    inc hl
-    ld bc, 8
-    ex de, hl
-    ldir ; move name to OP1
-    call ti.ChkFindSym
-    ret c
-    call ti.ChkInRam
-    jr z, .inRam
-    ld hl, 10
-    add hl, de
-    ld a, c
-    ld bc, 0
-    ld c, a
-    add hl, bc
-    ex de, hl
-
-.inRam:
-    ld hl, 0
-    ld a, (de)
-    ld l, a
-    inc de
-    ld a, (de)
-    ld h, a ; get program size
-    inc de
-    call _getEOF
-    ld hl, (EOF)
     ret
 
 _files_GetLineLength:
@@ -290,10 +285,5 @@ _checkEOF: ; bc = current address being read; destroys hl and a
     cp a, a
     ret
 
-_getEOF: ; args: hl = size of var; de = start of variable; preserves both registers
-    push hl
-    dec hl
-    add hl, de
-    ld (EOF), hl
-    pop hl
-    ret
+tempVar:
+    db ti.TempProgObj, "ez80temp", 0

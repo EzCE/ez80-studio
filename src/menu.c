@@ -162,33 +162,60 @@ static void menu_FileNew(struct context_t *studioContext) {
             ti_DeleteVar(newFile, OS_TYPE_APPVAR);
         }
 
-        free(studioContext->fileName);
-
-        studioContext->fileName = newFile;
-        studioContext->fileIsOpen = true;
-
-        uint8_t file = ti_Open(studioContext->fileName, "w");
+        uint8_t file = ti_Open(newFile, "w");
         uint16_t header = 0x7AEF;
         ti_Write(&header, 2, 1, file);
-
-        studioContext->lineStart = 0;
-        studioContext->newlineStart = 0;
-        studioContext->row = 0;
-        studioContext->column = 0;
-
-        studioContext->pageDataStart = ti_GetDataPtr(file);
-        studioContext->rowDataStart = studioContext->pageDataStart;
-        studioContext->fileDataStart = studioContext->rowDataStart;
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-
-        files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
-        studioContext->openEOF = files_GetEOF(studioContext->fileName);
-
         ti_Close(file);
+
+        if (files_ReadFile(newFile) != NULL) {
+            free(studioContext->fileName);
+
+            studioContext->fileName = newFile;
+            studioContext->fileIsOpen = true;
+
+            file = ti_Open(studioContext->fileName, "r");
+            studioContext->fileSize = ti_GetSize(file);
+            ti_Close(file);
+
+            file = ti_OpenVar("ez80temp", "r", OS_TYPE_TMP_PRGM);
+
+            studioContext->pageDataStart = ti_GetDataPtr(file) + 2;
+            studioContext->rowDataStart = studioContext->pageDataStart;
+            studioContext->fileDataStart = studioContext->rowDataStart;
+            studioContext->openEOF = studioContext->fileDataStart + studioContext->fileSize - 3;
+
+            studioContext->lineStart = 0;
+            studioContext->newlineStart = 0;
+            studioContext->row = 0;
+            studioContext->column = 0;
+
+            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+
+            files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+
+            ti_Close(file);
+        } else {
+            free(newFile);
+            gfx_SetColor(OUTLINE);
+            gfx_FillRectangle_NoClip(88, 94, 134, 34);
+            gfx_SetColor(BACKGROUND);
+            gfx_FillRectangle_NoClip(90, 110, 130, 16);
+            fontlib_SetForegroundColor(TEXT_DEFAULT);
+            fontlib_SetCursorPosition(137, 95);
+            fontlib_DrawString("Error");
+            fontlib_SetCursorPosition(93, 111);
+            fontlib_DrawString("Not enough memory.");
+            gfx_BlitBuffer();
+
+            while(kb_AnyKey());
+            while (!kb_IsDown(kb_KeyClear)) {
+                kb_Scan();
+            }
+        }
     }
 }
 
-static void menu_FileOpen(struct context_t *studioContext, char *fileNames, unsigned int fileCount) {
+static void menu_FileOpen(struct context_t *studioContext, struct preferences_t *studioPreferences, char *fileNames, unsigned int fileCount) {
     while (kb_AnyKey());
 
     unsigned int rowsPerScreen = (fileCount + 1) / 2;
@@ -309,34 +336,71 @@ static void menu_FileOpen(struct context_t *studioContext, char *fileNames, unsi
         return; // Return early
     }
 
-    free(studioContext->fileName);
     char *fileOpened = malloc(9);
-
     strcpy(fileOpened, &fileNames[(fileStartLoc + fileSelected) * 9]);
-    studioContext->fileName = fileOpened;
-    studioContext->fileIsOpen = true;
 
-    uint8_t file = ti_Open(studioContext->fileName, "r");
+    if (files_ReadFile(fileOpened) != NULL) {
+        free(studioContext->fileName);
+        studioContext->fileName = fileOpened;
+        studioContext->fileIsOpen = true;
 
-    studioContext->lineStart = 0;
-    studioContext->newlineStart = 0;
-    studioContext->row = 0;
-    studioContext->column = 0;
+        uint8_t file = ti_Open(fileOpened, "r");
+        studioContext->fileSize = ti_GetSize(file);
+        ti_Close(file);
 
-    studioContext->pageDataStart = ti_GetDataPtr(file);
-    studioContext->pageDataStart += 2;
-    studioContext->rowDataStart = studioContext->pageDataStart;
-    studioContext->fileDataStart = studioContext->rowDataStart;
-    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        file = ti_OpenVar("ez80temp", "r", OS_TYPE_TMP_PRGM);
 
-    files_CountLines(studioContext->fileName, &(studioContext->newlineCount), &(studioContext->totalLines));
-    studioContext->openEOF = files_GetEOF(studioContext->fileName);
+        studioContext->pageDataStart = ti_GetDataPtr(file) + 2;
+        studioContext->rowDataStart = studioContext->pageDataStart;
+        studioContext->fileDataStart = studioContext->rowDataStart;
+        studioContext->openEOF = studioContext->fileDataStart + studioContext->fileSize - 3;
 
-    ti_Close(file);
+        studioContext->lineStart = 0;
+        studioContext->newlineStart = 0;
+        studioContext->row = 0;
+        studioContext->column = 0;
+
+        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+
+        files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+
+        ti_Close(file);
+    } else {
+        free(fileOpened);
+
+        gfx_ZeroScreen();
+        ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
+
+        if (studioContext->fileIsOpen) {
+            ui_UpdateAllText(studioContext, studioPreferences);
+            ui_DrawCursor(studioContext->row, studioContext->column, true, false);
+        } else {
+            ui_NoFile();
+        }
+
+        ui_DrawMenuBox(0, 168, 73, 55, 1, 3, "New file", "Open file", "Save file");
+
+        gfx_SetColor(OUTLINE);
+        gfx_FillRectangle_NoClip(88, 94, 134, 34);
+        gfx_SetColor(BACKGROUND);
+        gfx_FillRectangle_NoClip(90, 110, 130, 16);
+        fontlib_SetForegroundColor(TEXT_DEFAULT);
+        fontlib_SetCursorPosition(137, 95);
+        fontlib_DrawString("Error");
+        fontlib_SetCursorPosition(93, 111);
+        fontlib_DrawString("Not enough memory.");
+        gfx_BlitBuffer();
+
+        while(kb_AnyKey());
+        while (!kb_IsDown(kb_KeyClear)) {
+            kb_Scan();
+        }
+    }
+
     free(fileNames);
 }
 
-void menu_File(struct context_t *studioContext) {
+void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences) {
     ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
     gfx_SwapDraw();
 
@@ -403,7 +467,7 @@ void menu_File(struct context_t *studioContext) {
             case 1: { // Open file
                 unsigned int fileCount = 0;
                 char *fileNames = util_GetFiles(&fileCount);
-                menu_FileOpen(studioContext, fileNames, fileCount);
+                menu_FileOpen(studioContext, studioPreferences, fileNames, fileCount);
                 break;
             }
             case 2: // Save file
