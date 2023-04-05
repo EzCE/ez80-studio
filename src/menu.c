@@ -508,6 +508,8 @@ void menu_Goto(struct context_t *studioContext) {
 
     char *input = util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
 
+    while (kb_AnyKey());
+
     if (input != NULL) {
         int targetLine = misc_StringToInt(input) - 1;
 
@@ -519,13 +521,13 @@ void menu_Goto(struct context_t *studioContext) {
                 if ((unsigned int)targetLine < studioContext->newlineStart) {
                     studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                     studioContext->lineStart--;
-                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart);
+                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
                     studioContext->rowDataStart = studioContext->pageDataStart;
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                 } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
                     studioContext->lineStart++;
                     studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
-                    studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                    studioContext->rowDataStart = studioContext->pageDataStart;
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                     studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                 } else {
@@ -535,6 +537,7 @@ void menu_Goto(struct context_t *studioContext) {
                         studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                         currentLine += (*(studioContext->rowDataStart - 1) == '\n');
                     }
+
                     break; // Ensure it doesn't get stuck in an infinite loop if line is right at the end
                 }
             }

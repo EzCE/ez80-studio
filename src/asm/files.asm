@@ -19,6 +19,8 @@ include 'include/ti84pceg.inc'
     public _files_GetLineLength
     public _files_NextLine
     public _files_PreviousLine
+    public _files_InsertChar
+    public _files_DeleteChar
 
 EOF := ti.appData
 
@@ -44,6 +46,9 @@ _files_ReadFile:
     inc de
     inc de
     push de
+    ex de, hl
+    ld bc, 65505
+    call ti.MemClear
     ld iy, 0
     add iy, sp
     ld de, (iy + 6)
@@ -56,8 +61,9 @@ _files_ReadFile:
     call ti.ChkFindSym
     ret c
     call ti.ChkInRam
+    ex de, hl
     jr z, .inRam
-    ld hl, 10
+    ld de, 10
     add hl, de
     ld a, c
     ld bc, 0
@@ -213,6 +219,8 @@ _files_PreviousLine:
     push ix
     ld ix, 0
     add ix, sp
+    ld hl, (ix + 12) ; end of file
+    ld (EOF), hl
     ld hl, (ix + 9) ; start of file
     ld (fileStart), hl
     ld hl, (ix + 6) ; current address
@@ -244,6 +252,14 @@ _files_PreviousLine:
     ld a, $0A
     cp a, (hl)
     jr z, .return
+    push hl
+    push bc
+    push hl
+    pop bc
+    call _checkEOF
+    pop bc
+    pop hl
+    jr z, .return
     inc hl
     djnz .loop
     cp a, (hl) ; skip extra newline if line was exactly the max length
@@ -274,6 +290,49 @@ _files_PreviousLine:
     xor a, a
     sbc hl, de
     ex de, hl
+    ret
+
+_files_InsertChar:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 6) ; end of file
+    ld bc, (iy + 9) ; size to copy
+    push hl
+    pop de
+    inc de
+
+.loop:
+    ld a, b
+    or a, c
+    jr z, .return
+    ldd
+    jr .loop
+
+.return:
+    ld a, (iy + 3) ; character
+    inc hl
+    ld (hl), a
+    ret
+
+_files_DeleteChar:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 3) ; what to start deleting
+    ld bc, (iy + 6) ; size to copy
+    push hl
+    pop de
+    inc hl
+
+.loop:
+    ld a, b
+    or a, c
+    jr z, .return
+    ldi
+    jr .loop
+
+.return:
+    dec hl
+    ld (hl), 0
     ret
 
 _checkEOF: ; bc = current address being read; destroys hl and a

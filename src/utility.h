@@ -52,6 +52,8 @@ char *util_GetFiles(unsigned int *fileCount);
 
 char *util_GetStringEnd(char *string, char *openEOF);
 
+uint8_t util_GetSingleKeyPress(void);
+
 char util_KeyToChar(uint8_t key, uint8_t mode);
 
 char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8_t inputMode, kb_lkey_t exitKey);

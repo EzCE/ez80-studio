@@ -104,7 +104,7 @@ char *util_GetStringEnd(char *string, char *openEOF) {
 
 // code by jacobly from here:
 // https://ce-programming.github.io/toolchain/libraries/keypadc.html#getting-getcsc-codes-with-keypadc
-static uint8_t util_GetSingleKeyPress(void) {
+uint8_t util_GetSingleKeyPress(void) {
     uint8_t only_key = 0;
     kb_Scan();
 
@@ -125,9 +125,9 @@ static uint8_t util_GetSingleKeyPress(void) {
 
 char util_KeyToChar(uint8_t key, uint8_t mode) {
     static const char chars[3][56] = 
-    {{'\0', '\0', '\0', '\0', '\0','\0', '\0', '\0', '\0', '\0', '+', '-', '*', '/', '^', '\0', '\0', '\0', '3', '6', '9', ')', '\0', '\0', '\0', '.', '2', '5', '8', '(', '\0', '\0', '\0', '0', '1', '4', '7', ',', '\0', '\0', 'X', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
-    {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\"', 'W', 'R', 'M', 'H', '\0', '\0', '?', '\0', 'V', 'Q', 'L', 'G', '\0', '\0', ':', 'Z', 'U', 'P', 'K', 'F', 'C', '\0', ' ', 'Y', 'T', 'O', 'J', 'E', 'B', 'X', '\0', 'X', 'S', 'N', 'I', 'D', 'A', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
-    {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\"', 'w', 'r', 'm', 'h', '\0', '\0', '?', '\0', 'v', 'q', 'l', 'g', '\0', '\0', ':', 'z', 'u', 'p', 'k', 'f', 'c', '\0', ' ', 'y', 't', 'o', 'j', 'e', 'b', '\0', '\0', 'x', 's', 'n', 'i', 'd' ,'a', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}};
+    {{'\0', '\0', '\0', '\0', '\0','\0', '\0', '\0', '\0', '\n', '+', '-', '*', '/', '^', '\0', '\0', '-', '3', '6', '9', ')', '\0', '\0', '\0', '.', '2', '5', '8', '(', '\0', '\0', '\0', '0', '1', '4', '7', ',', '\0', '\0', 'X', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
+    {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\n', '\"', 'W', 'R', 'M', 'H', '\0', '\0', '?', '\0', 'V', 'Q', 'L', 'G', '\0', '\0', ':', 'Z', 'U', 'P', 'K', 'F', 'C', '\0', ' ', 'Y', 'T', 'O', 'J', 'E', 'B', 'X', '\0', 'X', 'S', 'N', 'I', 'D', 'A', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
+    {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\n', '\"', 'w', 'r', 'm', 'h', '\0', '\0', '?', '\0', 'v', 'q', 'l', 'g', '\0', '\0', ':', 'z', 'u', 'p', 'k', 'f', 'c', '\0', ' ', 'y', 't', 'o', 'j', 'e', 'b', '\0', '\0', 'x', 's', 'n', 'i', 'd' ,'a', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}};
 
     return chars[mode][key];
 }
@@ -152,7 +152,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
     fontlib_SetForegroundColor(TEXT_DEFAULT);
 
-    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_Key2nd) && !kb_IsDown(kb_KeyEnter) && !kb_IsDown(exitKey)) {
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(exitKey)) {
         kb_Scan();
 
         if (!kb_AnyKey() && keyPressed) {
@@ -166,7 +166,9 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
             gfx_SetColor(BACKGROUND);
             gfx_FillRectangle_NoClip(x, y, charCount * 7 + 2, 12);
 
-            if (kb_IsDown(kb_KeyClear) || kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter) || kb_IsDown(exitKey)) {
+            if (kb_IsDown(kb_KeyClear) || kb_IsDown(exitKey)) {
+                break;
+            } else if ((kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) && charCount != 0) {
                 break;
             } else if (kb_IsDown(kb_KeyLeft)) {
                 if (currentOffset) {
@@ -212,7 +214,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
                 inputChar = util_KeyToChar(key, inputMode);
 
-                if (inputChar) {
+                if ((inputChar >= 'A' && inputChar <= 'Z') || (inputChar >= 'a' && inputChar <= 'z') || (inputChar >= '0' && inputChar <= '9')) {
                     for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
                         input[i] = input[i - 1];
                     }

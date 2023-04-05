@@ -28,7 +28,11 @@ uint8_t files_GetLineLength(char *rowDataStart, char *openEOF);
 
 char *files_NextLine(char *currentLine);
 
-char *files_PreviousLine(char *currentLine, char *fileDataStart);
+char *files_PreviousLine(char *currentLine, char *fileDataStart, char *openEOF);
+
+void files_InsertChar(char character, char *openEOF, unsigned int copySize);
+
+void files_DeleteChar(char *delete, unsigned int copySize);
 
 #ifdef __cplusplus
 }

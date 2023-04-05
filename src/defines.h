@@ -47,6 +47,10 @@ extern "C" {
 #define INPUT_UPPERCASE     1
 #define INPUT_LOWERCASE     2
 
+// Max file size
+
+#define MAX_FILE_SIZE       65505
+
 #ifdef __cplusplus
 }
 #endif
