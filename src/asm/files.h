@@ -20,6 +20,8 @@ extern "C" {
 
 char *files_ReadFile(char *fileName);
 
+bool files_WriteFile(char *fileName, char *data, unsigned int fileSize);
+
 bool files_CheckFileExists(char *fileName);
 
 void files_CountLines(char *data, unsigned int *newlineCount, unsigned int *lineCount, char *openEOF);

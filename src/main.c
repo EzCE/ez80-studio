@@ -5,8 +5,8 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2023
  * License: GPL-3.0
- * Last Build: March 16, 2023
- * Version: 0.5.0
+ * Last Build: April 15, 2023
+ * Version: 0.6.0
  * 
  * --------------------------------------
 **/
@@ -80,6 +80,14 @@ int main(void) {
 
         if (studioContext->fileIsOpen) {
             edit_OpenEditor(studioContext, studioPreferences);
+            studioContext->fileName = NULL; // Reset stuff
+            studioContext->fileIsOpen = false;
+
+            studioContext->lineStart = 0;
+            studioContext->newlineStart = 0;
+            studioContext->totalLines = 0;
+            studioContext->newlineCount = 0;
+            while (kb_AnyKey());
         }
 
         if (redraw) {

@@ -14,6 +14,7 @@
 include 'include/ti84pceg.inc'
 
     public _files_ReadFile
+    public _files_WriteFile
     public _files_CheckFileExists
     public _files_CountLines
     public _files_GetLineLength
@@ -27,6 +28,8 @@ EOF := ti.appData
 currentLineStart := EOF + 3
 oldLineStart := currentLineStart + 3
 fileStart := oldLineStart + 3
+
+isArchived := 0
 
 _files_ReadFile:
     call ti.DeleteTempPrograms
@@ -88,6 +91,64 @@ _files_ReadFile:
 
 .return:
     pop hl
+    ret
+
+_files_WriteFile:
+    ld iy, 0
+    add iy, sp
+    ld de, (iy + 9)
+    ld hl, 128 ; be safe
+    add hl, de
+    call ti.EnoughMem
+    jr nc, .continue
+    xor a, a
+    ret
+
+.continue:
+    ld iy, 0
+    add iy, sp
+    ld de, (iy + 3)
+    push de
+    ld iy, ti.flags
+    res isArchived, (iy + ti.asm_Flag1)
+    ld hl, ti.OP1
+    ld (hl), ti.AppVarObj
+    inc hl
+    ld bc, 8
+    ex de, hl
+    ldir ; move name to OP1
+    call ti.ChkFindSym
+    jr c, .createFile
+    call ti.ChkInRam
+    call nz, .isArchived
+    call ti.DelVarArc
+
+.createFile:
+    pop de
+    ld hl, ti.OP1
+    ld (hl), ti.AppVarObj
+    inc hl
+    ld bc, 8
+    ex de, hl
+    ldir ; move name to OP1
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 9)
+    call ti.CreateAppVar
+    inc de
+    inc de
+    ld hl, (iy + 6)
+    ldir
+    bit isArchived, (iy + ti.asm_Flag1)
+    jr z, .return
+    call ti.OP4ToOP1
+    call ti.Arc_Unarc
+.return:
+    ld a, 1
+    ret
+
+.isArchived:
+    set isArchived, (iy + ti.asm_Flag1)
     ret
 
 _files_CheckFileExists:

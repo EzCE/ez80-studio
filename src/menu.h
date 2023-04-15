@@ -18,6 +18,9 @@
 extern "C" {
 #endif
 
+// Yes or no
+bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth);
+
 // File options menu
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences);
 

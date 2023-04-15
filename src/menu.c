@@ -25,7 +25,7 @@
 #include <string.h>
 #include <sys/timers.h>
 
-static bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
+bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
     bool returnVal = true;
 
     gfx_BlitScreen();
@@ -56,6 +56,10 @@ static bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
     }
 
     while(kb_AnyKey());
+
+    if (kb_IsDown(kb_KeyClear)) {
+        return false;
+    }
 
     return returnVal;
 }
@@ -341,6 +345,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
     if (files_ReadFile(fileOpened) != NULL) {
         free(studioContext->fileName);
+
         studioContext->fileName = fileOpened;
         studioContext->fileIsOpen = true;
 
@@ -471,6 +476,32 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 break;
             }
             case 2: // Save file
+                if (!(studioContext->fileIsOpen)) {
+                    break;
+                }
+
+                studioContext->fileIsSaved = true;
+
+                if (!files_WriteFile(studioContext->fileName, studioContext->fileDataStart - 2, studioContext->fileSize)) {
+                    gfx_SetColor(OUTLINE);
+                    gfx_FillRectangle_NoClip(88, 94, 134, 34);
+                    gfx_SetColor(BACKGROUND);
+                    gfx_FillRectangle_NoClip(90, 110, 130, 16);
+                    fontlib_SetForegroundColor(TEXT_DEFAULT);
+                    fontlib_SetCursorPosition(137, 95);
+                    fontlib_DrawString("Error");
+                    fontlib_SetCursorPosition(93, 111);
+                    fontlib_DrawString("Not enough memory.");
+                    gfx_BlitBuffer();
+
+                    while (kb_AnyKey());
+                    while (!kb_IsDown(kb_KeyClear)) {
+                        kb_Scan();
+                    }
+                }
+
+                while (kb_AnyKey());
+
                 break;
             default:
                 break;

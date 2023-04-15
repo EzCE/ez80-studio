@@ -27,6 +27,7 @@ struct preferences_t {
 
 struct context_t {
     bool fileIsOpen;                // is a file currently opened?
+    bool fileIsSaved;               // is the file saved?
     char *fileDataStart;            // start of opened file's data
     char *pageDataStart;            // start of current page's data
     char *rowDataStart;             // start of current row's data

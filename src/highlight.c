@@ -289,6 +289,7 @@ static bool hlight_Modifier(char *string, char *stringEnd) {
         }
     }
 
+    free(stringConvert);
     return false;
 }
 

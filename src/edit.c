@@ -18,6 +18,7 @@
 
 #include <graphx.h>
 #include <keypadc.h>
+#include <fontlibc.h>
 #include <sys/timers.h>
 
 static void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *studioPreferences) {
@@ -38,6 +39,8 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
     uint8_t inputMode = INPUT_LOWERCASE;
     uint8_t inputChar = '\0';
 
+    studioContext->fileIsSaved = true;
+
     timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
     timer_Set(1, 0);
 
@@ -53,7 +56,33 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
         }
 
         if (kb_IsDown(kb_KeyClear)) {
-            break;
+            if (!studioContext->fileIsSaved) {
+                gfx_SetColor(OUTLINE);
+                gfx_FillRectangle_NoClip(80, 68, 150, 87);
+                gfx_SetColor(BACKGROUND);
+                gfx_FillRectangle_NoClip(82, 84, 146, 69);
+                fontlib_SetForegroundColor(TEXT_DEFAULT);
+                fontlib_SetCursorPosition(130, 70);
+                fontlib_DrawString("Warning");
+                fontlib_SetCursorPosition(85, 85);
+                fontlib_DrawString("The currently opened");
+                fontlib_SetCursorPosition(85, 96);
+                fontlib_DrawString("file has unsaved");
+                fontlib_SetCursorPosition(85, 108);
+                fontlib_DrawString("changes. Do you wish");
+                fontlib_SetCursorPosition(85, 121);
+                fontlib_DrawString("to discard them?");
+                gfx_BlitBuffer();
+
+                if (menu_YesNo(83, 136, 71)) {
+                    break;
+                } else {
+                    redraw = true;
+                    while (kb_AnyKey());
+                }
+            } else {
+                break;
+            }
         } else if (kb_IsDown(kb_KeyYequ) ||
             kb_IsDown(kb_KeyWindow) ||
             kb_IsDown(kb_KeyZoom) ||
@@ -154,6 +183,10 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     }
                 }
             } else if (kb_IsDown(kb_KeyMode) && !(studioContext->lineStart == 0 && studioContext->row == 0 && studioContext->column == 0)) {
+                if (studioContext->fileIsSaved) {
+                    studioContext->fileIsSaved = false;
+                }
+
                 redraw = true;
 
                 files_DeleteChar(studioContext->rowDataStart + studioContext->column - 1, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
@@ -187,6 +220,10 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
                 files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
             } else if (kb_IsDown(kb_KeyDel) && studioContext->rowDataStart + studioContext->column <= studioContext->openEOF) {
+                if (studioContext->fileIsSaved) {
+                    studioContext->fileIsSaved = false;
+                }
+
                 redraw = true;
 
                 files_DeleteChar(studioContext->rowDataStart + studioContext->column, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
@@ -218,6 +255,10 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 inputChar = util_KeyToChar(key, inputMode);
 
                 if (inputChar) {
+                    if (studioContext->fileIsSaved) {
+                        studioContext->fileIsSaved = false;
+                    }
+
                     redraw = true;
 
                     files_InsertChar(inputChar, studioContext->openEOF, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column) + 1);
