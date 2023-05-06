@@ -47,7 +47,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
     edit_RedrawEditor(studioContext, studioPreferences);
     gfx_BlitBuffer();
 
-    while (!kb_IsDown(kb_KeyClear)) {
+    while (studioContext->fileIsOpen) {
         kb_Scan();
 
         if (!kb_AnyKey() && keyPressed) {
@@ -75,13 +75,13 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 gfx_BlitBuffer();
 
                 if (menu_YesNo(83, 136, 71)) {
-                    break;
+                    studioContext->fileIsOpen = false;
                 } else {
                     redraw = true;
                     while (kb_AnyKey());
                 }
             } else {
-                break;
+                studioContext->fileIsOpen = false;
             }
         } else if (kb_IsDown(kb_KeyYequ) ||
             kb_IsDown(kb_KeyWindow) ||
@@ -292,14 +292,14 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                                 studioContext->row++;
                                 studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
                                 studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                                studioContext->column = 0;
+                                studioContext->column = 1; // Skip the new character
                             } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
                                 redraw = true;
                                 studioContext->lineStart++;
                                 studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
                                 studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
                                 studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                                studioContext->column = 0;
+                                studioContext->column = 1;
                                 studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                             }
                         }

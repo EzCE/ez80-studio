@@ -5,8 +5,8 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2023
  * License: GPL-3.0
- * Last Build: April 15, 2023
- * Version: 0.6.0
+ * Last Build: May 6, 2023
+ * Version: 0.6.1
  * 
  * --------------------------------------
 **/
@@ -80,7 +80,7 @@ int main(void) {
 
         if (studioContext->fileIsOpen) {
             edit_OpenEditor(studioContext, studioPreferences);
-            studioContext->fileName = NULL; // Reset stuff
+            studioContext->fileName = NULL; // Reset stuff to make sure nothing bad happens
             studioContext->fileIsOpen = false;
 
             studioContext->lineStart = 0;

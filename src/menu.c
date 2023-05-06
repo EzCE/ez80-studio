@@ -55,11 +55,12 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
         }
     }
 
-    while(kb_AnyKey());
-
     if (kb_IsDown(kb_KeyClear)) {
+        while(kb_AnyKey());
         return false;
     }
+
+    while(kb_AnyKey());
 
     return returnVal;
 }
