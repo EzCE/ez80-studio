@@ -292,7 +292,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
                 }
             }
 
-            if (kb_IsDown(kb_KeyLeft)) {
+            if (kb_IsDown(kb_KeyLeft)  && fileCount > 1) {
                 if (fileSelected) {
                     fileSelected--;
                 } else {
@@ -304,7 +304,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
                         fileSelected = fileCount - fileStartLoc - 1;
                     }
                 }
-            } else if (kb_IsDown(kb_KeyRight)) {
+            } else if (kb_IsDown(kb_KeyRight) && fileCount > 1) {
                 if (fileStartLoc + fileSelected + 1 == fileCount && fileSelected == rowsPerScreen * 2 - 2) {
                     fileSelected--;
                 } else if (fileSelected + 2 > rowsPerScreen * 2) {

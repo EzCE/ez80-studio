@@ -239,6 +239,21 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                     studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                 }
+
+                if (!studioContext->column && *(studioContext->rowDataStart) == '\n' && *(studioContext->rowDataStart) - 1 != '\n' && studioContext->rowDataStart != studioContext->fileDataStart) {
+                    if (studioContext->row) {
+                        studioContext->row--;
+                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
+                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                        studioContext->column = studioContext->rowLength;
+                    } else {
+                        studioContext->lineStart--;
+                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
+                        studioContext->rowDataStart = studioContext->pageDataStart;
+                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                        studioContext->column = studioContext->rowLength;
+                    }
+                }
             } else if (kb_IsDown(kb_KeyAlpha)) {
                 if (inputMode == INPUT_LOWERCASE) {
                     inputMode = 0;
@@ -315,6 +330,8 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
                 gfx_BlitBuffer();
             }
+
+            //dbg_printf("Character: %p, Row Data Start: %p\n", studioContext->rowDataStart + studioContext->column, studioContext->rowDataStart);
 
             if (!keyPressed) {
                 while (timer_Get(1) < 9000 && kb_AnyKey()) {
