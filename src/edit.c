@@ -182,76 +182,95 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                         studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                     }
                 }
-            } else if (kb_IsDown(kb_KeyMode) && !(studioContext->lineStart == 0 && studioContext->row == 0 && studioContext->column == 0)) {
-                if (studioContext->fileIsSaved) {
-                    studioContext->fileIsSaved = false;
-                }
+            } else if (kb_IsDown(kb_KeyMode)) {
+                if (!(studioContext->lineStart == 0 && studioContext->row == 0 && studioContext->column == 0)) {
+                    if (studioContext->fileIsSaved) {
+                        studioContext->fileIsSaved = false;
+                    }
 
-                redraw = true;
+                    redraw = true;
 
-                files_DeleteChar(studioContext->rowDataStart + studioContext->column - 1, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
-                studioContext->openEOF--;
-                studioContext->fileSize--;
+                    files_DeleteChar(studioContext->rowDataStart + studioContext->column - 1, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
+                    studioContext->openEOF--;
+                    studioContext->fileSize--;
 
-                if (studioContext->column) {
-                    studioContext->column--;
-                } else {
-                    if (studioContext->lineStart + studioContext->row >= studioContext->totalLines - 1) {
-                        studioContext->lineStart--;
-                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
-                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart, studioContext->openEOF);
-                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                        studioContext->column = studioContext->rowLength;
-                        studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
-                    } else if (studioContext->row) {
-                        studioContext->row--;
-                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart, studioContext->openEOF);
-                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                        studioContext->column = studioContext->rowLength;
-                    } else if (studioContext->lineStart) {
-                        studioContext->lineStart--;
-                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
-                        studioContext->rowDataStart = studioContext->pageDataStart;
-                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                        studioContext->column = studioContext->rowLength;
-                        studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
+                    files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+
+                    if (studioContext->column) {
+                        studioContext->column--;
+                    } else {
+                        if (studioContext->lineStart + studioContext->row >= studioContext->totalLines - 1 && studioContext->lineStart) {
+                            studioContext->lineStart--;
+                            studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                            studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
+                        } else if (studioContext->row) {
+                            studioContext->row--;
+                            studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                        } else if (studioContext->lineStart) {
+                            studioContext->lineStart--;
+                            studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowDataStart = studioContext->pageDataStart;
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                            studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
+                        }
+                    }
+
+                    if (!studioContext->column && *(studioContext->rowDataStart) == '\n' && *(studioContext->rowDataStart) - 1 != '\n' && studioContext->rowDataStart != studioContext->fileDataStart) {
+                        if (studioContext->row) {
+                            studioContext->row--;
+                            studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                        } else {
+                            studioContext->lineStart--;
+                            studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowDataStart = studioContext->pageDataStart;
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                        }
                     }
                 }
+            } else if (kb_IsDown(kb_KeyDel)) {
+                if (studioContext->rowDataStart + studioContext->column <= studioContext->openEOF) {
+                    if (studioContext->fileIsSaved) {
+                        studioContext->fileIsSaved = false;
+                    }
 
-                files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
-            } else if (kb_IsDown(kb_KeyDel) && studioContext->rowDataStart + studioContext->column <= studioContext->openEOF) {
-                if (studioContext->fileIsSaved) {
-                    studioContext->fileIsSaved = false;
-                }
+                    redraw = true;
 
-                redraw = true;
+                    files_DeleteChar(studioContext->rowDataStart + studioContext->column, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
+                    studioContext->openEOF--;
+                    studioContext->fileSize--;
 
-                files_DeleteChar(studioContext->rowDataStart + studioContext->column, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
-                studioContext->openEOF--;
-                studioContext->fileSize--;
+                    files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
 
-                files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
-
-                if (studioContext->lineStart + 12 >= studioContext->totalLines - 1) {
-                    studioContext->row++;
-                    studioContext->lineStart--;
-                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
-                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                    studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
-                }
-
-                if (!studioContext->column && *(studioContext->rowDataStart) == '\n' && *(studioContext->rowDataStart) - 1 != '\n' && studioContext->rowDataStart != studioContext->fileDataStart) {
-                    if (studioContext->row) {
-                        studioContext->row--;
-                        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
-                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                        studioContext->column = studioContext->rowLength;
-                    } else {
+                    if (studioContext->lineStart + 12 >= studioContext->totalLines - 1) {
+                        studioContext->row++;
                         studioContext->lineStart--;
-                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
-                        studioContext->rowDataStart = studioContext->pageDataStart;
+                        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
                         studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-                        studioContext->column = studioContext->rowLength;
+                        studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
+                    }
+
+                    if (!studioContext->column && *(studioContext->rowDataStart) == '\n' && *(studioContext->rowDataStart) - 1 != '\n' && studioContext->rowDataStart != studioContext->fileDataStart) {
+                        if (studioContext->row) {
+                            studioContext->row--;
+                            studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                        } else {
+                            studioContext->lineStart--;
+                            studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
+                            studioContext->rowDataStart = studioContext->pageDataStart;
+                            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                            studioContext->column = studioContext->rowLength;
+                        }
                     }
                 }
             } else if (kb_IsDown(kb_KeyAlpha)) {
@@ -330,8 +349,6 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
                 gfx_BlitBuffer();
             }
-
-            //dbg_printf("Character: %p, Row Data Start: %p\n", studioContext->rowDataStart + studioContext->column, studioContext->rowDataStart);
 
             if (!keyPressed) {
                 while (timer_Get(1) < 9000 && kb_AnyKey()) {
