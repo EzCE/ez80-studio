@@ -6730,7 +6730,7 @@ namespace ti?
 ?E_OverLimit    := 54
 ?E_Disabled     := 55
 ?E_Xmit         := 56
-E_MemFull       := 57
+?E_MemFull      := 57
 
 ;System Variable Equates
 ;------------------------------
