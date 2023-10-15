@@ -43,20 +43,63 @@ struct context_t {
     uint8_t rowLength;              // length of current row (in columns)
 };
 
-// Read preferences from the appvar, or set the default preferences if the appvar doesn't exist
+/**
+ * @brief Read preferences from the AppVar, or set the default preferences if the AppVar doesn't exist.
+ * 
+ * @param studioPreferences ez80 Studio context struct.
+ */
 void util_ReadPrefs(struct preferences_t *studioPreferences);
 
-// Write the preferences to the appvar
+/**
+ * @brief Write preferences to AppVar.
+ * 
+ * @param studioPreferences ez80 Studio context struct.
+ */
 void util_WritePrefs(struct preferences_t *studioPreferences);
 
+/**
+ * @brief Gets a list of openable files.
+ * 
+ * @param fileCount Pointer to an int holding the number of openable files.
+ * @return char* List of file names.
+ */
 char *util_GetFiles(unsigned int *fileCount);
 
+/**
+ * @brief Returns a pointer to the end of a token.
+ * 
+ * @param string String to search.
+ * @param openEOF End of the currently opened file.
+ * @return char* Pointer to the end of the token.
+ */
 char *util_GetStringEnd(char *string, char *openEOF);
 
+/**
+ * @brief Get a keypress.
+ * 
+ * @return uint8_t GetCSC code of pressed key.
+ */
 uint8_t util_GetSingleKeyPress(void);
 
+/**
+ * @brief Returns the character associated with a key press.
+ * 
+ * @param key Key code.
+ * @param mode Current input mode.
+ * @return char Character associated with key press.
+ */
 char util_KeyToChar(uint8_t key, uint8_t mode);
 
+/**
+ * @brief Displays a box asking for an input.
+ * 
+ * @param x X coordinate to begin drawing input box at.
+ * @param y Y coordinate to begin drawing input box at.
+ * @param stringLength Maximum length of input string.
+ * @param inputMode Current input mode.
+ * @param exitKey Key to press to exit the input box.
+ * @return char* String typed into input box.
+ */
 char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8_t inputMode, kb_lkey_t exitKey);
 
 #ifdef __cplusplus

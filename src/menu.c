@@ -25,6 +25,32 @@
 #include <string.h>
 #include <sys/timers.h>
 
+void menu_Error(uint8_t error) {
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(88, 94, 134, 34);
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(90, 110, 130, 16);
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_SetCursorPosition(137, 95);
+    fontlib_DrawString("Error");
+
+    switch (error) {
+        case ERROR_NO_MEM:
+            fontlib_SetCursorPosition(93, 111);
+            fontlib_DrawString("Not enough memory.");
+            break;
+        default:
+            break;
+    }
+
+    gfx_BlitBuffer();
+
+    while(kb_AnyKey());
+    while (!kb_IsDown(kb_KeyClear)) {
+        kb_Scan();
+    }
+}
+
 bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
     bool returnVal = true;
 
@@ -201,21 +227,7 @@ static void menu_FileNew(struct context_t *studioContext) {
             ti_Close(file);
         } else {
             free(newFile);
-            gfx_SetColor(OUTLINE);
-            gfx_FillRectangle_NoClip(88, 94, 134, 34);
-            gfx_SetColor(BACKGROUND);
-            gfx_FillRectangle_NoClip(90, 110, 130, 16);
-            fontlib_SetForegroundColor(TEXT_DEFAULT);
-            fontlib_SetCursorPosition(137, 95);
-            fontlib_DrawString("Error");
-            fontlib_SetCursorPosition(93, 111);
-            fontlib_DrawString("Not enough memory.");
-            gfx_BlitBuffer();
-
-            while(kb_AnyKey());
-            while (!kb_IsDown(kb_KeyClear)) {
-                kb_Scan();
-            }
+            menu_Error(ERROR_NO_MEM);
         }
     }
 }
@@ -386,21 +398,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
         ui_DrawMenuBox(0, 168, 73, 55, 1, 3, "New file", "Open file", "Save file");
 
-        gfx_SetColor(OUTLINE);
-        gfx_FillRectangle_NoClip(88, 94, 134, 34);
-        gfx_SetColor(BACKGROUND);
-        gfx_FillRectangle_NoClip(90, 110, 130, 16);
-        fontlib_SetForegroundColor(TEXT_DEFAULT);
-        fontlib_SetCursorPosition(137, 95);
-        fontlib_DrawString("Error");
-        fontlib_SetCursorPosition(93, 111);
-        fontlib_DrawString("Not enough memory.");
-        gfx_BlitBuffer();
-
-        while(kb_AnyKey());
-        while (!kb_IsDown(kb_KeyClear)) {
-            kb_Scan();
-        }
+        menu_Error(ERROR_NO_MEM);
     }
 
     free(fileNames);
@@ -484,21 +482,7 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 studioContext->fileIsSaved = true;
 
                 if (!files_WriteFile(studioContext->fileName, studioContext->fileDataStart - 2, studioContext->fileSize)) {
-                    gfx_SetColor(OUTLINE);
-                    gfx_FillRectangle_NoClip(88, 94, 134, 34);
-                    gfx_SetColor(BACKGROUND);
-                    gfx_FillRectangle_NoClip(90, 110, 130, 16);
-                    fontlib_SetForegroundColor(TEXT_DEFAULT);
-                    fontlib_SetCursorPosition(137, 95);
-                    fontlib_DrawString("Error");
-                    fontlib_SetCursorPosition(93, 111);
-                    fontlib_DrawString("Not enough memory.");
-                    gfx_BlitBuffer();
-
-                    while (kb_AnyKey());
-                    while (!kb_IsDown(kb_KeyClear)) {
-                        kb_Scan();
-                    }
+                    menu_Error(ERROR_NO_MEM);
                 }
 
                 while (kb_AnyKey());
@@ -592,7 +576,13 @@ void menu_Chars(struct context_t *studioContext) {
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    // Do more here later!
+    fontlib_SetCursorPosition(0, 0);
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_DrawString("Insert Character\n';@$_!|<=>%\\#&");
+
+    gfx_BlitBuffer();
+
+    while (!kb_AnyKey()); // Wait for key to be pressed
 }
 
 static void menu_About(void) {

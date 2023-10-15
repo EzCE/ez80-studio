@@ -20,6 +20,12 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Opens the editor view.
+ * 
+ * @param studioContext ez80 Studio context struct.
+ * @param studioPreferences ez80 Studio preferences struct.
+ */
 void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 #ifdef __cplusplus

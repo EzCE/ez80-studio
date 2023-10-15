@@ -51,6 +51,10 @@ extern "C" {
 
 #define MAX_FILE_SIZE       65505
 
+// IDE error codes
+
+#define ERROR_NO_MEM        1
+
 #ifdef __cplusplus
 }
 #endif

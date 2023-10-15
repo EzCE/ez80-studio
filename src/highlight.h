@@ -24,6 +24,14 @@ extern "C" {
 #define NUMBER_OCT      2
 #define NUMBER_BIN      3
 
+/**
+ * @brief Finds the color to highlight a specific token.
+ * 
+ * @param string Pointer to start of token.
+ * @param stringEnd Pointer to end of token.
+ * @param highlighting Whether highlighting is enabled.
+ * @return uint8_t Highlight color.
+ */
 uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlighting);
 
 #ifdef __cplusplus
