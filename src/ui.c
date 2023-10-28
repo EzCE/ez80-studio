@@ -64,10 +64,8 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     fontlib_DrawString("File");
     fontlib_SetCursorPosition(71, 227);
     fontlib_DrawString("Compile");
-    fontlib_SetCursorPosition(130, 227);
+    fontlib_SetCursorPosition(146, 227);
     fontlib_DrawString("Goto");
-    fontlib_ShiftCursorPosition(4, 0); // Do this because a space won't fit
-    fontlib_DrawString("Line");
     fontlib_SetCursorPosition(206, 227);
     fontlib_DrawString("Chars");
     fontlib_SetCursorPosition(260, 227);
