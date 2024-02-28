@@ -3,7 +3,7 @@
  * 
  * ez80 Studio Source Code - utility.h
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <keypadc.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,6 +92,16 @@ uint8_t util_GetSingleKeyPress(void);
 char util_KeyToChar(uint8_t key, uint8_t mode);
 
 /**
+ * @brief Inserts a character at the current cursor location in the currently opened file.
+ * 
+ * @param character Character to insert.
+ * @param studioContext ez80 Studio context struct.
+ * @return true Character inserted succesfully.
+ * @return false Character was not inserted.
+ */
+bool util_InsertChar(char character, struct context_t *studioContext);
+
+/**
  * @brief Displays a box asking for an input.
  * 
  * @param x X coordinate to begin drawing input box at.
@@ -101,6 +112,14 @@ char util_KeyToChar(uint8_t key, uint8_t mode);
  * @return char* String typed into input box.
  */
 char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8_t inputMode, kb_lkey_t exitKey);
+
+/**
+ * @brief Waits before repeating a keypress.
+ * 
+ * @param clockOffset Clock offset for timer.
+ * @param keyPressed Whether a key is currently pressed.
+ */
+void util_WaitBeforeKeypress(clock_t *clockOffset, bool *keyPressed);
 
 #ifdef __cplusplus
 }

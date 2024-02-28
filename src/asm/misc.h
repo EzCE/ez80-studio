@@ -3,7 +3,7 @@
  * 
  * ez80 Studio Source Code - misc.h
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -17,6 +17,8 @@ extern "C" {
 #endif
 
 int misc_StringToInt(char *string);
+
+void misc_ClearBuffer(void *buffer);
 
 #ifdef __cplusplus
 }

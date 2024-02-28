@@ -3,7 +3,7 @@
  * 
  * ez80 Studio Source Code - ui.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -12,6 +12,7 @@
 #include "defines.h"
 #include "utility.h"
 #include "highlight.h"
+#include "asm/spi.h"
 
 #include <graphx.h>
 #include <stdint.h>
@@ -62,8 +63,8 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(18, 227);
     fontlib_DrawString("File");
-    fontlib_SetCursorPosition(71, 227);
-    fontlib_DrawString("Compile");
+    fontlib_SetCursorPosition(78, 227);
+    fontlib_DrawString("Build");
     fontlib_SetCursorPosition(146, 227);
     fontlib_DrawString("Goto");
     fontlib_SetCursorPosition(206, 227);
@@ -228,6 +229,7 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
 }
 
 void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
+    spi_beginFrame();
     if (erase) {
         gfx_SetColor(BACKGROUND);
     } else {

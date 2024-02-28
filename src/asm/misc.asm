@@ -2,7 +2,7 @@
 ;
 ; ez80 Studio Source Code - files.asm
 ; By RoccoLox Programs and TIny_Hacker
-; Copyright 2022 - 2023
+; Copyright 2022 - 2024
 ; License: GPL-3.0
 ;
 ;--------------------------------------
@@ -14,6 +14,7 @@
 include 'include/ti84pceg.inc'
 
     public _misc_StringToInt
+    public _misc_ClearBuffer
 
 _misc_StringToInt:
     ld iy, 0
@@ -48,3 +49,10 @@ _misc_StringToInt:
 .notANumber:
     ld hl, -1
     ret
+
+_misc_ClearBuffer:
+    pop de
+    ex (sp), hl ; get address to clear
+    push de
+    ld bc, ti.lcdWidth * ti.lcdHeight
+    jp ti.MemClear

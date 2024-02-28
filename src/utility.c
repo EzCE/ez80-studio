@@ -3,7 +3,7 @@
  * 
  * ez80 Studio Source Code - utility.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -12,6 +12,8 @@
 #include "utility.h"
 #include "defines.h"
 #include "asm/asm.h"
+#include "asm/files.h"
+#include "asm/spi.h"
 
 #include <fileioc.h>
 #include <string.h>
@@ -133,6 +135,58 @@ char util_KeyToChar(uint8_t key, uint8_t mode) {
     return chars[mode][key];
 }
 
+bool util_InsertChar(char character, struct context_t *studioContext) {
+    if (character) {
+        if (studioContext->fileIsSaved) {
+            studioContext->fileIsSaved = false;
+        }
+
+        files_InsertChar(character, studioContext->openEOF, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column) + 1);
+
+        studioContext->fileSize++;
+        studioContext->openEOF++;
+
+        files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+
+        if (character == '\n') {
+            studioContext->column = 0;
+
+            if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
+                studioContext->row++;
+                studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+            } else {
+                studioContext->lineStart++;
+                studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
+                studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
+            }
+        } else {
+            if (studioContext->column < studioContext->rowLength) {
+                studioContext->column++;
+            } else {
+                if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
+                    studioContext->row++;
+                    studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->column = 1; // Skip the new character
+                } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
+                    studioContext->lineStart++;
+                    studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
+                    studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
+                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->column = 1;
+                    studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
+                }
+            }
+        }
+    }
+
+    return character != '\0';
+}
+
 char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8_t inputMode, kb_lkey_t exitKey) {
     bool keyPressed = false;
     bool cursorActive = true;
@@ -143,7 +197,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
     timer_Set(1, 0);
 
     char *input = malloc(stringLength);
-    char inputChar = '\0';
+    char character = '\0';
 
     for (uint8_t i = 0; i <= stringLength; i++) {
         input[i] = '\0';
@@ -213,27 +267,25 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                     key = util_GetSingleKeyPress();
                 }
 
-                inputChar = util_KeyToChar(key, inputMode);
+                character = util_KeyToChar(key, inputMode);
 
-                if ((inputChar >= 'A' && inputChar <= 'Z') || (inputChar >= 'a' && inputChar <= 'z') || (inputChar >= '0' && inputChar <= '9')) {
+                if ((character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9')) {
                     for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
                         input[i] = input[i - 1];
                     }
 
-                    input[currentOffset] = inputChar;
+                    input[currentOffset] = character;
                     charCount++;
                     currentOffset++;
                 }
             }
 
+            spi_beginFrame();
             gfx_SetColor(CURSOR);
-
             gfx_FillRectangle_NoClip(x + (currentOffset * 7), y, 2, 12); // Draw new cursor
-
             fontlib_SetCursorPosition(x + 1, y);
             fontlib_DrawString(input);
-
-            gfx_BlitBuffer();
+            spi_endFrame();
 
             if (!keyPressed) {
                 while (timer_Get(1) < 9000 && kb_AnyKey());
@@ -250,12 +302,13 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                 gfx_SetColor(BACKGROUND);
             }
 
+            spi_beginFrame();
             gfx_FillRectangle_NoClip(x + (currentOffset * 7), y, 2, 12);
 
             cursorActive = !cursorActive;
             timer_Set(1, 0);
 
-            gfx_BlitBuffer();
+            spi_endFrame();
         }
     }
 
@@ -269,4 +322,15 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
     free(input);
     return NULL;
+}
+
+void util_WaitBeforeKeypress(clock_t *clockOffset, bool *keyPressed) {
+    if (!(*keyPressed)) {
+        while ((clock() - *clockOffset < CLOCKS_PER_SEC / 4) && kb_AnyKey()) {
+            kb_Scan();
+        }
+    }
+
+    *keyPressed = true;
+    *clockOffset = clock();
 }

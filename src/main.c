@@ -3,22 +3,23 @@
  * 
  * ez80 Studio Source Code - main.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
- * Last Build: October 14, 2023
- * Version: 0.6.5
+ * Last Build: February 28, 2024
+ * Version: 0.7.0
  * 
  * --------------------------------------
 **/
 
 #include "gfx/gfx.h"
 #include "font/fontCherry.h"
-#include "asm/files.h"
 #include "defines.h"
 #include "ui.h"
 #include "menu.h"
 #include "edit.h"
 #include "utility.h"
+#include "asm/files.h"
+#include "asm/spi.h"
 
 #include <graphx.h>
 #include <keypadc.h>
@@ -37,8 +38,6 @@ int main(void) {
     studioContext->totalLines = 0;
     studioContext->newlineCount = 0;
 
-    bool redraw = true;
-
     util_ReadPrefs(studioPreferences);
 
     fontlib_SetFont(fontCherry, 0);
@@ -54,29 +53,14 @@ int main(void) {
         gfx_SetPalette(lightPalette, sizeof_lightPalette, 0);
     }
 
-    gfx_SetDrawBuffer();
+    edit_RedrawEditor(studioContext, studioPreferences);
 
     while (kb_AnyKey());
 
     while (!kb_IsDown(kb_KeyClear)) {
         kb_Scan();
 
-        if (kb_IsDown(kb_KeyYequ)) {
-            menu_File(studioContext, studioPreferences);
-            redraw = true;
-        } else if (kb_IsDown(kb_KeyWindow)) {
-            menu_Compile(studioContext);
-            redraw = true;
-        } else if (kb_IsDown(kb_KeyZoom)) {
-            menu_Goto(studioContext);
-            redraw = true;
-        } else if (kb_IsDown(kb_KeyTrace)) {
-            menu_Chars(studioContext);
-            redraw = true;
-        } else if (kb_IsDown(kb_KeyGraph)) {
-            menu_Settings(studioContext, studioPreferences);
-            redraw = true;
-        }
+        menu_CheckMenus(studioContext, studioPreferences);
 
         if (studioContext->fileIsOpen) {
             edit_OpenEditor(studioContext, studioPreferences);
@@ -87,18 +71,12 @@ int main(void) {
             studioContext->newlineStart = 0;
             studioContext->totalLines = 0;
             studioContext->newlineCount = 0;
+            edit_RedrawEditor(studioContext, studioPreferences);
             while (kb_AnyKey());
-        }
-
-        if (redraw) {
-            gfx_ZeroScreen();
-            ui_NoFile();
-
-            redraw = false;
-            gfx_BlitBuffer();
         }
     }
 
+    spi_endFrame(); // Do this to be safe
     gfx_End();
 
     asm("call $00214C0\n\tcall $0020E9C"); // Delete temporary programs

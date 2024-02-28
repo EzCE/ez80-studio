@@ -3,7 +3,7 @@
  * 
  * ez80 Studio Source Code - edit.h
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -19,6 +19,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Redraw the editor view.
+ * 
+ * @param studioContext ez80 Studio context struct.
+ * @param studioPreferences ez80 Studio preferences struct.
+ */
+void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 /**
  * @brief Opens the editor view.

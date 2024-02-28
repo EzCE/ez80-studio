@@ -3,7 +3,7 @@
  * 
  * ez80 Studio Source Code - menu.h
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -17,6 +17,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Check if a menu should be opened.
+ * 
+ * @param studioContext ez80 Studio context struct.
+ * @param studioPreferences ez80 Studio preferences struct.
+ */
+void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 /**
  * @brief Displays an error message based on the specified error code.
@@ -45,16 +53,17 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth);
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 /**
- * @brief Compiles the currently opened program.
+ * @brief Assembles the currently opened program.
  * 
  * @param studioContext ez80 Studio context struct.
  */
-void menu_Compile(struct context_t *studioContext);
+void menu_Assemble(struct context_t *studioContext);
 
 /**
  * @brief Opens the line goto menu.
  * 
  * @param studioContext ez80 Studio context struct.
+ * @return The character selected, or '\0' if none were selected.
  */
 void menu_Goto(struct context_t *studioContext);
 
@@ -63,7 +72,7 @@ void menu_Goto(struct context_t *studioContext);
  * 
  * @param studioContext ez80 Studio context struct.
  */
-void menu_Chars(struct context_t *studioContext);
+char menu_Chars(struct context_t *studioContext);
 
 /**
  * @brief Opens the settings menu.

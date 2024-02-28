@@ -3,18 +3,20 @@
  * 
  * ez80 Studio Source Code - menu.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2023
+ * Copyright 2022 - 2024
  * License: GPL-3.0
  * 
  * --------------------------------------
 **/
 
 #include "defines.h"
+#include "edit.h"
 #include "menu.h"
 #include "utility.h"
 #include "ui.h"
 #include "asm/files.h"
 #include "asm/misc.h"
+#include "asm/spi.h"
 #include "gfx/gfx.h"
 
 #include <graphx.h>
@@ -25,7 +27,38 @@
 #include <string.h>
 #include <sys/timers.h>
 
+void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *studioPreferences) {
+    if (kb_IsDown(kb_KeyYequ)) {
+        menu_File(studioContext, studioPreferences);
+        edit_RedrawEditor(studioContext, studioPreferences);
+        while (kb_AnyKey());
+    } else if (kb_IsDown(kb_KeyWindow)) {
+        menu_Assemble(studioContext);
+        edit_RedrawEditor(studioContext, studioPreferences);
+        while (kb_AnyKey());
+    } else if (kb_IsDown(kb_KeyZoom)) {
+        menu_Goto(studioContext);
+        edit_RedrawEditor(studioContext, studioPreferences);
+        while (kb_AnyKey());
+    } else if (kb_IsDown(kb_KeyTrace)) {
+        char insert = menu_Chars(studioContext);
+
+        if (studioContext->fileSize < MAX_FILE_SIZE && studioContext->fileIsOpen) {
+            util_InsertChar(insert, studioContext);
+        }
+
+        edit_RedrawEditor(studioContext, studioPreferences);
+        while (kb_AnyKey());
+    } else if (kb_IsDown(kb_KeyGraph)) {
+        menu_Settings(studioContext, studioPreferences);
+        edit_RedrawEditor(studioContext, studioPreferences);
+        while (kb_AnyKey());
+    }
+
+}
+
 void menu_Error(uint8_t error) {
+    spi_beginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(88, 94, 134, 34);
     gfx_SetColor(BACKGROUND);
@@ -43,7 +76,7 @@ void menu_Error(uint8_t error) {
             break;
     }
 
-    gfx_BlitBuffer();
+    spi_endFrame();
 
     while(kb_AnyKey());
     while (!kb_IsDown(kb_KeyClear)) {
@@ -51,23 +84,22 @@ void menu_Error(uint8_t error) {
     }
 }
 
+void menu_YesNoRedraw(bool returnVal, unsigned int x, uint8_t y, uint8_t buttonWidth) {
+    spi_beginFrame();
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(x, y, buttonWidth * 2 + 2, 16);
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(x + (buttonWidth + 2) * !returnVal, y, buttonWidth, 16);
+    fontlib_SetCursorPosition(x + (buttonWidth - 21) / 2, y + 2);
+    fontlib_DrawString("Yes");
+    fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
+    fontlib_DrawString("No");
+    spi_endFrame();
+}
+
 bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
     bool returnVal = true;
-
-    gfx_BlitScreen();
-    gfx_SetDrawScreen();
-    gfx_SetColor(OUTLINE);
-    gfx_FillRectangle_NoClip(x, y, buttonWidth, 16);
-    fontlib_SetCursorPosition(x + (buttonWidth - 21) / 2, y + 2);
-    fontlib_DrawString("Yes");
-    fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
-    fontlib_DrawString("No");
-    gfx_SetDrawBuffer();
-    gfx_FillRectangle_NoClip(x + buttonWidth + 2, y, buttonWidth, 16);
-    fontlib_SetCursorPosition(x + (buttonWidth - 21) / 2, y + 2);
-    fontlib_DrawString("Yes");
-    fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
-    fontlib_DrawString("No");
+    menu_YesNoRedraw(returnVal, x, y, buttonWidth);
 
     while(kb_AnyKey());
 
@@ -75,8 +107,8 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
         kb_Scan();
 
         if (kb_IsDown(kb_KeyLeft) || kb_IsDown(kb_KeyRight)) {
-            gfx_SwapDraw();
             returnVal = !returnVal;
+            menu_YesNoRedraw(returnVal, x, y, buttonWidth);
             while(kb_AnyKey());
         }
     }
@@ -92,7 +124,7 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
 }
 
 static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsigned int width, uint8_t height, char *option1, char *option2) {
-    gfx_SetDrawScreen(); // Easier to get rid of this way
+    // gfx_SetDrawScreen(); // Easier to get rid of this way
     ui_DrawMenuBox(x, y, width, height, 0, 2, option1, option2);
 
     bool optionSelected = false;
@@ -110,11 +142,9 @@ static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsign
     if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
         while (kb_AnyKey());
         *initialOption = !optionSelected; // Not sure why it had to be ! but who knows
-        gfx_SetDrawBuffer();
         return true; // Something was changed
     }
 
-    gfx_SetDrawBuffer();
     return false; // Something was not changed
 }
 
@@ -159,6 +189,7 @@ static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsign
 
 static void menu_FileNew(struct context_t *studioContext) {
     while (kb_AnyKey());
+    spi_beginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(123, 95, 64, 32);
     gfx_SetColor(BACKGROUND);
@@ -167,12 +198,13 @@ static void menu_FileNew(struct context_t *studioContext) {
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(127, 97);
     fontlib_DrawString("New file");
-    gfx_BlitBuffer();
+    spi_endFrame();
 
     char *newFile = util_StringInputBox(126, 112, 9, INPUT_UPPERCASE, kb_KeyClear);
 
     if (newFile != NULL) {
         if (files_CheckFileExists(newFile)) {
+            spi_beginFrame();
             gfx_SetColor(OUTLINE);
             gfx_FillRectangle_NoClip(82, 82, 146, 60);
             gfx_SetColor(BACKGROUND);
@@ -184,7 +216,7 @@ static void menu_FileNew(struct context_t *studioContext) {
             fontlib_DrawString("with that name.");
             fontlib_SetCursorPosition(110, 108);
             fontlib_DrawString("Overwrite it?");
-            gfx_BlitBuffer();
+            spi_endFrame();
 
             if(!menu_YesNo(85, 123, 69)) {
                 return; // Don't make the file
@@ -247,6 +279,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
     unsigned int fileStartLoc = 0; // It's CEaShell all over again
     unsigned int fileSelected = 0;
 
+    spi_beginFrame();
     gfx_SetColor(OUTLINE);
     gfx_Rectangle_NoClip(84, boxY, 142, boxHeight);
     gfx_Rectangle_NoClip(85, boxY + 1, 140, boxHeight - 2);
@@ -257,7 +290,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
     menu_FileOpenRedraw(fileNames, (fileCount + 1) / 2, fileCount, 0, 0, rowsPerScreen, boxY, boxHeight);
 
-    gfx_BlitBuffer();
+    spi_endFrame();
 
     bool keyPressed = false;
     timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
@@ -332,9 +365,9 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
                 }
             }
 
+            spi_beginFrame();
             menu_FileOpenRedraw(fileNames, (fileCount + 1) / 2, fileCount, fileStartLoc, fileSelected, rowsPerScreen, boxY, boxHeight);
-
-            gfx_BlitBuffer();
+            spi_endFrame();
 
             if (!keyPressed) {
                 while (timer_Get(1) < 9000 && kb_Data[7]) {
@@ -347,7 +380,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
         }
     }
 
-    if (kb_IsDown(kb_KeyClear)) {
+    if (kb_IsDown(kb_KeyClear) || !fileCount) {
         while (kb_AnyKey());
         free(fileNames);
         return; // Return early
@@ -405,14 +438,16 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 }
 
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences) {
+    spi_beginFrame();
     ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
-    gfx_SwapDraw();
+    spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
+    spi_beginFrame();
+    ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_DrawMenuBox(0, 168, 73, 55, 0, 3, "New file", "Open file", "Save file");
-
-    gfx_BlitBuffer(); // Since we saved the "unpressed" button, we bring it back now that it isn't pressed anymore, with the menu
+    spi_endFrame();
 
     uint8_t option = 0;
 
@@ -443,9 +478,9 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 }
             }
 
+            spi_beginFrame();
             ui_DrawMenuBox(0, 168, 73, 55, option, 3, "New file", "Open file", "Save file");
-
-            gfx_BlitBuffer();
+            spi_endFrame();
 
             if (!keyPressed) {
                 while (timer_Get(1) < 9000 && kb_Data[7]) {
@@ -459,8 +494,9 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
     }
 
     if (kb_IsDown(kb_KeyYequ)) { // Ensure the menu doesn't get opened again immediately
+        spi_beginFrame();
         ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
-        gfx_BlitBuffer();
+        spi_endFrame();
 
         while (kb_AnyKey());
     } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
@@ -494,21 +530,19 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
     }
 }
 
-void menu_Compile(struct context_t *studioContext) {
-    ui_DrawUIMain(2, studioContext->totalLines, studioContext->lineStart);
-    gfx_SwapDraw();
-
-    while (kb_AnyKey()); // Wait for key to be released
-
-    // Do more here later!
+void menu_Assemble(struct context_t *studioContext) {
+    
 }
 
 void menu_Goto(struct context_t *studioContext) {
+    spi_beginFrame();
     ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
-    gfx_SwapDraw();
+    spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
+    spi_beginFrame();
+    ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(101, 207, 71, 16);
     gfx_Rectangle_NoClip(172, 207, 36, 18);
@@ -520,11 +554,9 @@ void menu_Goto(struct context_t *studioContext) {
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(104, 210);
     fontlib_DrawString("Goto Line:");
-    gfx_BlitBuffer();
+    spi_endFrame();
 
     char *input = util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
-
-    while (kb_AnyKey());
 
     if (input != NULL) {
         int targetLine = misc_StringToInt(input) - 1;
@@ -562,30 +594,126 @@ void menu_Goto(struct context_t *studioContext) {
         free(input);
     }
 
-    if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
-        ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
-        gfx_BlitBuffer();
+    if (!kb_IsDown(kb_KeyClear)) {
+        if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
+            spi_beginFrame();
+            ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
+            spi_endFrame();
+        }
 
         while (kb_AnyKey());
     }
 }
 
-void menu_Chars(struct context_t *studioContext) {
+void menu_CharsRedraw(uint8_t selected, const char *chars) {
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(165, 178, 117, 45);
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(167, 194, 113, 29);
+    fontlib_SetCursorPosition(167, 180);
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_DrawString("Insert Character");
+    gfx_SetColor(OUTLINE);
+
+    unsigned int drawX = 168;
+    uint8_t drawY = 195;
+
+    for (uint8_t drawing = 0; drawing < 16; drawing++) {
+        if (selected == drawing) {
+            gfx_FillRectangle_NoClip(drawX, drawY, 13, 13);
+        }
+
+        fontlib_SetCursorPosition(drawX + 3, drawY);
+        fontlib_DrawGlyph(chars[drawing]);
+
+        if (drawing == 7) {
+            drawX = 168;
+            drawY = 209;
+        } else {
+            drawX += 14;
+        }
+    }
+}
+
+char menu_Chars(struct context_t *studioContext) {
+    spi_beginFrame();
     ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
-    gfx_SwapDraw();
+    spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    fontlib_SetCursorPosition(0, 0);
-    fontlib_SetForegroundColor(TEXT_DEFAULT);
-    fontlib_DrawString("Insert Character\n';@$_!|<=>%\\#&");
+    bool keyPressed = false;
+    uint8_t selected = 0;
+    static const char chars[16] = {'\'', '`', ';', '@', '$', '~', '_', '!', '|', '<', '=', '>', '%', '\\', '#', '&'};
 
-    gfx_BlitBuffer();
+    spi_beginFrame();
+    menu_CharsRedraw(0, chars);
+    spi_endFrame();
 
-    while (!kb_AnyKey()); // Wait for key to be pressed
+    while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyTrace)) {
+        kb_Scan();
+
+        if (!kb_AnyKey()) {
+            keyPressed = false;
+            timer_Set(1, 0);
+        }
+
+        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000)) {
+            if (kb_IsDown(kb_KeyUp) || kb_IsDown(kb_KeyDown)) {
+                if (selected > 7) {
+                    selected -= 8;
+                } else {
+                    selected += 8;
+                }
+            }
+
+            if (kb_IsDown(kb_KeyLeft)) {
+                if (selected) {
+                    selected--;
+                } else {
+                    selected = 15;
+                }
+            } else if (kb_IsDown(kb_KeyRight)) {
+                if (selected < 15) {
+                    selected++;
+                } else {
+                    selected = 0;
+                }
+            }
+
+            spi_beginFrame();
+            menu_CharsRedraw(selected, chars);
+            spi_endFrame();
+
+            if (!keyPressed) {
+                while (timer_Get(1) < 9000 && kb_Data[7]) {
+                    kb_Scan();
+                }
+            }
+
+            keyPressed = true;
+            timer_Set(1,0);
+        } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
+            while (kb_AnyKey());
+            return chars[selected];
+        }
+    }
+
+    if (!kb_IsDown(kb_KeyClear)) {
+        if (kb_IsDown(kb_KeyTrace)) { // Ensure the menu doesn't get opened again immediately
+            spi_beginFrame();
+            ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
+            spi_endFrame();
+        }
+
+        while (kb_AnyKey());
+    }
+
+    return '\0';
 }
 
 static void menu_About(void) {
+    spi_beginFrame();
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(86, 72, 138, 92);
 
@@ -613,13 +741,13 @@ static void menu_About(void) {
     gfx_HorizLine_NoClip(87, 125, 136);
 
     fontlib_SetCursorPosition(87, 127);
-    fontlib_DrawString("\xA9 2023");
+    fontlib_DrawString("\xA9 2024");
     fontlib_SetCursorPosition(87, 139);
     fontlib_DrawString("RoccoLox Programs,");
     fontlib_SetCursorPosition(87, 151);
     fontlib_DrawString("TIny_Hacker.");
 
-    gfx_BlitBuffer();
+    spi_endFrame();
 
     while (kb_AnyKey());
 
@@ -627,14 +755,16 @@ static void menu_About(void) {
 }
 
 void menu_Settings(struct context_t *studioContext, struct preferences_t *studioPreferences) {
+    spi_beginFrame();
     ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
-    gfx_SwapDraw();
+    spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
+    spi_beginFrame();
+    ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_DrawMenuBox(203, 168, 107, 55, 0, 3, "Themes       \xBB", "Highlighting \xBB", "About"); // \xBB is a right arrow icon
-
-    gfx_BlitBuffer(); // Since we saved the "unpressed" button, we bring it back now that it isn't pressed anymore, with the menu
+    spi_endFrame();
 
     uint8_t option = 0;
 
@@ -694,11 +824,13 @@ void menu_Settings(struct context_t *studioContext, struct preferences_t *studio
 
                         break;
                 }
+
+                edit_RedrawEditor(studioContext, studioPreferences);
             }
 
+            spi_beginFrame();
             ui_DrawMenuBox(203, 168, 107, 55, option, 3, "Themes       \xBB", "Highlighting \xBB", "About");
-
-            gfx_BlitBuffer();
+            spi_endFrame();
 
             if (!keyPressed) {
                 while (timer_Get(1) < 9000 && kb_Data[7]) {
@@ -712,8 +844,9 @@ void menu_Settings(struct context_t *studioContext, struct preferences_t *studio
     }
 
     if (kb_IsDown(kb_KeyGraph)) { // Ensure the menu doesn't get opened again immediately
+        spi_beginFrame();
         ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
-        gfx_BlitBuffer();
+        spi_endFrame();
 
         while (kb_AnyKey());
     }
