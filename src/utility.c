@@ -107,37 +107,6 @@ char *util_GetStringEnd(char *string, char *openEOF) {
     return string;
 }
 
-// code by jacobly from here:
-// https://ce-programming.github.io/toolchain/libraries/keypadc.html#getting-getcsc-codes-with-keypadc
-uint8_t util_GetSingleKeyPress(void) {
-    uint8_t only_key = 0;
-    kb_Scan();
-
-    for (uint8_t key = 1, group = 7; group; --group) {
-        for (uint8_t mask = 1; mask; mask <<= 1, ++key) {
-            if (kb_Data[group] & mask) {
-                if (only_key) {
-                    return false;
-                } else {
-                    only_key = key;
-                }
-            }
-        }
-    }
-
-    return only_key;
-}
-
-char util_KeyToChar(uint8_t key, uint8_t mode) {
-    static const char chars[3][56] = {
-        {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\n', '+', '-', '*', '/', '^', '\0', '\0', '-', '3', '6', '9', ')', '\0', '\0', '\0', '.', '2', '5', '8', '(', '\0', '\0', '\0', '0', '1', '4', '7', ',', '\0', '\0', 'X', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
-        {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\n', '\"', 'W', 'R', 'M', 'H', '\0', '\0', '?', '\0', 'V', 'Q', 'L', 'G', '\0', '\0', ':', 'Z', 'U', 'P', 'K', 'F', 'C', '\0', ' ', 'Y', 'T', 'O', 'J', 'E', 'B', 'X', '\0', 'X', 'S', 'N', 'I', 'D', 'A', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}, 
-        {'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\n', '\"', 'w', 'r', 'm', 'h', '\0', '\0', '?', '\0', 'v', 'q', 'l', 'g', '\0', '\0', ':', 'z', 'u', 'p', 'k', 'f', 'c', '\0', ' ', 'y', 't', 'o', 'j', 'e', 'b', '\0', '\0', 'x', 's', 'n', 'i', 'd' ,'a', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'}
-    };
-
-    return chars[mode][key];
-}
-
 bool util_InsertChar(char character, struct context_t *studioContext) {
     if (character) {
         if (studioContext->fileIsSaved) {
@@ -206,19 +175,18 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
         input[i] = '\0';
     }
 
-    uint8_t key = 0;
-
     fontlib_SetForegroundColor(TEXT_DEFAULT);
 
     while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(exitKey)) {
         kb_Scan();
 
-        if (!kb_AnyKey()) {
+        if (!kb_AnyKey() && keyPressed) {
             keyPressed = false;
             clockOffset = clock();
         }
 
         if (kb_AnyKey() && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 16)) {
+            clockOffset = clock();
             cursorActive = true;
 
             gfx_SetColor(BACKGROUND);
@@ -267,10 +235,8 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                 while (kb_AnyKey());
             } else if (charCount < stringLength - 1) {
                 if (!keyPressed) {
-                    key = util_GetSingleKeyPress();
+                    character = asm_misc_GetCharFromKey(inputMode);
                 }
-
-                character = util_KeyToChar(key, inputMode);
 
                 if ((character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9')) {
                     for (uint8_t i = stringLength - 1; i != currentOffset; i--) {
@@ -300,7 +266,6 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                 gfx_SetColor(BACKGROUND);
             }
 
-            asm_spi_beginFrame();
             gfx_FillRectangle_NoClip(x + (currentOffset * 7), y, 2, 12);
 
             cursorActive = !cursorActive;

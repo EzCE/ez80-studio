@@ -53,22 +53,6 @@ char *util_GetFiles(unsigned int *fileCount);
 char *util_GetStringEnd(char *string, char *openEOF);
 
 /**
- * @brief Get a keypress.
- * 
- * @return uint8_t GetCSC code of pressed key.
- */
-uint8_t util_GetSingleKeyPress(void);
-
-/**
- * @brief Returns the character associated with a key press.
- * 
- * @param key Key code.
- * @param mode Current input mode.
- * @return char Character associated with key press.
- */
-char util_KeyToChar(uint8_t key, uint8_t mode);
-
-/**
  * @brief Inserts a character at the current cursor location in the currently opened file.
  * 
  * @param character Character to insert.

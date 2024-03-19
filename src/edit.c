@@ -15,6 +15,7 @@
 #include "menu.h"
 #include "defines.h"
 #include "asm/files.h"
+#include "asm/misc.h"
 #include "asm/spi.h"
 
 #include <graphx.h>
@@ -149,7 +150,6 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
     bool cursorActive = true;
     bool redraw = false;
 
-    uint8_t key = 0;
     uint8_t inputMode = INPUT_LOWERCASE;
     uint8_t inputChar = '\0';
 
@@ -164,12 +164,13 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
     while (studioContext->fileIsOpen) {
         kb_Scan();
 
-        if (!kb_AnyKey()) {
+        if (!kb_AnyKey() && keyPressed) {
             keyPressed = false;
             clockOffset = clock();
         }
 
         if (kb_AnyKey() && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 32)) {
+            clockOffset = clock();
             cursorActive = true;
 
             asm_spi_beginFrame();
@@ -204,14 +205,32 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 } else {
                     studioContext->fileIsOpen = false;
                 }
-            } else {
-                menu_CheckMenus(studioContext, studioPreferences);
-                clockOffset = clock();
-            }
+            } if (kb_IsDown(kb_KeyYequ)) {
+                menu_File(studioContext, studioPreferences);
+                edit_RedrawEditor(studioContext, studioPreferences);
+                while (kb_AnyKey());
+            } else if (kb_IsDown(kb_KeyWindow)) {
+                menu_Assemble(studioContext);
+                edit_RedrawEditor(studioContext, studioPreferences);
+                while (kb_AnyKey());
+            } else if (kb_IsDown(kb_KeyZoom)) {
+                menu_Goto(studioContext);
+                edit_RedrawEditor(studioContext, studioPreferences);
+                while (kb_AnyKey());
+            } else if (kb_IsDown(kb_KeyTrace)) {
+                char insert = menu_Chars(studioContext);
 
-            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
+                if (studioContext->fileSize < MAX_FILE_SIZE && studioContext->fileIsOpen) {
+                    util_InsertChar(insert, studioContext);
+                }
 
-            if (kb_IsDown(kb_KeyUp)) {
+                edit_RedrawEditor(studioContext, studioPreferences);
+                while (kb_AnyKey());
+            } else if (kb_IsDown(kb_KeyGraph)) {
+                menu_Settings(studioContext, studioPreferences);
+                edit_RedrawEditor(studioContext, studioPreferences);
+                while (kb_AnyKey());
+            } else if (kb_IsDown(kb_KeyUp)) {
                 redraw = edit_CursorUp(studioContext);
             } else if (kb_IsDown(kb_KeyDown)) {
                 redraw = edit_CursorDown(studioContext);
@@ -238,14 +257,15 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 }
 
                 while (kb_AnyKey());
-            } else if (studioContext->fileSize < MAX_FILE_SIZE) {
+            } else if (studioContext->fileSize < MAX_FILE_SIZE && !redraw) {
                 if (!keyPressed) {
-                    key = util_GetSingleKeyPress();
+                    inputChar = asm_misc_GetCharFromKey(inputMode);
                 }
 
-                inputChar = util_KeyToChar(key, inputMode);
                 redraw = util_InsertChar(inputChar, studioContext);
             }
+
+            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
 
             dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
 
@@ -264,7 +284,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
 
-        if (clock() - clockOffset > CLOCKS_PER_SEC / 3 && !keyPressed) {
+        if (clock() - clockOffset > CLOCKS_PER_SEC / 3 && !kb_AnyKey()) {
             ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
             asm_spi_endFrame();
             cursorActive = !cursorActive;

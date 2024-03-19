@@ -37,6 +37,14 @@ void asm_misc_ClearBuffer(void *buffer);
  */
 void asm_misc_SortVAT(void);
 
+/**
+ * @brief Scans the keypad and returns a character based on the key pressed.
+ * 
+ * @param inputMode Input mode, like 2nd mode, uppercase mode, or lowercase mode.
+ * @return char Character found from keypress.
+ */
+char asm_misc_GetCharFromKey(uint8_t inputMode);
+
 #ifdef __cplusplus
 }
 #endif

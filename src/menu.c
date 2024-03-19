@@ -26,36 +26,6 @@
 #include <stdint.h>
 #include <string.h>
 
-void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    if (kb_IsDown(kb_KeyYequ)) {
-        menu_File(studioContext, studioPreferences);
-        edit_RedrawEditor(studioContext, studioPreferences);
-        while (kb_AnyKey());
-    } else if (kb_IsDown(kb_KeyWindow)) {
-        menu_Assemble(studioContext);
-        edit_RedrawEditor(studioContext, studioPreferences);
-        while (kb_AnyKey());
-    } else if (kb_IsDown(kb_KeyZoom)) {
-        menu_Goto(studioContext);
-        edit_RedrawEditor(studioContext, studioPreferences);
-        while (kb_AnyKey());
-    } else if (kb_IsDown(kb_KeyTrace)) {
-        char insert = menu_Chars(studioContext);
-
-        if (studioContext->fileSize < MAX_FILE_SIZE && studioContext->fileIsOpen) {
-            util_InsertChar(insert, studioContext);
-        }
-
-        edit_RedrawEditor(studioContext, studioPreferences);
-        while (kb_AnyKey());
-    } else if (kb_IsDown(kb_KeyGraph)) {
-        menu_Settings(studioContext, studioPreferences);
-        edit_RedrawEditor(studioContext, studioPreferences);
-        while (kb_AnyKey());
-    }
-
-}
-
 void menu_Error(uint8_t error) {
     asm_spi_beginFrame();
     gfx_SetColor(OUTLINE);

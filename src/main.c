@@ -6,7 +6,7 @@
  * Copyright 2022 - 2024
  * License: GPL-3.0
  * Last Build: March 19, 2024
- * Version: 0.8.0
+ * Version: 0.8.1
  * 
  * --------------------------------------
 **/
@@ -59,7 +59,32 @@ int main(void) {
     while (!kb_IsDown(kb_KeyClear)) {
         kb_Scan();
 
-        menu_CheckMenus(&studioContext, &studioPreferences);
+        if (kb_IsDown(kb_KeyYequ)) {
+            menu_File(&studioContext, &studioPreferences);
+            edit_RedrawEditor(&studioContext, &studioPreferences);
+            while (kb_AnyKey());
+        } else if (kb_IsDown(kb_KeyWindow)) {
+            menu_Assemble(&studioContext);
+            edit_RedrawEditor(&studioContext, &studioPreferences);
+            while (kb_AnyKey());
+        } else if (kb_IsDown(kb_KeyZoom)) {
+            menu_Goto(&studioContext);
+            edit_RedrawEditor(&studioContext, &studioPreferences);
+            while (kb_AnyKey());
+        } else if (kb_IsDown(kb_KeyTrace)) {
+            char insert = menu_Chars(&studioContext);
+
+            if (studioContext.fileSize < MAX_FILE_SIZE && studioContext.fileIsOpen) {
+                util_InsertChar(insert, &studioContext);
+            }
+
+            edit_RedrawEditor(&studioContext, &studioPreferences);
+            while (kb_AnyKey());
+        } else if (kb_IsDown(kb_KeyGraph)) {
+            menu_Settings(&studioContext, &studioPreferences);
+            edit_RedrawEditor(&studioContext, &studioPreferences);
+            while (kb_AnyKey());
+        }
 
         if (studioContext.fileIsOpen) {
             edit_OpenEditor(&studioContext, &studioPreferences);

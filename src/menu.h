@@ -19,14 +19,6 @@ extern "C" {
 #endif
 
 /**
- * @brief Check if a menu should be opened.
- * 
- * @param studioContext eZ80 Studio context struct.
- * @param studioPreferences eZ80 Studio preferences struct.
- */
-void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *studioPreferences);
-
-/**
  * @brief Displays an error message based on the specified error code.
  * 
  * @param error Error code representing the error encountered.
