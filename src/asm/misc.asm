@@ -1,6 +1,6 @@
 ;--------------------------------------
 ;
-; ez80 Studio Source Code - files.asm
+; eZ80 Studio Source Code - files.asm
 ; By RoccoLox Programs and TIny_Hacker
 ; Copyright 2022 - 2024
 ; License: GPL-3.0
@@ -11,15 +11,16 @@
 
     section .text
 
-include 'include/ti84pceg.inc'
+include 'include/equates.inc'
 
-    public _misc_StringToInt
-    public _misc_ClearBuffer
+    public _asm_misc_StringToInt
+    public _asm_misc_ClearBuffer
 
-_misc_StringToInt:
-    ld iy, 0
-    add iy, sp
-    ld de, (iy + 3) ; beginning of string
+_asm_misc_StringToInt:
+    pop de
+    ex (sp), hl ; beginning of string
+    push de
+    ex de, hl
     ld hl, 0
     ld a, (de)
     or a, a
@@ -50,7 +51,7 @@ _misc_StringToInt:
     ld hl, -1
     ret
 
-_misc_ClearBuffer:
+_asm_misc_ClearBuffer:
     pop de
     ex (sp), hl ; get address to clear
     push de

@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - menu.c
+ * eZ80 Studio Source Code - menu.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -25,7 +25,6 @@
 #include <keypadc.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/timers.h>
 
 void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *studioPreferences) {
     if (kb_IsDown(kb_KeyYequ)) {
@@ -58,7 +57,7 @@ void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *stud
 }
 
 void menu_Error(uint8_t error) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(88, 94, 134, 34);
     gfx_SetColor(BACKGROUND);
@@ -76,7 +75,7 @@ void menu_Error(uint8_t error) {
             break;
     }
 
-    spi_endFrame();
+    asm_spi_endFrame();
 
     while(kb_AnyKey());
     while (!kb_IsDown(kb_KeyClear)) {
@@ -85,7 +84,7 @@ void menu_Error(uint8_t error) {
 }
 
 void menu_YesNoRedraw(bool returnVal, unsigned int x, uint8_t y, uint8_t buttonWidth) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(x, y, buttonWidth * 2 + 2, 16);
     gfx_SetColor(OUTLINE);
@@ -94,7 +93,7 @@ void menu_YesNoRedraw(bool returnVal, unsigned int x, uint8_t y, uint8_t buttonW
     fontlib_DrawString("Yes");
     fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
     fontlib_DrawString("No");
-    spi_endFrame();
+    asm_spi_endFrame();
 }
 
 bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
@@ -124,7 +123,6 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
 }
 
 static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsigned int width, uint8_t height, char *option1, char *option2) {
-    // gfx_SetDrawScreen(); // Easier to get rid of this way
     ui_DrawMenuBox(x, y, width, height, 0, 2, option1, option2);
 
     bool optionSelected = false;
@@ -189,7 +187,7 @@ static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsign
 
 static void menu_FileNew(struct context_t *studioContext) {
     while (kb_AnyKey());
-    spi_beginFrame();
+    asm_spi_beginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(123, 95, 64, 32);
     gfx_SetColor(BACKGROUND);
@@ -198,13 +196,13 @@ static void menu_FileNew(struct context_t *studioContext) {
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(127, 97);
     fontlib_DrawString("New file");
-    spi_endFrame();
+    asm_spi_endFrame();
 
     char *newFile = util_StringInputBox(126, 112, 9, INPUT_UPPERCASE, kb_KeyClear);
 
     if (newFile != NULL) {
-        if (files_CheckFileExists(newFile)) {
-            spi_beginFrame();
+        if (asm_files_CheckFileExists(newFile)) {
+            asm_spi_beginFrame();
             gfx_SetColor(OUTLINE);
             gfx_FillRectangle_NoClip(82, 82, 146, 60);
             gfx_SetColor(BACKGROUND);
@@ -216,7 +214,7 @@ static void menu_FileNew(struct context_t *studioContext) {
             fontlib_DrawString("with that name.");
             fontlib_SetCursorPosition(110, 108);
             fontlib_DrawString("Overwrite it?");
-            spi_endFrame();
+            asm_spi_endFrame();
 
             if(!menu_YesNo(85, 123, 69)) {
                 return; // Don't make the file
@@ -230,37 +228,35 @@ static void menu_FileNew(struct context_t *studioContext) {
         ti_Write(&header, 2, 1, file);
         ti_Close(file);
 
-        if (files_ReadFile(newFile) != NULL) {
+        if (asm_files_ReadFile(newFile)) {
             free(studioContext->fileName);
 
             studioContext->fileName = newFile;
             studioContext->fileIsOpen = true;
+            studioContext->fileIsSaved = true;
 
-            file = ti_Open(studioContext->fileName, "r");
-            studioContext->fileSize = ti_GetSize(file);
-            ti_Close(file);
+            studioContext->fileSize = 2;
 
-            file = ti_OpenVar("ez80temp", "r", OS_TYPE_TMP_PRGM);
-
-            studioContext->pageDataStart = ti_GetDataPtr(file) + 2;
+            studioContext->pageDataStart = (char *)EDIT_BUFFER;
             studioContext->rowDataStart = studioContext->pageDataStart;
-            studioContext->fileDataStart = studioContext->rowDataStart;
-            studioContext->openEOF = studioContext->fileDataStart + studioContext->fileSize - 3;
+            studioContext->openEOF = (char *)EDIT_BUFFER - 1;
 
             studioContext->lineStart = 0;
             studioContext->newlineStart = 0;
             studioContext->row = 0;
             studioContext->column = 0;
 
-            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 
-            files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+            asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
 
             ti_Close(file);
         } else {
             free(newFile);
             menu_Error(ERROR_NO_MEM);
         }
+
+        dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
     }
 }
 
@@ -279,7 +275,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
     unsigned int fileStartLoc = 0; // It's CEaShell all over again
     unsigned int fileSelected = 0;
 
-    spi_beginFrame();
+    asm_spi_beginFrame();
     gfx_SetColor(OUTLINE);
     gfx_Rectangle_NoClip(84, boxY, 142, boxHeight);
     gfx_Rectangle_NoClip(85, boxY + 1, 140, boxHeight - 2);
@@ -290,11 +286,10 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
     menu_FileOpenRedraw(fileNames, (fileCount + 1) / 2, fileCount, 0, 0, rowsPerScreen, boxY, boxHeight);
 
-    spi_endFrame();
+    asm_spi_endFrame();
 
     bool keyPressed = false;
-    timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
-    timer_Set(1, 0);
+    clock_t clockOffset = clock();
 
     unsigned int bottomItem = fileCount + fileCount % 2;
 
@@ -303,10 +298,10 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
         if (!kb_AnyKey()) {
             keyPressed = false;
-            timer_Set(1, 0);
+            clockOffset = clock();
         }
 
-        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000) && fileCount) {
+        if (kb_Data[7] && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 16) && fileCount) {
             if (kb_IsDown(kb_KeyUp)) {
                 if (fileSelected < 2) {
                     if (fileStartLoc) {
@@ -365,18 +360,11 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
                 }
             }
 
-            spi_beginFrame();
+            asm_spi_beginFrame();
             menu_FileOpenRedraw(fileNames, (fileCount + 1) / 2, fileCount, fileStartLoc, fileSelected, rowsPerScreen, boxY, boxHeight);
-            spi_endFrame();
+            asm_spi_endFrame();
 
-            if (!keyPressed) {
-                while (timer_Get(1) < 9000 && kb_Data[7]) {
-                    kb_Scan();
-                }
-            }
-
-            keyPressed = true;
-            timer_Set(1,0);
+            util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
     }
 
@@ -389,31 +377,29 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
     char *fileOpened = malloc(9);
     strcpy(fileOpened, &fileNames[(fileStartLoc + fileSelected) * 9]);
 
-    if (files_ReadFile(fileOpened) != NULL) {
+    if (asm_files_ReadFile(fileOpened)) {
         free(studioContext->fileName);
 
         studioContext->fileName = fileOpened;
         studioContext->fileIsOpen = true;
+        studioContext->fileIsSaved = true;
 
         uint8_t file = ti_Open(fileOpened, "r");
         studioContext->fileSize = ti_GetSize(file);
         ti_Close(file);
 
-        file = ti_OpenVar("ez80temp", "r", OS_TYPE_TMP_PRGM);
-
-        studioContext->pageDataStart = ti_GetDataPtr(file) + 2;
+        studioContext->pageDataStart = (char *)EDIT_BUFFER;
         studioContext->rowDataStart = studioContext->pageDataStart;
-        studioContext->fileDataStart = studioContext->rowDataStart;
-        studioContext->openEOF = studioContext->fileDataStart + studioContext->fileSize - 3;
+        studioContext->openEOF = (char *)EDIT_BUFFER + studioContext->fileSize - 3;
 
         studioContext->lineStart = 0;
         studioContext->newlineStart = 0;
         studioContext->row = 0;
         studioContext->column = 0;
 
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 
-        files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+        asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
 
         ti_Close(file);
     } else {
@@ -434,36 +420,37 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
         menu_Error(ERROR_NO_MEM);
     }
 
+    dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
+
     free(fileNames);
 }
 
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
-    spi_endFrame();
+    asm_spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_DrawMenuBox(0, 168, 73, 55, 0, 3, "New file", "Open file", "Save file");
-    spi_endFrame();
+    asm_spi_endFrame();
 
     uint8_t option = 0;
 
     bool keyPressed = false;
-    timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
-    timer_Set(1, 0);
+    clock_t clockOffset = clock();
 
     while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyYequ) && !kb_IsDown(kb_Key2nd) && !kb_IsDown(kb_KeyEnter)) {
         kb_Scan();
 
         if (!kb_AnyKey()) {
             keyPressed = false;
-            timer_Set(1, 0);
+            clockOffset = clock();
         }
 
-        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000)) {
+        if (kb_Data[7] && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 16)) {
             if (kb_IsDown(kb_KeyUp)) {
                 if (option == 0) { // Loop the cursor
                     option = 2;
@@ -478,25 +465,18 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 }
             }
 
-            spi_beginFrame();
+            asm_spi_beginFrame();
             ui_DrawMenuBox(0, 168, 73, 55, option, 3, "New file", "Open file", "Save file");
-            spi_endFrame();
+            asm_spi_endFrame();
 
-            if (!keyPressed) {
-                while (timer_Get(1) < 9000 && kb_Data[7]) {
-                    kb_Scan();
-                }
-            }
-
-            keyPressed = true;
-            timer_Set(1,0);
+            util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
     }
 
     if (kb_IsDown(kb_KeyYequ)) { // Ensure the menu doesn't get opened again immediately
-        spi_beginFrame();
+        asm_spi_beginFrame();
         ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
-        spi_endFrame();
+        asm_spi_endFrame();
 
         while (kb_AnyKey());
     } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
@@ -517,7 +497,7 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
 
                 studioContext->fileIsSaved = true;
 
-                if (!files_WriteFile(studioContext->fileName, studioContext->fileDataStart - 2, studioContext->fileSize)) {
+                if (!asm_files_WriteFile(studioContext->fileName, studioContext->fileSize)) {
                     menu_Error(ERROR_NO_MEM);
                 }
 
@@ -535,13 +515,13 @@ void menu_Assemble(struct context_t *studioContext) {
 }
 
 void menu_Goto(struct context_t *studioContext) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
-    spi_endFrame();
+    asm_spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(101, 207, 71, 16);
@@ -554,12 +534,12 @@ void menu_Goto(struct context_t *studioContext) {
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(104, 210);
     fontlib_DrawString("Goto Line:");
-    spi_endFrame();
+    asm_spi_endFrame();
 
     char *input = util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
 
     if (input != NULL) {
-        int targetLine = misc_StringToInt(input) - 1;
+        int targetLine = asm_misc_StringToInt(input) - 1;
 
         if (targetLine >= 0 && (unsigned int)targetLine < studioContext->newlineCount) {
             studioContext->row = 0;
@@ -569,20 +549,20 @@ void menu_Goto(struct context_t *studioContext) {
                 if ((unsigned int)targetLine < studioContext->newlineStart) {
                     studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
                     studioContext->lineStart--;
-                    studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
+                    studioContext->pageDataStart = asm_files_PreviousLine(studioContext->pageDataStart, studioContext->openEOF);
                     studioContext->rowDataStart = studioContext->pageDataStart;
-                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                 } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
                     studioContext->lineStart++;
-                    studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
+                    studioContext->pageDataStart = asm_files_NextLine(studioContext->pageDataStart);
                     studioContext->rowDataStart = studioContext->pageDataStart;
-                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                     studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                 } else {
                     for (unsigned int currentLine = studioContext->newlineStart; currentLine < (unsigned int)targetLine;) {
                         studioContext->row++;
-                        studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-                        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                        studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+                        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                         currentLine += (*(studioContext->rowDataStart - 1) == '\n');
                     }
 
@@ -596,9 +576,9 @@ void menu_Goto(struct context_t *studioContext) {
 
     if (!kb_IsDown(kb_KeyClear)) {
         if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
-            spi_beginFrame();
+            asm_spi_beginFrame();
             ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
-            spi_endFrame();
+            asm_spi_endFrame();
         }
 
         while (kb_AnyKey());
@@ -636,9 +616,9 @@ void menu_CharsRedraw(uint8_t selected, const char *chars) {
 }
 
 char menu_Chars(struct context_t *studioContext) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
-    spi_endFrame();
+    asm_spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
@@ -646,19 +626,21 @@ char menu_Chars(struct context_t *studioContext) {
     uint8_t selected = 0;
     static const char chars[16] = {'\'', '`', ';', '@', '$', '~', '_', '!', '|', '<', '=', '>', '%', '\\', '#', '&'};
 
-    spi_beginFrame();
+    asm_spi_beginFrame();
     menu_CharsRedraw(0, chars);
-    spi_endFrame();
+    asm_spi_endFrame();
+
+    clock_t clockOffset = clock();
 
     while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyTrace)) {
         kb_Scan();
 
         if (!kb_AnyKey()) {
             keyPressed = false;
-            timer_Set(1, 0);
+            clockOffset = clock();
         }
 
-        if (kb_Data[7] && (!keyPressed || timer_Get(1) > 3000)) {
+        if (kb_Data[7] && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 16)) {
             if (kb_IsDown(kb_KeyUp) || kb_IsDown(kb_KeyDown)) {
                 if (selected > 7) {
                     selected -= 8;
@@ -681,18 +663,11 @@ char menu_Chars(struct context_t *studioContext) {
                 }
             }
 
-            spi_beginFrame();
+            asm_spi_beginFrame();
             menu_CharsRedraw(selected, chars);
-            spi_endFrame();
+            asm_spi_endFrame();
 
-            if (!keyPressed) {
-                while (timer_Get(1) < 9000 && kb_Data[7]) {
-                    kb_Scan();
-                }
-            }
-
-            keyPressed = true;
-            timer_Set(1,0);
+            util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
             while (kb_AnyKey());
             return chars[selected];
@@ -701,9 +676,9 @@ char menu_Chars(struct context_t *studioContext) {
 
     if (!kb_IsDown(kb_KeyClear)) {
         if (kb_IsDown(kb_KeyTrace)) { // Ensure the menu doesn't get opened again immediately
-            spi_beginFrame();
+            asm_spi_beginFrame();
             ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
-            spi_endFrame();
+            asm_spi_endFrame();
         }
 
         while (kb_AnyKey());
@@ -713,7 +688,7 @@ char menu_Chars(struct context_t *studioContext) {
 }
 
 static void menu_About(void) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(86, 72, 138, 92);
 
@@ -727,16 +702,16 @@ static void menu_About(void) {
     fontlib_DrawString("About");
 
     fontlib_SetCursorPosition(87, 73);
-    fontlib_DrawString("ez80 Studio");
+    fontlib_DrawString("eZ80 Studio");
     fontlib_SetCursorPosition(87, 85);
     fontlib_DrawString("Version: "VERSION_NO);
 
     gfx_HorizLine_NoClip(87, 98, 136);
 
     fontlib_SetCursorPosition(87, 100);
-    fontlib_DrawString("An ez80 IDE for TI");
+    fontlib_DrawString("An eZ80 IDE for TI");
     fontlib_SetCursorPosition(87, 112);
-    fontlib_DrawString("ez80 calculators.");
+    fontlib_DrawString("eZ80 calculators.");
 
     gfx_HorizLine_NoClip(87, 125, 136);
 
@@ -747,7 +722,7 @@ static void menu_About(void) {
     fontlib_SetCursorPosition(87, 151);
     fontlib_DrawString("TIny_Hacker.");
 
-    spi_endFrame();
+    asm_spi_endFrame();
 
     while (kb_AnyKey());
 
@@ -755,32 +730,31 @@ static void menu_About(void) {
 }
 
 void menu_Settings(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
-    spi_endFrame();
+    asm_spi_endFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    spi_beginFrame();
+    asm_spi_beginFrame();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_DrawMenuBox(203, 168, 107, 55, 0, 3, "Themes       \xBB", "Highlighting \xBB", "About"); // \xBB is a right arrow icon
-    spi_endFrame();
+    asm_spi_endFrame();
 
     uint8_t option = 0;
 
     bool keyPressed = false;
-    timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
-    timer_Set(1, 0);
+    clock_t clockOffset = clock();
 
     while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyGraph)) {
         kb_Scan();
 
         if (!kb_AnyKey()) {
             keyPressed = false;
-            timer_Set(1, 0);
+            clockOffset = clock();
         }
 
-        if ((kb_Data[7] || kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) && (!keyPressed || timer_Get(1) > 3000)) {
+        if ((kb_Data[7] || kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 16)) {
             if (kb_IsDown(kb_KeyUp)) {
                 if (option == 0) { // Loop the cursor
                     option = 2;
@@ -828,25 +802,18 @@ void menu_Settings(struct context_t *studioContext, struct preferences_t *studio
                 edit_RedrawEditor(studioContext, studioPreferences);
             }
 
-            spi_beginFrame();
+            asm_spi_beginFrame();
             ui_DrawMenuBox(203, 168, 107, 55, option, 3, "Themes       \xBB", "Highlighting \xBB", "About");
-            spi_endFrame();
+            asm_spi_endFrame();
 
-            if (!keyPressed) {
-                while (timer_Get(1) < 9000 && kb_Data[7]) {
-                    kb_Scan();
-                }
-            }
-
-            keyPressed = true;
-            timer_Set(1,0);
+            util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
     }
 
     if (kb_IsDown(kb_KeyGraph)) { // Ensure the menu doesn't get opened again immediately
-        spi_beginFrame();
+        asm_spi_beginFrame();
         ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
-        spi_endFrame();
+        asm_spi_endFrame();
 
         while (kb_AnyKey());
     }

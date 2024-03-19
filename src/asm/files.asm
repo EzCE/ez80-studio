@@ -1,6 +1,6 @@
 ;--------------------------------------
 ;
-; ez80 Studio Source Code - files.asm
+; eZ80 Studio Source Code - files.asm
 ; By RoccoLox Programs and TIny_Hacker
 ; Copyright 2022 - 2024
 ; License: GPL-3.0
@@ -11,50 +11,25 @@
 
     section .text
 
-include 'include/ti84pceg.inc'
+include 'include/equates.inc'
 
-    public _files_ReadFile
-    public _files_WriteFile
-    public _files_CheckFileExists
-    public _files_CountLines
-    public _files_GetLineLength
-    public _files_NextLine
-    public _files_PreviousLine
-    public _files_InsertChar
-    public _files_DeleteChar
+    public _asm_files_ReadFile
+    public _asm_files_WriteFile
+    public _asm_files_CheckFileExists
+    public _asm_files_CountLines
+    public _asm_files_GetLineLength
+    public _asm_files_NextLine
+    public _asm_files_PreviousLine
+    public _asm_files_InsertChar
+    public _asm_files_DeleteChar
 
-EOF := ti.appData
+    extern _asm_misc_ClearBuffer
 
-currentLineStart := EOF + 3
-oldLineStart := currentLineStart + 3
-fileStart := oldLineStart + 3
-
-isArchived := 0
-
-_files_ReadFile:
-    call ti.DeleteTempPrograms
-    call ti.CleanAll
-    ld hl, $FFFF
-    call ti.EnoughMem
-    jr nc, .continue
-    ld hl, 0
-    ret
-
-.continue:
-    ld hl, tempVar
-    call ti.Mov9ToOP1
-    ld a, ti.TempProgObj
-    ld hl, 65505
-    call ti.CreateVar
-    inc de
-    inc de
+_asm_files_ReadFile:
+    pop de
+    ex (sp), hl
     push de
     ex de, hl
-    ld bc, 65505
-    call ti.MemClear
-    ld iy, 0
-    add iy, sp
-    ld de, (iy + 6)
     ld hl, ti.OP1
     ld (hl), ti.AppVarObj
     inc hl
@@ -62,7 +37,14 @@ _files_ReadFile:
     ex de, hl
     ldir ; move name to OP1
     call ti.ChkFindSym
+    res 0, a
     ret c
+    push de
+    push bc
+    ld hl, editBuffer - 2
+    call _asm_misc_ClearBuffer + 3
+    pop bc
+    pop de
     call ti.ChkInRam
     ex de, hl
     jr z, .inRam
@@ -79,24 +61,22 @@ _files_ReadFile:
     inc hl
     ld b, (hl) ; get file size
     inc hl
-    pop de
-    push de
+    ld de, editBuffer - 2
 
 .loop:
     ld a, b
     or a, c
     jr z, .return
-    ldi
-    jr .loop
+    ldir
 
 .return:
-    pop hl
+    ld a, 1
     ret
 
-_files_WriteFile:
+_asm_files_WriteFile:
     ld iy, 0
     add iy, sp
-    ld de, (iy + 9)
+    ld de, (iy + 6)
     ld hl, 128 ; be safe
     add hl, de
     call ti.EnoughMem
@@ -105,12 +85,12 @@ _files_WriteFile:
     ret
 
 .continue:
-    ld iy, 0
-    add iy, sp
-    ld de, (iy + 3)
+    pop de
+    ex (sp), hl
+    push de
+    ex de, hl
     push de
     ld iy, ti.flags
-    res isArchived, (iy + ti.asm_Flag1)
     ld hl, ti.OP1
     ld (hl), ti.AppVarObj
     inc hl
@@ -120,7 +100,6 @@ _files_WriteFile:
     call ti.ChkFindSym
     jr c, .createFile
     call ti.ChkInRam
-    call nz, .isArchived
     call ti.DelVarArc
 
 .createFile:
@@ -133,25 +112,18 @@ _files_WriteFile:
     ldir ; move name to OP1
     ld iy, 0
     add iy, sp
-    ld hl, (iy + 9)
+    ld hl, (iy + 6)
     call ti.CreateAppVar
     inc de
     inc de
-    ld hl, (iy + 6)
+    ld hl, editBuffer - 2
     ldir
-    bit isArchived, (iy + ti.asm_Flag1)
-    jr z, .return
     call ti.OP4ToOP1
     call ti.Arc_Unarc
-.return:
     ld a, 1
     ret
 
-.isArchived:
-    set isArchived, (iy + ti.asm_Flag1)
-    ret
-
-_files_CheckFileExists:
+_asm_files_CheckFileExists:
     ld iy, 0
     add iy, sp
     ld de, (iy + 3) ; name of file
@@ -167,16 +139,16 @@ _files_CheckFileExists:
     inc a
     ret
 
-_files_CountLines:
+_asm_files_CountLines:
     ld iy, 0
     add iy, sp
-    ld hl, (iy + 12) ; end of file
+    ld hl, (iy + 9) ; end of file
     ld (EOF), hl
-    ld hl, (iy + 3) ; data start
+    ld hl, editBuffer ; data start
     push iy ; save this for later
     ld de, 1 ; line count
     ld bc, 1 ; newline count
-    ld iyl, 1 ; character count
+    ld iyl, c ; character count
 
 .loop:
     push bc
@@ -215,20 +187,18 @@ _files_CountLines:
 
 .return:
     pop iy
-    ld hl, (iy + 6)
+    ld hl, (iy + 3)
     ld (hl), bc
-    ld hl, (iy + 9)
+    ld hl, (iy + 6)
     ld (hl), de
     ret
 
-_files_GetLineLength:
-    push ix
-    ld ix, 0
-    add ix, sp
-    ld hl, (ix + 9) ; EOF
+_asm_files_GetLineLength:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 6) ; EOF
     ld (EOF), hl
-    ld hl, (ix + 6) ; current address
-    pop ix
+    ld hl, (iy + 3) ; current address
     ld bc, 0
     ld b, 38 ; max chars per line
 
@@ -254,12 +224,10 @@ _files_GetLineLength:
     ld a, c
     ret
 
-_files_NextLine:
-    push ix
-    ld ix, 0
-    add ix, sp
-    ld hl, (ix + 6) ; current address
-    pop ix
+_asm_files_NextLine:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 3) ; current address
     ld b, 38 ; max chars per line
 
 .loop:
@@ -276,17 +244,13 @@ _files_NextLine:
     inc hl
     ret
 
-_files_PreviousLine:
-    push ix
-    ld ix, 0
-    add ix, sp
-    ld hl, (ix + 12) ; end of file
+_asm_files_PreviousLine:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 6) ; end of file
     ld (EOF), hl
-    ld hl, (ix + 9) ; start of file
-    ld (fileStart), hl
-    ld hl, (ix + 6) ; current address
+    ld hl, (iy + 3) ; current address
     ld (oldLineStart), hl
-    pop ix
     dec hl
     ld a, $0A
     cp a, (hl)
@@ -346,14 +310,14 @@ _files_PreviousLine:
 
 .checkFileStart:
     ex de, hl
-    ld hl, (fileStart)
+    ld hl, editBuffer - 2 + 2
     dec hl
     xor a, a
     sbc hl, de
     ex de, hl
     ret
 
-_files_InsertChar:
+_asm_files_InsertChar:
     ld iy, 0
     add iy, sp
     ld hl, (iy + 6) ; end of file
@@ -375,7 +339,7 @@ _files_InsertChar:
     ld (hl), a
     ret
 
-_files_DeleteChar:
+_asm_files_DeleteChar:
     ld iy, 0
     add iy, sp
     ld hl, (iy + 3) ; what to start deleting
@@ -404,6 +368,3 @@ _checkEOF: ; bc = current address being read; destroys hl and a
     ret nc
     cp a, a
     ret
-
-tempVar:
-    db ti.TempProgObj, "ez80temp", 0

@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - ui.c
+ * eZ80 Studio Source Code - ui.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -41,7 +41,7 @@ void ui_DrawScrollbar(unsigned int x, uint8_t y, uint8_t boxHeight, unsigned int
 void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLine) {
     // Clear area behind buttons and scrollbar
     gfx_SetColor(BACKGROUND);
-    gfx_FillRectangle_NoClip(0, 225, 385, 15);
+    gfx_FillRectangle_NoClip(0, 225, 320, 15);
     gfx_FillRectangle_NoClip(312, 0, 8, 223);
 
     // If a menu button is pressed, highlight it
@@ -229,7 +229,7 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
 }
 
 void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     if (erase) {
         gfx_SetColor(BACKGROUND);
     } else {
@@ -254,7 +254,7 @@ void ui_UpdateAllText(struct context_t *studioContext, struct preferences_t *stu
     char *textStart = studioContext->pageDataStart;
 
     for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, studioContext->fileDataStart, studioContext->openEOF, studioPreferences->highlighting, &row, currentLine, studioContext->lineStart, true);
+        textStart = ui_PrintLine(textStart, (char *)EDIT_BUFFER, studioContext->openEOF, studioPreferences->highlighting, &row, currentLine, studioContext->lineStart, true);
         currentLine++;
 
         if (currentLine > studioContext->newlineCount) {

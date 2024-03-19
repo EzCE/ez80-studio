@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - highlight.c
+ * eZ80 Studio Source Code - highlight.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0

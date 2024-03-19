@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - utility.c
+ * eZ80 Studio Source Code - utility.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -23,7 +23,7 @@
 #include <time.h>
 
 void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    spi_beginFrame();
+    asm_spi_beginFrame();
     gfx_ZeroScreen();
 
     if (studioContext->fileIsOpen) {
@@ -34,20 +34,20 @@ void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *st
         ui_NoFile();
     }
 
-    spi_endFrame();
+    asm_spi_endFrame();
 }
 
 static bool edit_CursorUp(struct context_t *studioContext) {
     if (studioContext->row) {
         studioContext->row--;
-        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart, studioContext->openEOF);
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        studioContext->rowDataStart = asm_files_PreviousLine(studioContext->rowDataStart, studioContext->openEOF);
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
     } else if (studioContext->lineStart) {
         studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
         studioContext->lineStart--;
-        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
+        studioContext->pageDataStart = asm_files_PreviousLine(studioContext->pageDataStart, studioContext->openEOF);
         studioContext->rowDataStart = studioContext->pageDataStart;
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
         return true;
     } else {
         studioContext->column = 0;
@@ -59,13 +59,13 @@ static bool edit_CursorUp(struct context_t *studioContext) {
 static bool edit_CursorDown(struct context_t *studioContext) {
     if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
         studioContext->row++;
-        studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
     } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
         studioContext->lineStart++;
-        studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
-        studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        studioContext->pageDataStart = asm_files_NextLine(studioContext->pageDataStart);
+        studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
         studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
         return true;
     } else {
@@ -81,14 +81,14 @@ static bool edit_CursorLeft(struct context_t *studioContext) {
     } else {
         if (studioContext->row) {
             studioContext->row--;
-            studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart, studioContext->fileDataStart, studioContext->openEOF);
-            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+            studioContext->rowDataStart = asm_files_PreviousLine(studioContext->rowDataStart, studioContext->openEOF);
+            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
             studioContext->column = studioContext->rowLength;
         } else if (studioContext->lineStart) {
             studioContext->lineStart--;
-            studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
+            studioContext->pageDataStart = asm_files_PreviousLine(studioContext->pageDataStart, studioContext->openEOF);
             studioContext->rowDataStart = studioContext->pageDataStart;
-            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
             studioContext->column = studioContext->rowLength;
             studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
             return true;
@@ -104,14 +104,14 @@ static bool edit_CursorRight(struct context_t *studioContext) {
     } else {
         if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
             studioContext->row++;
-            studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+            studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
             studioContext->column = 0;
         } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
             studioContext->lineStart++;
-            studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
-            studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-            studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+            studioContext->pageDataStart = asm_files_NextLine(studioContext->pageDataStart);
+            studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
             studioContext->column = 0;
             studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
             return true;
@@ -126,33 +126,20 @@ static void edit_Delete(struct context_t *studioContext) {
         studioContext->fileIsSaved = false;
     }
 
-    files_DeleteChar(studioContext->rowDataStart + studioContext->column, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
+    asm_files_DeleteChar(studioContext->rowDataStart + studioContext->column, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column - 1));
     studioContext->openEOF--;
     studioContext->fileSize--;
 
-    files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+    asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
 
     if (studioContext->lineStart && studioContext->lineStart + 12 >= studioContext->totalLines - 1) {
         studioContext->row++;
         studioContext->lineStart--;
-        studioContext->pageDataStart = files_PreviousLine(studioContext->pageDataStart, studioContext->fileDataStart, studioContext->openEOF);
+        studioContext->pageDataStart = asm_files_PreviousLine(studioContext->pageDataStart, studioContext->openEOF);
         studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
     }
 
-    if (!studioContext->column && *(studioContext->rowDataStart) == '\n' && *(studioContext->rowDataStart) - 1 != '\n' && studioContext->rowDataStart != studioContext->fileDataStart) {
-        studioContext->rowDataStart = files_PreviousLine(studioContext->rowDataStart + 1, studioContext->fileDataStart, studioContext->openEOF);
-
-        if (studioContext->row) {
-            studioContext->row--;
-        } else {
-            studioContext->lineStart--;
-            studioContext->pageDataStart = studioContext->rowDataStart;
-        }
-
-        studioContext->column = studioContext->rowLength;
-    }
-
-    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+    studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 }
 
 void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *studioPreferences) {
@@ -168,16 +155,16 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
     studioContext->fileIsSaved = true;
 
-    spi_beginFrame();
+    asm_spi_beginFrame();
     edit_RedrawEditor(studioContext, studioPreferences);
-    spi_endFrame();
+    asm_spi_endFrame();
 
     clock_t clockOffset = clock(); // Keep track of an offset for timer stuff
 
     while (studioContext->fileIsOpen) {
         kb_Scan();
 
-        if (!kb_AnyKey() && keyPressed) {
+        if (!kb_AnyKey()) {
             keyPressed = false;
             clockOffset = clock();
         }
@@ -185,12 +172,11 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
         if (kb_AnyKey() && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 32)) {
             cursorActive = true;
 
-            spi_beginFrame();
-            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
+            asm_spi_beginFrame();
 
             if (kb_IsDown(kb_KeyClear)) {
                 if (!studioContext->fileIsSaved) {
-                    spi_beginFrame();
+                    asm_spi_beginFrame();
                     gfx_SetColor(OUTLINE);
                     gfx_FillRectangle_NoClip(80, 68, 150, 87);
                     gfx_SetColor(BACKGROUND);
@@ -206,7 +192,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     fontlib_DrawString("changes. Do you wish");
                     fontlib_SetCursorPosition(85, 121);
                     fontlib_DrawString("to discard them?");
-                    spi_endFrame();
+                    asm_spi_endFrame();
 
                     if (menu_YesNo(83, 136, 71)) {
                         studioContext->fileIsOpen = false;
@@ -222,6 +208,8 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 menu_CheckMenus(studioContext, studioPreferences);
                 clockOffset = clock();
             }
+
+            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
 
             if (kb_IsDown(kb_KeyUp)) {
                 redraw = edit_CursorUp(studioContext);
@@ -259,25 +247,28 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 redraw = util_InsertChar(inputChar, studioContext);
             }
 
+            dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
+
             if (studioContext->column > studioContext->rowLength) {
                 studioContext->column = studioContext->rowLength;
             }
 
             if (!redraw) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
-                spi_endFrame();
+                asm_spi_endFrame();
             } else {
                 redraw = false;
                 edit_RedrawEditor(studioContext, studioPreferences);
             }
 
-            if (clock() - clockOffset > CLOCKS_PER_SEC / 3 && !keyPressed) {
-                ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
-                cursorActive = !cursorActive;
-                clockOffset = clock();
-            }
-
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
+        }
+
+        if (clock() - clockOffset > CLOCKS_PER_SEC / 3 && !keyPressed) {
+            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
+            asm_spi_endFrame();
+            cursorActive = !cursorActive;
+            clockOffset = clock();
         }
     }
 }

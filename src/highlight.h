@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - highlight.h
+ * eZ80 Studio Source Code - highlight.h
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -18,11 +18,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define NUMBER_HEX      0
-#define NUMBER_DEC      1
-#define NUMBER_OCT      2
-#define NUMBER_BIN      3
 
 /**
  * @brief Finds the color to highlight a specific token.

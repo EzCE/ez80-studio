@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - asm.h
+ * eZ80 Studio Source Code - assembler.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -9,17 +9,11 @@
  * --------------------------------------
 **/
 
-#ifndef ASM_H
-#define ASM_H
+#include "assembler.h"
+#include "asm/misc.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <graphx.h>
 
-void asm_SortVAT(void);
-
-#ifdef __cplusplus
+uint8_t assembler_Main(struct context_t *studioContext) {
+    return ERROR_SUCCESS;
 }
-#endif
-
-#endif

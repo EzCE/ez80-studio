@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - ui.h
+ * eZ80 Studio Source Code - ui.h
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -12,9 +12,8 @@
 #ifndef UI_H
 #define UI_H
 
-#include "utility.h"
+#include "defines.h"
 
-#include <stdint.h>
 #include <stdarg.h>
 
 #ifdef __cplusplus
@@ -74,8 +73,8 @@ void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase);
 /**
  * @brief Update all text currently drawn on the screen.
  * 
- * @param studioContext ez80 Studio context struct.
- * @param studioPreferences ez80 Studio preferences struct.
+ * @param studioContext eZ80 Studio context struct.
+ * @param studioPreferences eZ80 Studio preferences struct.
  */
 void ui_UpdateAllText(struct context_t *studioContext, struct preferences_t *studioPreferences);
 

@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - spi.h
+ * eZ80 Studio Source Code - spi.h
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -20,19 +20,19 @@ extern "C" {
  * @brief Marks the beginning of a logical frame.
  * 
  */
-void spi_beginFrame(void);
+void asm_spi_beginFrame(void);
 
 /**
  * @brief Marks the end of a logical frame.
  * 
  */
-void spi_endFrame(void);
+void asm_spi_endFrame(void);
 
 /**
  * @brief Necessary for Python models.
  * 
  */
-void spi_setupSPI(void);
+void asm_spi_setupSPI(void);
 
 #ifdef __cplusplus
 }

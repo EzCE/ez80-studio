@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - utility.h
+ * eZ80 Studio Source Code - utility.h
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -12,8 +12,8 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
-#include <stdbool.h>
-#include <stdint.h>
+#include "defines.h"
+
 #include <keypadc.h>
 #include <time.h>
 
@@ -21,40 +21,17 @@
 extern "C" {
 #endif
 
-struct preferences_t {
-    bool theme;
-    bool highlighting;
-};
-
-struct context_t {
-    bool fileIsOpen;                // is a file currently opened?
-    bool fileIsSaved;               // is the file saved?
-    char *fileDataStart;            // start of opened file's data
-    char *pageDataStart;            // start of current page's data
-    char *rowDataStart;             // start of current row's data
-    char *fileName;                 // name of currently opened file
-    uint16_t fileSize;              // size of the currently opened file
-    char *openEOF;                  // pointer to end of file
-    unsigned int newlineCount;      // number of newline characters
-    unsigned int totalLines;        // number of total newlines (includes word-wrap)
-    unsigned int lineStart;         // current line (includes newlines)
-    unsigned int newlineStart;      // line to start drawing the page on
-    unsigned int row;               // current row selected
-    uint8_t column;                 // current column selected
-    uint8_t rowLength;              // length of current row (in columns)
-};
-
 /**
  * @brief Read preferences from the AppVar, or set the default preferences if the AppVar doesn't exist.
  * 
- * @param studioPreferences ez80 Studio context struct.
+ * @param studioPreferences eZ80 Studio preferences struct.
  */
 void util_ReadPrefs(struct preferences_t *studioPreferences);
 
 /**
  * @brief Write preferences to AppVar.
  * 
- * @param studioPreferences ez80 Studio context struct.
+ * @param studioPreferences eZ80 Studio preferences struct.
  */
 void util_WritePrefs(struct preferences_t *studioPreferences);
 
@@ -95,7 +72,7 @@ char util_KeyToChar(uint8_t key, uint8_t mode);
  * @brief Inserts a character at the current cursor location in the currently opened file.
  * 
  * @param character Character to insert.
- * @param studioContext ez80 Studio context struct.
+ * @param studioContext eZ80 Studio context struct.
  * @return true Character inserted succesfully.
  * @return false Character was not inserted.
  */

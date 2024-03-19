@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - fontCherry.h
+ * eZ80 Studio Source Code - fontCherry.h
  * By RoccoLox Programs and TIny_Hacker
  * 
  * Cherry font by turquoise-hexagon

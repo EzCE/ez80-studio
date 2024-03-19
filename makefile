@@ -1,6 +1,6 @@
 #--------------------------------------
 #
-# ez80 Studio Source Code - makefile
+# eZ80 Studio Source Code - makefile
 # By RoccoLox Programs and TIny_Hacker
 # Copyright 2022 - 2023
 # License: GPL-3.0
@@ -9,10 +9,10 @@
 
 NAME = EZSTUDIO
 ICON = icon.png
-DESCRIPTION = "ez80 Assembly IDE"
+DESCRIPTION = "eZ80 Assembly IDE"
 COMPRESSED = YES
 ARCHIVED = YES
-VERSION = 0.7.0
+VERSION = 0.8.0
 
 CFLAGS = -Wall -Wextra -Oz -DVERSION_NO=\"$(VERSION)\"
 CXXFLAGS = -Wall -Wextra -Oz  -DVERSION_NO=\"$(VERSION)\"

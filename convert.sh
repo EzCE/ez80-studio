@@ -9,7 +9,7 @@ then
     echo "Incorrect number of arguments supplied. Proper syntax is ./convert.sh <input name> <output name> <mode>"
     echo "<input name>: Input file to specified operation."
     echo "<output name>: Output file to specified operation."
-    echo "<mode>: Use 'var' to convert an ez80 Studio AppVar to assembly source, or 'asm' to convert assembly source to an ez80 Studio AppVar."
+    echo "<mode>: Use 'var' to convert an eZ80 Studio AppVar to assembly source, or 'asm' to convert assembly source to an eZ80 Studio AppVar."
     exit 1
 fi
 
@@ -68,7 +68,7 @@ then
     rm temp_$INPUT_FILE
 
 else
-    echo "Invalid mode. Use 'var' to convert an ez80 Studio AppVar to assembly source, or 'asm' to convert assembly source to an ez80 Studio AppVar."
+    echo "Invalid mode. Use 'var' to convert an eZ80 Studio AppVar to assembly source, or 'asm' to convert assembly source to an eZ80 Studio AppVar."
     exit 1
 fi
 

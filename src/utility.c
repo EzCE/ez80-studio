@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - utility.c
+ * eZ80 Studio Source Code - utility.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -11,7 +11,7 @@
 
 #include "utility.h"
 #include "defines.h"
-#include "asm/asm.h"
+#include "asm/misc.h"
 #include "asm/files.h"
 #include "asm/spi.h"
 
@@ -19,7 +19,10 @@
 #include <string.h>
 #include <graphx.h>
 #include <fontlibc.h>
-#include <sys/timers.h>
+
+
+#include <debug.h>
+
 
 static void util_SetDefaults(struct preferences_t *studioPreferences) {
     studioPreferences->theme = LIGHT_THEME;
@@ -52,7 +55,7 @@ char *util_GetFiles(unsigned int *fileCount) {
     *fileCount = 0;
     unsigned int currentOffset = 0;
 
-    asm_SortVAT();
+    asm_misc_SortVAT();
 
     while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
         if (fileType == OS_TYPE_APPVAR) {
@@ -141,26 +144,26 @@ bool util_InsertChar(char character, struct context_t *studioContext) {
             studioContext->fileIsSaved = false;
         }
 
-        files_InsertChar(character, studioContext->openEOF, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column) + 1);
+        asm_files_InsertChar(character, studioContext->openEOF, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column) + 1);
 
         studioContext->fileSize++;
         studioContext->openEOF++;
 
-        files_CountLines(studioContext->fileDataStart, &(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
-        studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+        asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 
         if (character == '\n') {
             studioContext->column = 0;
 
             if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
                 studioContext->row++;
-                studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-                studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+                studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
             } else {
                 studioContext->lineStart++;
-                studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
-                studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-                studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                studioContext->pageDataStart = asm_files_NextLine(studioContext->pageDataStart);
+                studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+                studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                 studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
             }
         } else {
@@ -169,20 +172,21 @@ bool util_InsertChar(char character, struct context_t *studioContext) {
             } else {
                 if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
                     studioContext->row++;
-                    studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+                    studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                     studioContext->column = 1; // Skip the new character
                 } else if (studioContext->lineStart + 14 < studioContext->totalLines) {
                     studioContext->lineStart++;
-                    studioContext->pageDataStart = files_NextLine(studioContext->pageDataStart);
-                    studioContext->rowDataStart = files_NextLine(studioContext->rowDataStart);
-                    studioContext->rowLength = files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+                    studioContext->pageDataStart = asm_files_NextLine(studioContext->pageDataStart);
+                    studioContext->rowDataStart = asm_files_NextLine(studioContext->rowDataStart);
+                    studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                     studioContext->column = 1;
                     studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
                 }
             }
         }
     }
+
 
     return character != '\0';
 }
@@ -193,8 +197,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
     uint8_t currentOffset = 0;
     uint8_t charCount = 0;
 
-    timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
-    timer_Set(1, 0);
+    clock_t clockOffset = clock();
 
     char *input = malloc(stringLength);
     char character = '\0';
@@ -210,12 +213,12 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
     while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(exitKey)) {
         kb_Scan();
 
-        if (!kb_AnyKey() && keyPressed) {
+        if (!kb_AnyKey()) {
             keyPressed = false;
-            timer_Set(1, 0);
+            clockOffset = clock();
         }
 
-        if (kb_AnyKey() && (!keyPressed || timer_Get(1) > 3000)) {
+        if (kb_AnyKey() && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 16)) {
             cursorActive = true;
 
             gfx_SetColor(BACKGROUND);
@@ -280,35 +283,30 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                 }
             }
 
-            spi_beginFrame();
+            asm_spi_beginFrame();
             gfx_SetColor(CURSOR);
             gfx_FillRectangle_NoClip(x + (currentOffset * 7), y, 2, 12); // Draw new cursor
             fontlib_SetCursorPosition(x + 1, y);
             fontlib_DrawString(input);
-            spi_endFrame();
+            asm_spi_endFrame();
 
-            if (!keyPressed) {
-                while (timer_Get(1) < 9000 && kb_AnyKey());
-            }
-
-            keyPressed = true;
-            timer_Set(1, 0);
+            util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
 
-        if (timer_Get(1) > 10000 && !keyPressed) {
+        if (!keyPressed && clock() - clockOffset > CLOCKS_PER_SEC / 3) {
             if (cursorActive) {
                 gfx_SetColor(CURSOR);
             } else {
                 gfx_SetColor(BACKGROUND);
             }
 
-            spi_beginFrame();
+            asm_spi_beginFrame();
             gfx_FillRectangle_NoClip(x + (currentOffset * 7), y, 2, 12);
 
             cursorActive = !cursorActive;
-            timer_Set(1, 0);
+            clockOffset = clock();
 
-            spi_endFrame();
+            asm_spi_endFrame();
         }
     }
 
@@ -326,7 +324,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
 void util_WaitBeforeKeypress(clock_t *clockOffset, bool *keyPressed) {
     if (!(*keyPressed)) {
-        while ((clock() - *clockOffset < CLOCKS_PER_SEC / 4) && kb_AnyKey()) {
+        while ((clock() - *clockOffset < CLOCKS_PER_SEC / 3) && kb_AnyKey()) {
             kb_Scan();
         }
     }

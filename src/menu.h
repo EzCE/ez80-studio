@@ -1,7 +1,7 @@
 /**
  * --------------------------------------
  * 
- * ez80 Studio Source Code - menu.h
+ * eZ80 Studio Source Code - menu.h
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
@@ -12,7 +12,7 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include "utility.h"
+#include "defines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,8 +21,8 @@ extern "C" {
 /**
  * @brief Check if a menu should be opened.
  * 
- * @param studioContext ez80 Studio context struct.
- * @param studioPreferences ez80 Studio preferences struct.
+ * @param studioContext eZ80 Studio context struct.
+ * @param studioPreferences eZ80 Studio preferences struct.
  */
 void menu_CheckMenus(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
@@ -47,22 +47,22 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth);
 /**
  * @brief Opens the file options menu.
  * 
- * @param studioContext ez80 Studio context struct.
- * @param studioPreferences ez80 Studio preferences struct.
+ * @param studioContext eZ80 Studio context struct.
+ * @param studioPreferences eZ80 Studio preferences struct.
  */
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 /**
  * @brief Assembles the currently opened program.
  * 
- * @param studioContext ez80 Studio context struct.
+ * @param studioContext eZ80 Studio context struct.
  */
 void menu_Assemble(struct context_t *studioContext);
 
 /**
  * @brief Opens the line goto menu.
  * 
- * @param studioContext ez80 Studio context struct.
+ * @param studioContext eZ80 Studio context struct.
  * @return The character selected, or '\0' if none were selected.
  */
 void menu_Goto(struct context_t *studioContext);
@@ -70,15 +70,15 @@ void menu_Goto(struct context_t *studioContext);
 /**
  * @brief Opens the special characters menu.
  * 
- * @param studioContext ez80 Studio context struct.
+ * @param studioContext eZ80 Studio context struct.
  */
 char menu_Chars(struct context_t *studioContext);
 
 /**
  * @brief Opens the settings menu.
  * 
- * @param studioContext ez80 Studio context struct.
- * @param studioPreferences ez80 Studio preferences struct.
+ * @param studioContext eZ80 Studio context struct.
+ * @param studioPreferences eZ80 Studio preferences struct.
  */
 void menu_Settings(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
