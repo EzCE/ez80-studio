@@ -6,7 +6,7 @@
  * Copyright 2022 - 2024
  * License: GPL-3.0
  * Last Build: March 19, 2024
- * Version: 0.8.1
+ * Version: 0.8.3
  * 
  * --------------------------------------
 **/
@@ -29,7 +29,6 @@ int main(void) {
     static struct preferences_t studioPreferences;
     static struct context_t studioContext;
 
-    studioContext.fileName = NULL;
     studioContext.fileIsOpen = false;
 
     studioContext.lineStart = 0; // The scrollbar will be weird if we don't do this
@@ -88,7 +87,6 @@ int main(void) {
 
         if (studioContext.fileIsOpen) {
             edit_OpenEditor(&studioContext, &studioPreferences);
-            studioContext.fileName = NULL; // Reset stuff to make sure nothing bad happens
             studioContext.fileIsOpen = false;
 
             studioContext.lineStart = 0;

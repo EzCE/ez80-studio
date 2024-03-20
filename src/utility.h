@@ -36,12 +36,11 @@ void util_ReadPrefs(struct preferences_t *studioPreferences);
 void util_WritePrefs(struct preferences_t *studioPreferences);
 
 /**
- * @brief Gets a list of openable files.
+ * @brief Gets a list of openable files into os_PixelShadow.
  * 
  * @param fileCount Pointer to an int holding the number of openable files.
- * @return char* List of file names.
  */
-char *util_GetFiles(unsigned int *fileCount);
+void util_GetFiles(unsigned int *fileCount);
 
 /**
  * @brief Returns a pointer to the end of a token.

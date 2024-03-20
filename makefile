@@ -12,7 +12,7 @@ ICON = icon.png
 DESCRIPTION = "eZ80 Assembly IDE"
 COMPRESSED = YES
 ARCHIVED = YES
-VERSION = 0.8.1
+VERSION = 0.8.3
 
 CFLAGS = -Wall -Wextra -Oz -DVERSION_NO=\"$(VERSION)\"
 CXXFLAGS = -Wall -Wextra -Oz  -DVERSION_NO=\"$(VERSION)\"

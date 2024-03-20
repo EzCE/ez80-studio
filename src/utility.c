@@ -48,7 +48,7 @@ void util_WritePrefs(struct preferences_t *studioPreferences) {
     ti_SetArchiveStatus(true, appvar);
 }
 
-char *util_GetFiles(unsigned int *fileCount) {
+void util_GetFiles(unsigned int *fileCount) {
     uint8_t fileType = '\0';
     char *fileName;
     void *vatPtr = NULL;
@@ -64,16 +64,14 @@ char *util_GetFiles(unsigned int *fileCount) {
     }
 
     vatPtr = NULL;
-    char *fileNames = malloc(*fileCount * 9);
 
     while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
         if (fileType == OS_TYPE_APPVAR) {
-            strcpy(&fileNames[currentOffset], fileName); 
+            strcpy(&((char *)os_PixelShadow)[currentOffset], fileName); 
             currentOffset += 9;
         }
     }
 
-    return fileNames;
 }
 
 char *util_GetStringEnd(char *string, char *openEOF) {
@@ -168,7 +166,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
 
     clock_t clockOffset = clock();
 
-    char *input = malloc(stringLength);
+    static char input[MAX_INPUT_LENGTH];
     char character = '\0';
 
     for (uint8_t i = 0; i <= stringLength; i++) {
@@ -283,7 +281,6 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
         while (kb_AnyKey());
     }
 
-    free(input);
     return NULL;
 }
 

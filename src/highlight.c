@@ -17,7 +17,7 @@
 #include <string.h>
 
 static char *hlight_GetTokenString(char *string, char *stringEnd) {
-    char *stringConvert = malloc(stringEnd - string + 1);
+    static char stringConvert[MAX_TOKEN_LENGTH];
 
     for (uint8_t i = 0; i < stringEnd - string; i++) { // Convert caps to lowercase
         stringConvert[i] = string[i] + 32 * (string[i] < 97 && string[i] != '\''); 
@@ -39,8 +39,6 @@ static bool hlight_Condition(char *string, char *stringEnd) {
         if (*stringConvert == 'z' ||
             *stringConvert == 'm' ||
             *stringConvert == 'p') {
-
-            free(stringConvert);
             return true;
         }
     } else {
@@ -48,13 +46,10 @@ static bool hlight_Condition(char *string, char *stringEnd) {
             !strcmp("nc", stringConvert) ||
             !strcmp("pe", stringConvert) ||
             !strcmp("po", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     }
 
-    free(stringConvert);
     return false;
 }
 
@@ -71,8 +66,6 @@ static bool hlight_Register(char *string, char *stringEnd) {
             *stringConvert == 'd' || *stringConvert == 'e' ||
             *stringConvert == 'h' || *stringConvert == 'l' ||
             *stringConvert == 'i' || *stringConvert == 'r') {
-
-            free(stringConvert);
             return true;
         }
     } else if (stringEnd - string == 2) {
@@ -84,8 +77,6 @@ static bool hlight_Register(char *string, char *stringEnd) {
             !strcmp("iy", stringConvert) ||
             !strcmp("sp", stringConvert) ||
             !strcmp("mb", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     } else {
@@ -94,13 +85,10 @@ static bool hlight_Register(char *string, char *stringEnd) {
             !strcmp("ixl", stringConvert) ||
             !strcmp("iyh", stringConvert) ||
             !strcmp("iyl", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     }
 
-    free(stringConvert);
     return false;
 }
 
@@ -124,8 +112,6 @@ static bool hlight_Instruction(char *string, char *stringEnd) {
             !strcmp("jr", stringConvert) ||
             !strcmp("rl", stringConvert) ||
             !strcmp("rr", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     } else if (stringEnd - string == 3) {
@@ -173,8 +159,6 @@ static bool hlight_Instruction(char *string, char *stringEnd) {
             !strcmp("sll", stringConvert) ||
             !strcmp("sra", stringConvert) ||
             !strcmp("srl", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     } else if (stringEnd - string == 4) {
@@ -200,8 +184,6 @@ static bool hlight_Instruction(char *string, char *stringEnd) {
             !strcmp("retn", stringConvert) ||
             !strcmp("rlca", stringConvert) ||
             !strcmp("rrca", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     } else {
@@ -219,13 +201,10 @@ static bool hlight_Instruction(char *string, char *stringEnd) {
             !strcmp("tstio", stringConvert) ||
             !strcmp("rsmix", stringConvert) ||
             !strcmp("stmix", stringConvert)) {
-
-            free(stringConvert);
             return true;
         }
     }
 
-    free(stringConvert);
     return false;
 }
 
@@ -275,7 +254,6 @@ static bool hlight_Modifier(char *string, char *stringEnd) {
 
     if (stringEnd - string == 2) {
         if (*(stringConvert + 1) == 's' || *(stringConvert + 1) == 'l') {
-            free(stringConvert);
             return true;
         }
     } else if (stringEnd - string == 4) {
@@ -283,13 +261,10 @@ static bool hlight_Modifier(char *string, char *stringEnd) {
             strcmp("sil", stringConvert + 1) == 0 ||
             strcmp("lis", stringConvert + 1) == 0 ||
             strcmp("lil", stringConvert + 1) == 0) {
-
-            free(stringConvert);
             return true;
         }
     }
 
-    free(stringConvert);
     return false;
 }
 

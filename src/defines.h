@@ -24,6 +24,12 @@ extern "C" {
 #endif
 
 /**
+ * @brief PixelShadow RAM location.
+ * 
+ */
+#define os_PixelShadow      ((uint8_t *)0xD031F6)
+
+/**
  * File header for valid source files: 0xEF7A (Also uncompiled assembly header for TI-BASIC programs).
 */
 #define SOURCE_HEADER       "\xEF\x7A"
@@ -82,6 +88,16 @@ extern "C" {
 #define EDIT_BUFFER         (uint8_t *)0xD52C02
 
 /**
+ * Maximum number of bytes for a token.
+*/
+#define MAX_TOKEN_LENGTH     5
+
+/**
+ * Maximum length of input string for the util_StringInputBox function.
+*/
+#define MAX_INPUT_LENGTH     9
+
+/**
  * Editor preferences struct, saved in the AppVar.
 */
 struct preferences_t {
@@ -97,7 +113,7 @@ struct context_t {
     bool fileIsSaved;               /* Whether the currently open file has been modified since it was last saved. */
     char *pageDataStart;            /* Start of data for the current page of the open file being displayed. */
     char *rowDataStart;             /* Start of data for the currently selected row in the editor. */
-    char *fileName;                 /* Name of currently opened file. */
+    char fileName[9];               /* Name of currently opened file. */
     uint16_t fileSize;              /* Size of currently opened file (includes both data and header). */
     char *openEOF;                  /* Pointer to the end of the currently opened file's data in the edit buffer. Because it points to the last byte of data, it is equal to EDIT_BUFFER - 1 in an empty file. */
     unsigned int newlineCount;      /* Total number of newline characters in the currently opened file's data. */

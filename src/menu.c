@@ -199,9 +199,7 @@ static void menu_FileNew(struct context_t *studioContext) {
         ti_Close(file);
 
         if (asm_files_ReadFile(newFile)) {
-            free(studioContext->fileName);
-
-            studioContext->fileName = newFile;
+            strcpy(studioContext->fileName, newFile);
             studioContext->fileIsOpen = true;
             studioContext->fileIsSaved = true;
 
@@ -222,7 +220,6 @@ static void menu_FileNew(struct context_t *studioContext) {
 
             ti_Close(file);
         } else {
-            free(newFile);
             menu_Error(ERROR_NO_MEM);
         }
 
@@ -340,21 +337,15 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
     if (kb_IsDown(kb_KeyClear) || !fileCount) {
         while (kb_AnyKey());
-        free(fileNames);
         return; // Return early
     }
 
-    char *fileOpened = malloc(9);
-    strcpy(fileOpened, &fileNames[(fileStartLoc + fileSelected) * 9]);
-
-    if (asm_files_ReadFile(fileOpened)) {
-        free(studioContext->fileName);
-
-        studioContext->fileName = fileOpened;
+    if (asm_files_ReadFile(&fileNames[(fileStartLoc + fileSelected) * 9])) {
+        strcpy(studioContext->fileName, &fileNames[(fileStartLoc + fileSelected) * 9]);
         studioContext->fileIsOpen = true;
         studioContext->fileIsSaved = true;
 
-        uint8_t file = ti_Open(fileOpened, "r");
+        uint8_t file = ti_Open(studioContext->fileName, "r");
         studioContext->fileSize = ti_GetSize(file);
         ti_Close(file);
 
@@ -373,8 +364,6 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
         ti_Close(file);
     } else {
-        free(fileOpened);
-
         gfx_ZeroScreen();
         ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
 
@@ -391,8 +380,6 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
     }
 
     dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
-
-    free(fileNames);
 }
 
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences) {
@@ -456,8 +443,8 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 break;
             case 1: { // Open file
                 unsigned int fileCount = 0;
-                char *fileNames = util_GetFiles(&fileCount);
-                menu_FileOpen(studioContext, studioPreferences, fileNames, fileCount);
+                util_GetFiles(&fileCount);
+                menu_FileOpen(studioContext, studioPreferences, (char *)os_PixelShadow, fileCount);
                 break;
             }
             case 2: // Save file
@@ -540,8 +527,6 @@ void menu_Goto(struct context_t *studioContext) {
                 }
             }
         }
-
-        free(input);
     }
 
     if (!kb_IsDown(kb_KeyClear)) {
