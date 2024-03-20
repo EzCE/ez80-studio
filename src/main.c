@@ -5,8 +5,8 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
- * Last Build: March 19, 2024
- * Version: 0.8.3
+ * Last Build: March 20, 2024
+ * Version: 0.8.4
  * 
  * --------------------------------------
 **/
@@ -28,6 +28,8 @@
 int main(void) {
     static struct preferences_t studioPreferences;
     static struct context_t studioContext;
+
+    dbg_printf("Struct: %p\n", &studioPreferences);
 
     studioContext.fileIsOpen = false;
 

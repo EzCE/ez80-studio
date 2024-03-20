@@ -231,12 +231,16 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyUp)) {
+                ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
                 redraw = edit_CursorUp(studioContext);
             } else if (kb_IsDown(kb_KeyDown)) {
+                ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true);
                 redraw = edit_CursorDown(studioContext);
             } else if (kb_IsDown(kb_KeyLeft)) {
+                ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
                 redraw = edit_CursorLeft(studioContext);
             } else if (kb_IsDown(kb_KeyRight)) {
+                ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
                 redraw = edit_CursorRight(studioContext);
             } else if (kb_IsDown(kb_KeyMode)) {
                 if (!(studioContext->lineStart == 0 && studioContext->row == 0 && studioContext->column == 0)) {
@@ -264,8 +268,6 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
                 redraw = util_InsertChar(inputChar, studioContext);
             }
-
-            ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
 
             dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
 

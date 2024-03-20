@@ -135,16 +135,20 @@ static bool ui_CheckIsComment(char *dataStart, char *fileStart) {
 }
 
 static bool ui_CheckIsString(char *dataStart, char *fileStart) {
-    uint8_t isString = '\0';
+    bool isString = false;
+
+    if ((*dataStart == '\"' || *dataStart == '\'') && (*(dataStart - 1) != '\\')) {
+        return true;
+    }
+
+    dbg_printf("CHECK STRING START\n");
 
     while (dataStart >= fileStart && *dataStart != '\n') {
-        if (*dataStart == '\"' || *dataStart == '\'') {
-            if (*dataStart == isString && *(dataStart - 1) != '\\') { // Close string
-                isString = '\0';
-            } else { // Open string
-                isString = *dataStart;
-            }
+        if ((*dataStart == '\"' || *dataStart == '\'') && (*(dataStart - 1) != '\\')) {
+            isString = !isString;
         }
+
+        dbg_printf("*dataStart: %c, isString: %d\n", *dataStart, isString);
 
         dataStart--;
     }
@@ -168,7 +172,7 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
     }
 
     bool highlightComment = false;
-    uint8_t highlightString = '\0';
+    bool highlightString = false;
 
     if (!(*row)) { // Ensure wrapped comments are properly highlighted
         if (highlighting && ui_CheckIsComment(string, fileDataStart)) {
@@ -190,15 +194,20 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
         if (!highlightString && highlighting && *string == ';') {
             fontlib_SetForegroundColor(TEXT_COMMENT);
             highlightComment = true;
-        } else if (!highlightComment && highlighting && (*string == '\"' || *string == '\'')) {
-            if (highlightString == *string && *(string - 1) != '\\') {
+        }
+
+        if (!highlightComment) {
+            if (ui_CheckIsString(string, fileDataStart)) {
                 fontlib_SetForegroundColor(TEXT_STRING);
-                highlightString = '\0';
-            } else {
-                fontlib_SetForegroundColor(TEXT_STRING);
-                highlightString = *string;
+                highlightString = true;
+            } else if (highlightString) {
+                stringEnd = util_GetStringEnd(string, openEOF);
+                fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+                highlightString = false;
             }
-        } else if (string >= stringEnd && !highlightComment && !highlightString) {
+        }
+
+        if (string >= stringEnd && !highlightComment && !highlightString) {
             stringEnd = util_GetStringEnd(string, openEOF);
             fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
         }

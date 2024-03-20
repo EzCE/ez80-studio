@@ -81,6 +81,16 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
  */
 void util_WaitBeforeKeypress(clock_t *clockOffset, bool *keyPressed);
 
+/**
+ * @brief Opens a file and sets the context accordingly.
+ * 
+ * @param studioContext eZ80 Studio context struct.
+ * @param fileName Name of the file to open.
+ * @return true File opened successfully.
+ * @return false File was not opened.
+ */
+bool util_OpenFile(struct context_t *studioContext, char *fileName);
+
 #ifdef __cplusplus
 }
 #endif

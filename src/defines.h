@@ -90,7 +90,7 @@ extern "C" {
 /**
  * Maximum number of bytes for a token.
 */
-#define MAX_TOKEN_LENGTH     5
+#define MAX_TOKEN_LENGTH     6
 
 /**
  * Maximum length of input string for the util_StringInputBox function.

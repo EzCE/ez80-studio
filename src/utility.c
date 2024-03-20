@@ -43,7 +43,7 @@ void util_ReadPrefs(struct preferences_t *studioPreferences) {
 
 void util_WritePrefs(struct preferences_t *studioPreferences) {
     uint8_t appvar = ti_Open("EzStudio", "w");
-    
+
     ti_Write(studioPreferences, sizeof(struct preferences_t), 1, appvar);
     ti_SetArchiveStatus(true, appvar);
 }
@@ -293,4 +293,33 @@ void util_WaitBeforeKeypress(clock_t *clockOffset, bool *keyPressed) {
 
     *keyPressed = true;
     *clockOffset = clock();
+}
+
+bool util_OpenFile(struct context_t *studioContext, char *fileName) {
+    if (asm_files_ReadFile(fileName)) {
+        strcpy(studioContext->fileName, fileName);
+        studioContext->fileIsOpen = true;
+        studioContext->fileIsSaved = true;
+
+        uint8_t file = ti_Open(studioContext->fileName, "r");
+        studioContext->fileSize = ti_GetSize(file);
+        ti_Close(file);
+
+        studioContext->pageDataStart = (char *)EDIT_BUFFER;
+        studioContext->rowDataStart = studioContext->pageDataStart;
+        studioContext->openEOF = (char *)EDIT_BUFFER + studioContext->fileSize - 3;
+
+        studioContext->lineStart = 0;
+        studioContext->newlineStart = 0;
+        studioContext->row = 0;
+        studioContext->column = 0;
+
+        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
+
+        asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
+
+        return true;
+    }
+
+    return false;
 }

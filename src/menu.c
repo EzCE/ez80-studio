@@ -198,28 +198,7 @@ static void menu_FileNew(struct context_t *studioContext) {
         ti_Write(&header, 2, 1, file);
         ti_Close(file);
 
-        if (asm_files_ReadFile(newFile)) {
-            strcpy(studioContext->fileName, newFile);
-            studioContext->fileIsOpen = true;
-            studioContext->fileIsSaved = true;
-
-            studioContext->fileSize = 2;
-
-            studioContext->pageDataStart = (char *)EDIT_BUFFER;
-            studioContext->rowDataStart = studioContext->pageDataStart;
-            studioContext->openEOF = (char *)EDIT_BUFFER - 1;
-
-            studioContext->lineStart = 0;
-            studioContext->newlineStart = 0;
-            studioContext->row = 0;
-            studioContext->column = 0;
-
-            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-
-            asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
-
-            ti_Close(file);
-        } else {
+        if (!util_OpenFile(studioContext, newFile)) {
             menu_Error(ERROR_NO_MEM);
         }
 
@@ -340,30 +319,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
         return; // Return early
     }
 
-    if (asm_files_ReadFile(&fileNames[(fileStartLoc + fileSelected) * 9])) {
-        strcpy(studioContext->fileName, &fileNames[(fileStartLoc + fileSelected) * 9]);
-        studioContext->fileIsOpen = true;
-        studioContext->fileIsSaved = true;
-
-        uint8_t file = ti_Open(studioContext->fileName, "r");
-        studioContext->fileSize = ti_GetSize(file);
-        ti_Close(file);
-
-        studioContext->pageDataStart = (char *)EDIT_BUFFER;
-        studioContext->rowDataStart = studioContext->pageDataStart;
-        studioContext->openEOF = (char *)EDIT_BUFFER + studioContext->fileSize - 3;
-
-        studioContext->lineStart = 0;
-        studioContext->newlineStart = 0;
-        studioContext->row = 0;
-        studioContext->column = 0;
-
-        studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
-
-        asm_files_CountLines(&(studioContext->newlineCount), &(studioContext->totalLines), studioContext->openEOF);
-
-        ti_Close(file);
-    } else {
+    if (!util_OpenFile(studioContext, &fileNames[(fileStartLoc + fileSelected) * 9])) {
         gfx_ZeroScreen();
         ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
 
@@ -671,7 +627,7 @@ static void menu_About(void) {
     gfx_HorizLine_NoClip(87, 125, 136);
 
     fontlib_SetCursorPosition(87, 127);
-    fontlib_DrawString("\xA9 2024");
+    fontlib_DrawString("\xA9 2022 - 2024");
     fontlib_SetCursorPosition(87, 139);
     fontlib_DrawString("RoccoLox Programs,");
     fontlib_SetCursorPosition(87, 151);
