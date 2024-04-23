@@ -24,7 +24,7 @@
 #include <time.h>
 
 void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     gfx_ZeroScreen();
 
     if (studioContext->fileIsOpen) {
@@ -35,7 +35,7 @@ void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *st
         ui_NoFile();
     }
 
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 }
 
 static bool edit_CursorUp(struct context_t *studioContext) {
@@ -155,9 +155,9 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
     studioContext->fileIsSaved = true;
 
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     edit_RedrawEditor(studioContext, studioPreferences);
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     clock_t clockOffset = clock(); // Keep track of an offset for timer stuff
 
@@ -173,11 +173,11 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
             clockOffset = clock();
             cursorActive = true;
 
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
 
             if (kb_IsDown(kb_KeyClear)) {
                 if (!studioContext->fileIsSaved) {
-                    asm_spi_beginFrame();
+                    asm_spi_BeginFrame();
                     gfx_SetColor(OUTLINE);
                     gfx_FillRectangle_NoClip(80, 68, 150, 87);
                     gfx_SetColor(BACKGROUND);
@@ -193,7 +193,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     fontlib_DrawString("changes. Do you wish");
                     fontlib_SetCursorPosition(85, 121);
                     fontlib_DrawString("to discard them?");
-                    asm_spi_endFrame();
+                    asm_spi_EndFrame();
 
                     if (menu_YesNo(83, 136, 71)) {
                         studioContext->fileIsOpen = false;
@@ -269,7 +269,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 redraw = util_InsertChar(inputChar, studioContext);
             }
 
-            dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
+            //dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
 
             if (studioContext->column > studioContext->rowLength) {
                 studioContext->column = studioContext->rowLength;
@@ -277,7 +277,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
             if (!redraw) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
-                asm_spi_endFrame();
+                asm_spi_EndFrame();
             } else {
                 redraw = false;
                 edit_RedrawEditor(studioContext, studioPreferences);
@@ -288,7 +288,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
         if (clock() - clockOffset > CLOCKS_PER_SEC / 3 && !kb_AnyKey()) {
             ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, false);
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
             cursorActive = !cursorActive;
             clockOffset = clock();
         }

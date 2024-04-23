@@ -247,12 +247,12 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
                 }
             }
 
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             gfx_SetColor(CURSOR);
             gfx_FillRectangle_NoClip(x + (currentOffset * 7), y, 2, 12); // Draw new cursor
             fontlib_SetCursorPosition(x + 1, y);
             fontlib_DrawString(input);
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
 
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
@@ -269,7 +269,7 @@ char *util_StringInputBox(unsigned int x, uint8_t y, uint8_t stringLength, uint8
             cursorActive = !cursorActive;
             clockOffset = clock();
 
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
         }
     }
 

@@ -43,12 +43,12 @@ _asm_misc_SortVAT:
     ld iy, ti.flags
     ld a, (iy + sortFlag)
     push af
-    call fileSystem_sortVatInternal
+    call misc_SortVatInternal
     pop af
     ld (iy + sortFlag), a
     ret
 
-fileSystem_sortVatInternal:
+misc_SortVatInternal:
     res sortFirstItemFound, (iy + sortFlag)
     ld hl, (ti.progPtr)
 
@@ -245,8 +245,8 @@ fileSystem_sortVatInternal:
     ld a, (hl)
     and a, $1F ; mask out state bytes
     push hl
-    ld hl, fileSystem_sortTypes
-    ld bc, fileSystem_sortTypes.length
+    ld hl, misc_SortTypes
+    ld bc, misc_SortTypes.length
     cpir
     pop hl
     jp nz, .skipToNext ; skip to next entry
@@ -262,6 +262,6 @@ fileSystem_sortVatInternal:
     scf
     ret
 
-fileSystem_sortTypes:
+misc_SortTypes:
     db ti.ProgObj, ti.ProtProgObj, ti.AppVarObj
 .length := $-.

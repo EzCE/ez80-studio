@@ -141,14 +141,10 @@ static bool ui_CheckIsString(char *dataStart, char *fileStart) {
         return true;
     }
 
-    dbg_printf("CHECK STRING START\n");
-
     while (dataStart >= fileStart && *dataStart != '\n') {
         if ((*dataStart == '\"' || *dataStart == '\'') && (*(dataStart - 1) != '\\')) {
             isString = !isString;
         }
-
-        dbg_printf("*dataStart: %c, isString: %d\n", *dataStart, isString);
 
         dataStart--;
     }
@@ -238,7 +234,7 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
 }
 
 void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     if (erase) {
         gfx_SetColor(BACKGROUND);
     } else {

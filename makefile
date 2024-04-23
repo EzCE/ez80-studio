@@ -14,8 +14,8 @@ COMPRESSED = YES
 ARCHIVED = YES
 VERSION = 0.8.4
 
-CFLAGS = -Wall -Wextra -Oz -DVERSION_NO=\"$(VERSION)\"
-CXXFLAGS = -Wall -Wextra -Oz  -DVERSION_NO=\"$(VERSION)\"
+CFLAGS = -Wall -Wextra -DVERSION_NO=\"$(VERSION)\"
+CXXFLAGS = -Wall -Wextra -DVERSION_NO=\"$(VERSION)\"
 
 FONTDIR = $(SRCDIR)/font
 FONT = $(FONTDIR)/fontCherry.fnt

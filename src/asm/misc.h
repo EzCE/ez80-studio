@@ -12,9 +12,19 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include "defines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Checks if a string matches an opcode.
+ * 
+ * @param string String to compare.
+ * @return struct opcode_t* Pointer to location in opcode table if matched, or NULL if not.
+ */
+struct opcode_t *asm_misc_FindOpcode(char *string);
 
 /**
  * @brief Converts a string such as "123" to an integer value.

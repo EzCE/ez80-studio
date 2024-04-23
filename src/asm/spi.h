@@ -20,19 +20,19 @@ extern "C" {
  * @brief Marks the beginning of a logical frame.
  * 
  */
-void asm_spi_beginFrame(void);
+void asm_spi_BeginFrame(void);
 
 /**
  * @brief Marks the end of a logical frame.
  * 
  */
-void asm_spi_endFrame(void);
+void asm_spi_EndFrame(void);
 
 /**
  * @brief Necessary for Python models.
  * 
  */
-void asm_spi_setupSPI(void);
+void asm_spi_SetupSPI(void);
 
 #ifdef __cplusplus
 }

@@ -13,12 +13,68 @@
 
 include 'include/equates.inc'
 
+    public _asm_misc_FindOpcode
     public _asm_misc_StringToInt
     public _asm_misc_ClearBuffer
     public _asm_misc_GetCharFromKey
 
+    extern _asm_opcodes_Table
+    extern _asm_opcodes_TableEnd
     extern _rodata_characters
     extern _rodata_sizeOfCharsLUT
+
+_asm_misc_FindOpcode:
+    pop de
+    ex (sp), hl
+    push de
+    ld de, _asm_opcodes_Table
+    ex de, hl
+
+.search:
+    push de
+    push hl
+    ld bc, 0
+    ld c, (hl)
+    add hl, bc
+    inc hl
+
+.compare:
+    ld a, (de)
+    or a, a
+    jr nz, .check
+    ld a, (hl)
+    or a, a
+    jr z, .found
+    ld a, (de)
+
+.check:
+    cp a, (hl)
+    inc hl
+    inc de
+    jr z, .compare
+    ld de, _asm_opcodes_TableEnd
+    or a, a
+    sbc hl, de
+    jr nc, .notFound
+    add hl, de
+    pop de
+    pop de
+    xor a, a
+    ld bc, 16
+    cpir
+    jr .search
+
+.found:
+    pop hl
+    pop de
+    ret
+
+.notFound:
+    pop de
+    pop de
+    scf
+    sbc hl, hl
+    ret
 
 _asm_misc_StringToInt:
     pop de

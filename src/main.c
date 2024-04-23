@@ -5,7 +5,7 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
- * Last Build: March 20, 2024
+ * Last Build: April 23, 2024
  * Version: 0.8.4
  * 
  * --------------------------------------
@@ -29,7 +29,7 @@ int main(void) {
     static struct preferences_t studioPreferences;
     static struct context_t studioContext;
 
-    dbg_printf("Struct: %p\n", &studioPreferences);
+    dbg_printf("Structs: %p | %p - %u\n", &studioPreferences, &studioContext, sizeof(struct context_t));
 
     studioContext.fileIsOpen = false;
 
@@ -100,7 +100,7 @@ int main(void) {
         }
     }
 
-    asm_spi_endFrame(); // Do this to be safe
+    asm_spi_EndFrame(); // Do this to be safe
     gfx_End();
 
     util_WritePrefs(&studioPreferences);

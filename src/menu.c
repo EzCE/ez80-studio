@@ -9,6 +9,7 @@
  * --------------------------------------
 **/
 
+#include "assembler.h"
 #include "defines.h"
 #include "edit.h"
 #include "menu.h"
@@ -27,7 +28,7 @@
 #include <string.h>
 
 void menu_Error(uint8_t error) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(88, 94, 134, 34);
     gfx_SetColor(BACKGROUND);
@@ -45,7 +46,7 @@ void menu_Error(uint8_t error) {
             break;
     }
 
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     while(kb_AnyKey());
     while (!kb_IsDown(kb_KeyClear)) {
@@ -54,7 +55,7 @@ void menu_Error(uint8_t error) {
 }
 
 void menu_YesNoRedraw(bool returnVal, unsigned int x, uint8_t y, uint8_t buttonWidth) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(x, y, buttonWidth * 2 + 2, 16);
     gfx_SetColor(OUTLINE);
@@ -63,7 +64,7 @@ void menu_YesNoRedraw(bool returnVal, unsigned int x, uint8_t y, uint8_t buttonW
     fontlib_DrawString("Yes");
     fontlib_SetCursorPosition(x + buttonWidth + 2 + (buttonWidth - 14) / 2, y + 2);
     fontlib_DrawString("No");
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 }
 
 bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
@@ -157,7 +158,7 @@ static void menu_FileOpenRedraw(char *fileNames, unsigned int totalLines, unsign
 
 static void menu_FileNew(struct context_t *studioContext) {
     while (kb_AnyKey());
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(123, 95, 64, 32);
     gfx_SetColor(BACKGROUND);
@@ -166,13 +167,13 @@ static void menu_FileNew(struct context_t *studioContext) {
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(127, 97);
     fontlib_DrawString("New file");
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     char *newFile = util_StringInputBox(126, 112, 9, INPUT_UPPERCASE, kb_KeyClear);
 
     if (newFile != NULL) {
         if (asm_files_CheckFileExists(newFile)) {
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             gfx_SetColor(OUTLINE);
             gfx_FillRectangle_NoClip(82, 82, 146, 60);
             gfx_SetColor(BACKGROUND);
@@ -184,7 +185,7 @@ static void menu_FileNew(struct context_t *studioContext) {
             fontlib_DrawString("with that name.");
             fontlib_SetCursorPosition(110, 108);
             fontlib_DrawString("Overwrite it?");
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
 
             if(!menu_YesNo(85, 123, 69)) {
                 return; // Don't make the file
@@ -202,7 +203,7 @@ static void menu_FileNew(struct context_t *studioContext) {
             menu_Error(ERROR_NO_MEM);
         }
 
-        dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
+        //dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
     }
 }
 
@@ -221,7 +222,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
     unsigned int fileStartLoc = 0; // It's CEaShell all over again
     unsigned int fileSelected = 0;
 
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     gfx_SetColor(OUTLINE);
     gfx_Rectangle_NoClip(84, boxY, 142, boxHeight);
     gfx_Rectangle_NoClip(85, boxY + 1, 140, boxHeight - 2);
@@ -232,7 +233,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
 
     menu_FileOpenRedraw(fileNames, (fileCount + 1) / 2, fileCount, 0, 0, rowsPerScreen, boxY, boxHeight);
 
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     bool keyPressed = false;
     clock_t clockOffset = clock();
@@ -306,9 +307,9 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
                 }
             }
 
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             menu_FileOpenRedraw(fileNames, (fileCount + 1) / 2, fileCount, fileStartLoc, fileSelected, rowsPerScreen, boxY, boxHeight);
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
 
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
@@ -335,20 +336,20 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
         menu_Error(ERROR_NO_MEM);
     }
 
-    dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
+    //dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
 }
 
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_DrawMenuBox(0, 168, 73, 55, 0, 3, "New file", "Open file", "Save file");
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     uint8_t option = 0;
 
@@ -378,18 +379,18 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 }
             }
 
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             ui_DrawMenuBox(0, 168, 73, 55, option, 3, "New file", "Open file", "Save file");
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
 
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
     }
 
     if (kb_IsDown(kb_KeyYequ)) { // Ensure the menu doesn't get opened again immediately
-        asm_spi_beginFrame();
+        asm_spi_BeginFrame();
         ui_DrawUIMain(1, studioContext->totalLines, studioContext->lineStart);
-        asm_spi_endFrame();
+        asm_spi_EndFrame();
 
         while (kb_AnyKey());
     } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
@@ -424,17 +425,18 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
 }
 
 void menu_Assemble(struct context_t *studioContext) {
-    
+    // Do graphics stuff later
+    assembler_Main(studioContext);
 }
 
 void menu_Goto(struct context_t *studioContext) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(101, 207, 71, 16);
@@ -447,7 +449,7 @@ void menu_Goto(struct context_t *studioContext) {
     fontlib_SetForegroundColor(TEXT_DEFAULT);
     fontlib_SetCursorPosition(104, 210);
     fontlib_DrawString("Goto Line:");
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     char *input = util_StringInputBox(175, 210, 5, INPUT_NUMBERS, kb_KeyZoom);
 
@@ -487,9 +489,9 @@ void menu_Goto(struct context_t *studioContext) {
 
     if (!kb_IsDown(kb_KeyClear)) {
         if (kb_IsDown(kb_KeyZoom)) { // Ensure the menu doesn't get opened again immediately
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             ui_DrawUIMain(3, studioContext->totalLines, studioContext->lineStart);
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
         }
 
         while (kb_AnyKey());
@@ -527,9 +529,9 @@ void menu_CharsRedraw(uint8_t selected, const char *chars) {
 }
 
 char menu_Chars(struct context_t *studioContext) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
@@ -537,9 +539,9 @@ char menu_Chars(struct context_t *studioContext) {
     uint8_t selected = 0;
     static const char chars[16] = {'\'', '`', ';', '@', '$', '~', '_', '!', '|', '<', '=', '>', '%', '\\', '#', '&'};
 
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     menu_CharsRedraw(0, chars);
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     clock_t clockOffset = clock();
 
@@ -574,9 +576,9 @@ char menu_Chars(struct context_t *studioContext) {
                 }
             }
 
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             menu_CharsRedraw(selected, chars);
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
 
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
@@ -587,9 +589,9 @@ char menu_Chars(struct context_t *studioContext) {
 
     if (!kb_IsDown(kb_KeyClear)) {
         if (kb_IsDown(kb_KeyTrace)) { // Ensure the menu doesn't get opened again immediately
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             ui_DrawUIMain(4, studioContext->totalLines, studioContext->lineStart);
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
         }
 
         while (kb_AnyKey());
@@ -599,7 +601,7 @@ char menu_Chars(struct context_t *studioContext) {
 }
 
 static void menu_About(void) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(86, 72, 138, 92);
 
@@ -633,7 +635,7 @@ static void menu_About(void) {
     fontlib_SetCursorPosition(87, 151);
     fontlib_DrawString("TIny_Hacker.");
 
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     while (kb_AnyKey());
 
@@ -641,16 +643,16 @@ static void menu_About(void) {
 }
 
 void menu_Settings(struct context_t *studioContext, struct preferences_t *studioPreferences) {
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     while (kb_AnyKey()); // Wait for key to be released
 
-    asm_spi_beginFrame();
+    asm_spi_BeginFrame();
     ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
     ui_DrawMenuBox(203, 168, 107, 55, 0, 3, "Themes       \xBB", "Highlighting \xBB", "About"); // \xBB is a right arrow icon
-    asm_spi_endFrame();
+    asm_spi_EndFrame();
 
     uint8_t option = 0;
 
@@ -713,18 +715,18 @@ void menu_Settings(struct context_t *studioContext, struct preferences_t *studio
                 edit_RedrawEditor(studioContext, studioPreferences);
             }
 
-            asm_spi_beginFrame();
+            asm_spi_BeginFrame();
             ui_DrawMenuBox(203, 168, 107, 55, option, 3, "Themes       \xBB", "Highlighting \xBB", "About");
-            asm_spi_endFrame();
+            asm_spi_EndFrame();
 
             util_WaitBeforeKeypress(&clockOffset, &keyPressed);
         }
     }
 
     if (kb_IsDown(kb_KeyGraph)) { // Ensure the menu doesn't get opened again immediately
-        asm_spi_beginFrame();
+        asm_spi_BeginFrame();
         ui_DrawUIMain(5, studioContext->totalLines, studioContext->lineStart);
-        asm_spi_endFrame();
+        asm_spi_EndFrame();
 
         while (kb_AnyKey());
     }

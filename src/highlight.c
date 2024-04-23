@@ -16,11 +16,15 @@
 #include <stdint.h>
 #include <string.h>
 
-static char *hlight_GetTokenString(char *string, char *stringEnd) {
-    static char stringConvert[MAX_TOKEN_LENGTH];
+char *hlight_GetTokenString(char *string, char *stringEnd) {
+    static char stringConvert[MAX_TOK_LENGTH_HL];
 
     for (uint8_t i = 0; i < stringEnd - string; i++) { // Convert caps to lowercase
-        stringConvert[i] = string[i] + 32 * (string[i] < 97 && string[i] != '\''); 
+        stringConvert[i] = string[i];
+
+        if (stringConvert[i] >= 'A' && stringConvert[i] <= 'Z') {
+            stringConvert[i] += 'a' - 'A';
+        } 
     }
 
     stringConvert[stringEnd - string] = '\0';
@@ -28,14 +32,14 @@ static char *hlight_GetTokenString(char *string, char *stringEnd) {
     return stringConvert;
 }
 
-static bool hlight_Condition(char *string, char *stringEnd) {
+bool hlight_Condition(char *string, char *stringEnd) {
     if (stringEnd - string > 2) {
         return false;
     }
 
     char *stringConvert = hlight_GetTokenString(string, stringEnd);
 
-    if (stringEnd - string == 1) { // We don't check for 'c' because it's counted by the register as well
+    if (stringEnd - string == 1) { // We don't check for 'c' because it's counted by the register as well, and they are highlighted the same
         if (*stringConvert == 'z' ||
             *stringConvert == 'm' ||
             *stringConvert == 'p') {
@@ -53,7 +57,7 @@ static bool hlight_Condition(char *string, char *stringEnd) {
     return false;
 }
 
-static bool hlight_Register(char *string, char *stringEnd) {
+bool hlight_Register(char *string, char *stringEnd) {
     if (stringEnd - string > 3) {
         return false;
     }
@@ -92,7 +96,7 @@ static bool hlight_Register(char *string, char *stringEnd) {
     return false;
 }
 
-static bool hlight_Instruction(char *string, char *stringEnd) {
+bool hlight_Instruction(char *string, char *stringEnd) {
     if ((stringEnd - string > 5) || (stringEnd - string < 2)) {
         return false;
     }
@@ -111,7 +115,12 @@ static bool hlight_Instruction(char *string, char *stringEnd) {
             !strcmp("jp", stringConvert) ||
             !strcmp("jr", stringConvert) ||
             !strcmp("rl", stringConvert) ||
-            !strcmp("rr", stringConvert)) {
+            !strcmp("rr", stringConvert) ||
+            !strcmp("db", stringConvert) ||
+            !strcmp("dw", stringConvert) ||
+            !strcmp("dl", stringConvert) ||
+            !strcmp("dd", stringConvert) ||
+            !strcmp("dq", stringConvert)) {
             return true;
         }
     } else if (stringEnd - string == 3) {
@@ -245,7 +254,7 @@ static bool hlight_Number(char *string, char *stringEnd) {
     return true; // Number is valid
 }
 
-static bool hlight_Modifier(char *string, char *stringEnd) {
+bool hlight_Modifier(char *string, char *stringEnd) {
     if (stringEnd - string > 4) {
         return false;
     }
@@ -275,7 +284,9 @@ uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlightin
         return TEXT_DEFAULT;
     }
 
-    if (*string >= 'A' && *string <= 'z') {
+    if (*(stringEnd - 1) == ':' && stringEnd - 1 != string) {
+        highlightColor = TEXT_LABEL;
+    } else if (*string >= 'A' && *string <= 'z') {
         if (hlight_Condition(string, stringEnd)) {
             highlightColor = TEXT_REGISTER; // Use the same color as registers
         } else if (hlight_Register(string, stringEnd)) {
@@ -289,14 +300,8 @@ uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlightin
         }
     } else if (*string == '(' || *string == ')') {
         highlightColor = TEXT_PARENTHESIS;
-    } else if (*string == '.') {
-        if ((*(string - 1) >= 'A' && *(string - 1) <= 'Z') || (*(string - 1) >= 'a' && *(string - 1) <= 'z')) {
-            if (hlight_Modifier(string, stringEnd)) {
-                highlightColor = TEXT_INSTRUCTION;
-            }
-        } else {
-            highlightColor = TEXT_LABEL;
-        }
+    } else if (hlight_Modifier(string, stringEnd)) {
+        highlightColor = TEXT_INSTRUCTION;
     }
 
     return highlightColor;
