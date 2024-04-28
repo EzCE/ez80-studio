@@ -72,7 +72,7 @@ _asm_misc_FindOpcode:
 .notFound:
     pop de
     pop de
-    scf
+    or a, a
     sbc hl, hl
     ret
 

@@ -9,7 +9,6 @@
  * --------------------------------------
 **/
 
-#include "assembler.h"
 #include "defines.h"
 #include "edit.h"
 #include "menu.h"
@@ -30,17 +29,35 @@
 void menu_Error(uint8_t error) {
     asm_spi_BeginFrame();
     gfx_SetColor(OUTLINE);
-    gfx_FillRectangle_NoClip(88, 94, 134, 34);
+    gfx_FillRectangle_NoClip(81, 94, 148, 34);
     gfx_SetColor(BACKGROUND);
-    gfx_FillRectangle_NoClip(90, 110, 130, 16);
+    gfx_FillRectangle_NoClip(83, 110, 144, 16);
     fontlib_SetForegroundColor(TEXT_DEFAULT);
-    fontlib_SetCursorPosition(137, 95);
-    fontlib_DrawString("Error");
+
+    if (error) {
+        fontlib_SetCursorPosition(137, 96);
+        fontlib_DrawString("Error");
+    } else {
+        fontlib_SetCursorPosition(130, 96);
+        fontlib_DrawString("Success");
+    }
 
     switch (error) {
+        case ERROR_SUCCESS:
+            fontlib_SetCursorPosition(90, 112);
+            fontlib_DrawString("Operation complete.");
+            break;
+        case ERROR_UNKNOWN:
+            fontlib_SetCursorPosition(128, 112);
+            fontlib_DrawString("Unknown.");
+            break;
         case ERROR_NO_MEM:
-            fontlib_SetCursorPosition(93, 111);
+            fontlib_SetCursorPosition(93, 112);
             fontlib_DrawString("Not enough memory.");
+            break;
+        case ERROR_INVAL_TOK:
+            fontlib_SetCursorPosition(86, 112);
+            fontlib_DrawString("Invalid instruction.");
             break;
         default:
             break;
@@ -325,7 +342,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
         ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
 
         if (studioContext->fileIsOpen) {
-            ui_UpdateAllText(studioContext, studioPreferences);
+            ui_UpdateText(studioContext, studioPreferences, UPDATE_ALL);
             ui_DrawCursor(studioContext->row, studioContext->column, true, false);
         } else {
             ui_NoFile();
@@ -422,11 +439,6 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 break;
         }
     }
-}
-
-void menu_Assemble(struct context_t *studioContext) {
-    // Do graphics stuff later
-    assembler_Main(studioContext);
 }
 
 void menu_Goto(struct context_t *studioContext) {

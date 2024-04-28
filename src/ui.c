@@ -12,6 +12,7 @@
 #include "defines.h"
 #include "utility.h"
 #include "highlight.h"
+#include "asm/files.h"
 #include "asm/spi.h"
 
 #include <graphx.h>
@@ -23,7 +24,7 @@
 void ui_DrawScrollbar(unsigned int x, uint8_t y, uint8_t boxHeight, unsigned int totalLines, unsigned int startLine, uint8_t linesPerPage) {
     if (totalLines) {
         unsigned int scrollBarLength = (float)boxHeight / ((float)totalLines / (float)linesPerPage) + 1;
-        
+
         if (scrollBarLength > boxHeight) {
             scrollBarLength = boxHeight;
         }
@@ -122,8 +123,8 @@ void ui_NoFile(void) {
 }
 
 // Check if top line was a highlightComment, string, etc.
-static bool ui_CheckIsComment(char *dataStart, char *fileStart) {
-    while (dataStart >= fileStart && *dataStart != '\n') {
+static bool ui_CheckIsComment(char *dataStart) {
+    while (dataStart >= (char *)EDIT_BUFFER && *dataStart != '\n') {
         if (*dataStart == ';') {
             return true; // No need to keep searching
         }
@@ -134,14 +135,14 @@ static bool ui_CheckIsComment(char *dataStart, char *fileStart) {
     return false;
 }
 
-static bool ui_CheckIsString(char *dataStart, char *fileStart) {
+static bool ui_CheckIsString(char *dataStart) {
     bool isString = false;
 
     if ((*dataStart == '\"' || *dataStart == '\'') && (*(dataStart - 1) != '\\')) {
         return true;
     }
 
-    while (dataStart >= fileStart && *dataStart != '\n') {
+    while (dataStart >= (char *)EDIT_BUFFER && *dataStart != '\n') {
         if ((*dataStart == '\"' || *dataStart == '\'') && (*(dataStart - 1) != '\\')) {
             isString = !isString;
         }
@@ -153,13 +154,14 @@ static bool ui_CheckIsString(char *dataStart, char *fileStart) {
 }
 
 // Print a line
-static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool highlighting, uint8_t *row, unsigned int line, unsigned int pageStart, bool updateRow) {
-    uint8_t currentRow = *row; // We might not want to update *row
-    char *stringEnd = util_GetStringEnd(string, openEOF);
+static char *ui_PrintLine(struct context_t *studioContext, char *string, bool highlighting, uint8_t row, unsigned int line) {
+    bool highlightComment = false;
+    bool highlightString = false;
+    char *stringEnd = util_GetStringEnd(string, studioContext->openEOF);
 
-    fontlib_SetCursorPosition(0, 2 + currentRow * 16);
+    fontlib_SetCursorPosition(0, 2 + row * 16);
 
-    if ((*(string - 1) == '\n') || !(pageStart)) {
+    if ((*(string - 1) == '\n') || (!(studioContext->lineStart) && !row)) {
         fontlib_SetForegroundColor(TEXT_DEFAULT);
         fontlib_DrawInt(line, 4);
         fontlib_DrawString(": ");
@@ -167,45 +169,44 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
         fontlib_ShiftCursorPosition(42, 0);
     }
 
-    bool highlightComment = false;
-    bool highlightString = false;
+    if (highlighting) { // correctly highlight first item in case it was wrapped from a previous line
+        char *tempString = util_GetStringStart(string);
 
-    if (!(*row)) { // Ensure wrapped comments are properly highlighted
-        if (highlighting && ui_CheckIsComment(string, fileDataStart)) {
+        if (highlighting && ui_CheckIsComment(tempString)) {
             fontlib_SetForegroundColor(TEXT_COMMENT);
             highlightComment = true;
-        } else if (highlighting && ui_CheckIsString(string, fileDataStart)) {
+        } else if (highlighting && ui_CheckIsString(tempString)) {
             fontlib_SetForegroundColor(TEXT_STRING);
             highlightString = true;
         } else {
-            fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+            fontlib_SetForegroundColor(hlight_GetHighlightColor(tempString, stringEnd, highlighting));
         }
-    } else {
-        fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
     }
 
     uint8_t charsDrawn = 0;
 
-    while (*string != '\n' && string != openEOF + 1) {
-        if (!highlightString && highlighting && *string == ';') {
-            fontlib_SetForegroundColor(TEXT_COMMENT);
-            highlightComment = true;
-        }
-
-        if (!highlightComment) {
-            if (ui_CheckIsString(string, fileDataStart)) {
-                fontlib_SetForegroundColor(TEXT_STRING);
-                highlightString = true;
-            } else if (highlightString) {
-                stringEnd = util_GetStringEnd(string, openEOF);
-                fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
-                highlightString = false;
+    while (*string != '\n' && string <= studioContext->openEOF) {
+        if (highlighting) {
+            if (!highlightString && *string == ';') {
+                fontlib_SetForegroundColor(TEXT_COMMENT);
+                highlightComment = true;
             }
-        }
 
-        if (string >= stringEnd && !highlightComment && !highlightString) {
-            stringEnd = util_GetStringEnd(string, openEOF);
-            fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+            if (!highlightComment) {
+                if (ui_CheckIsString(string)) {
+                    fontlib_SetForegroundColor(TEXT_STRING);
+                    highlightString = true;
+                } else if (highlightString) {
+                    stringEnd = util_GetStringEnd(string, studioContext->openEOF);
+                    fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+                    highlightString = false;
+                }
+            }
+
+            if (string >= stringEnd && !highlightComment && !highlightString) {
+                stringEnd = util_GetStringEnd(string, studioContext->openEOF);
+                fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+            }
         }
 
         fontlib_DrawGlyph(*string);
@@ -214,18 +215,7 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
         string++;
 
         if (charsDrawn == 38 && *string != '\n') { // Loop to next line if the text continues past the edge
-            charsDrawn = 0;
-            currentRow++;
-
-            if (updateRow) {
-                *row = *row + 1;
-            }
-
-            if (currentRow < 14) {
-                fontlib_SetCursorPosition(42, 2 + currentRow * 16);
-            } else {
-                return string; // We can't draw anymore on the screen, so return early
-            }
+            return string;
         }
     }
 
@@ -235,6 +225,7 @@ static char *ui_PrintLine(char *string, char *fileDataStart, char *openEOF, bool
 
 void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
     asm_spi_BeginFrame();
+
     if (erase) {
         gfx_SetColor(BACKGROUND);
     } else {
@@ -251,16 +242,38 @@ void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
     gfx_FillRectangle_NoClip(41 + column * 7, 3 + row * 16, 2, 10); // Cursor
 }
 
-void ui_UpdateAllText(struct context_t *studioContext, struct preferences_t *studioPreferences) {
+void ui_UpdateText(struct context_t *studioContext, struct preferences_t *studioPreferences, uint8_t drawMode) {
     gfx_SetColor(BACKGROUND);
-    gfx_FillRectangle_NoClip(0, 0, 310, 223);
+
+    switch (drawMode) {
+        case UPDATE_ALL:
+            gfx_FillRectangle_NoClip(0, 0, 310, 223);
+            break;
+        case UPDATE_TOP:
+            gfx_FillRectangle_NoClip(0, 1, 310, 14);
+            break;
+        case UPDATE_BOTTOM:
+            gfx_FillRectangle_NoClip(0, 209, 310, 14);
+            break;
+        default:
+            break;
+    }
 
     unsigned int currentLine = studioContext->newlineStart + 1;
     char *textStart = studioContext->pageDataStart;
 
     for (uint8_t row = 0; row < 14; row++) {
-        textStart = ui_PrintLine(textStart, (char *)EDIT_BUFFER, studioContext->openEOF, studioPreferences->highlighting, &row, currentLine, studioContext->lineStart, true);
-        currentLine++;
+        if (row == 13 || drawMode != UPDATE_BOTTOM) {
+            textStart = ui_PrintLine(studioContext, textStart, studioPreferences->highlighting, row, currentLine);
+        } else {
+            textStart = asm_files_NextLine(textStart);
+        }
+
+        if (drawMode == UPDATE_TOP) {
+            return;
+        }
+
+        currentLine += (*(textStart - 1) == '\n');
 
         if (currentLine > studioContext->newlineCount) {
             break;

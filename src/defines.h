@@ -33,7 +33,7 @@ extern "C" {
  * @brief userMem RAM location.
  * 
  */
-#define os_userMem          ((uint8_t *)0xD031F6)
+#define os_userMem          ((uint8_t *)0xD1A881)
 
 /**
  * Opcode Map - Second Opcode (after $CB)
@@ -147,7 +147,14 @@ extern struct opcode_t asm_opcodes_TableEnd;
 /**
  * Maximum length of input string for the util_StringInputBox function.
 */
-#define MAX_INPUT_LENGTH     9
+#define MAX_INPUT_LENGTH    9
+
+/**
+ * Different modes for the ui_UpdateText function.
+*/
+#define UPDATE_ALL          0       /* Update all text currently on screen. */
+#define UPDATE_TOP          1       /* Update only the top row of text on screen. */
+#define UPDATE_BOTTOM       2       /* Update only the bottom row of text on screen. */
 
 /**
  * Editor preferences struct, saved in the AppVar.

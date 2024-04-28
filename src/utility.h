@@ -52,6 +52,14 @@ void util_GetFiles(unsigned int *fileCount);
 char *util_GetStringEnd(char *string, char *openEOF);
 
 /**
+ * @brief Returns a pointer to the start of a token.
+ * 
+ * @param string String to search.
+ * @return char* Pointer to the start of the token.
+ */
+char *util_GetStringStart(char *string);
+
+/**
  * @brief Inserts a character at the current cursor location in the currently opened file.
  * 
  * @param character Character to insert.

@@ -71,12 +71,13 @@ void ui_NoFile(void);
 void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase);
 
 /**
- * @brief Update all text currently drawn on the screen.
+ * @brief Updates text currently on screen.
  * 
  * @param studioContext eZ80 Studio context struct.
  * @param studioPreferences eZ80 Studio preferences struct.
+ * @param drawMode 0 - update all text, 1 - update only top row, 2 - update only bottom row.
  */
-void ui_UpdateAllText(struct context_t *studioContext, struct preferences_t *studioPreferences);
+void ui_UpdateText(struct context_t *studioContext, struct preferences_t *studioPreferences, uint8_t drawMode);
 
 #ifdef __cplusplus
 }

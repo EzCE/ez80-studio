@@ -9,6 +9,7 @@
  * --------------------------------------
 **/
 
+#include "assembler.h"
 #include "edit.h"
 #include "utility.h"
 #include "ui.h"
@@ -29,13 +30,27 @@ void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *st
 
     if (studioContext->fileIsOpen) {
         ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
-        ui_UpdateAllText(studioContext, studioPreferences);
+        ui_UpdateText(studioContext, studioPreferences, UPDATE_ALL);
         ui_DrawCursor(studioContext->row, studioContext->column, true, false);
     } else {
         ui_NoFile();
     }
 
     asm_spi_EndFrame();
+}
+
+static void edit_Scroll(struct context_t *studioContext, struct preferences_t *studioPreferences, uint8_t direction) {
+    gfx_SetClipRegion(0, 0, 310, 223);
+
+    if (direction == UPDATE_TOP) {
+        gfx_ShiftDown(16);
+    } else {
+        gfx_ShiftUp(16);
+    }
+
+    ui_UpdateText(studioContext, studioPreferences, direction);
+    gfx_SetClipRegion(0, 0, 320, 240);
+    ui_DrawScrollbar(312, 0, 223, studioContext->totalLines, studioContext->lineStart, 14);
 }
 
 static bool edit_CursorUp(struct context_t *studioContext) {
@@ -210,7 +225,9 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyWindow)) {
-                menu_Assemble(studioContext);
+                uint8_t errorCode = assembler_Main(studioContext);
+                edit_RedrawEditor(studioContext, studioPreferences);
+                menu_Error(errorCode);
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyZoom)) {
@@ -232,16 +249,27 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyUp)) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
-                redraw = edit_CursorUp(studioContext);
+
+                if (edit_CursorUp(studioContext)) {
+                    edit_Scroll(studioContext, studioPreferences, UPDATE_TOP);
+                }
             } else if (kb_IsDown(kb_KeyDown)) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true);
-                redraw = edit_CursorDown(studioContext);
+
+                if (edit_CursorDown(studioContext)) {
+                    edit_Scroll(studioContext, studioPreferences, UPDATE_BOTTOM);
+                }
             } else if (kb_IsDown(kb_KeyLeft)) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
-                redraw = edit_CursorLeft(studioContext);
+
+                if (edit_CursorLeft(studioContext)) {
+                    edit_Scroll(studioContext, studioPreferences, UPDATE_TOP);
+                }
             } else if (kb_IsDown(kb_KeyRight)) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
-                redraw = edit_CursorRight(studioContext);
+                if (edit_CursorRight(studioContext)) {
+                    edit_Scroll(studioContext, studioPreferences, UPDATE_BOTTOM);
+                }
             } else if (kb_IsDown(kb_KeyMode)) {
                 if (!(studioContext->lineStart == 0 && studioContext->row == 0 && studioContext->column == 0)) {
                     redraw = true;

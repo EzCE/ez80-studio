@@ -45,13 +45,6 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth);
 void menu_File(struct context_t *studioContext, struct preferences_t *studioPreferences);
 
 /**
- * @brief Assembles the currently opened program.
- * 
- * @param studioContext eZ80 Studio context struct.
- */
-void menu_Assemble(struct context_t *studioContext);
-
-/**
  * @brief Opens the line goto menu.
  * 
  * @param studioContext eZ80 Studio context struct.

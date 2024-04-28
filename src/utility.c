@@ -77,7 +77,7 @@ void util_GetFiles(unsigned int *fileCount) {
 char *util_GetStringEnd(char *string, char *openEOF) {
     bool singleChar = true;
 
-    if (*string =='.') {
+    if (*string == '.') {
         string++;
     }
 
@@ -103,6 +103,33 @@ char *util_GetStringEnd(char *string, char *openEOF) {
     }
 
     return string;
+}
+
+char *util_GetStringStart(char *string) {
+    bool singleChar = true;
+
+    while (string >= (char *)EDIT_BUFFER) {
+        if (*string == ' ' ||
+            *string == '\n' ||
+            *string == ';' ||
+            *string == '(' ||
+            *string == ')' ||
+            *string == '.' ||
+            *string == ',' ||
+            *string == '=' ||
+            *string == '+' ||
+            *string == '-' ||
+            *string == '*' ||
+            *string == '/') {
+
+            return string + !singleChar;
+        }
+
+        singleChar = false;
+        string--;
+    }
+
+    return string + !singleChar;
 }
 
 bool util_InsertChar(char character, struct context_t *studioContext) {

@@ -71,9 +71,6 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
             line += stringEnd - string;
             string = stringEnd;
         } else if ((!strncmp(string, ":=", 2) || !strncasecmp(string, "equ", 3) || !strncasecmp(string, ".equ", 4)) && *(string - 1) == ' ') {
-            *line = ' ';
-            line++;
-
             if (*string == ':') { // This gets separated
                 strcpy(line, ":=");
                 line += 2;
@@ -211,6 +208,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
 
     void *offset = (void *)os_userMem;
     void *symbolEntry = (void *)EDIT_BUFFER + MAX_FILE_SIZE + 128;
+    dbg_printf("Symbol Table Start: %p\n", symbolEntry);
 
     while (string <= studioContext->openEOF) {
         assembler_SanitizeLine(line, string, studioContext->openEOF);
@@ -221,9 +219,16 @@ uint8_t assembler_Main(struct context_t *studioContext) {
 
         string++;
 
+        dbg_printf("%s |", line);
+
         if (assembler_IsLabel(line)) {
             dbg_printf("Label @ Offset %p | ", offset);
-            // Add label to symbol table
+            strcpy(symbolEntry, line);
+            symbolEntry += strlen(line) + 1;
+            *(uint8_t *)symbolEntry = 3;
+            symbolEntry++;
+            *(void **)symbolEntry = offset;
+            symbolEntry += 3;
         } else if (assembler_IsEquate(line)) {
             dbg_printf("Equate | ");
             // Add equate to symbol table
@@ -244,6 +249,8 @@ uint8_t assembler_Main(struct context_t *studioContext) {
 
             dbg_printf(" | ");
             // Check table location to properly adjust for size
+        } else if (*line != '\0') {
+            return ERROR_INVAL_TOK;
         }
 
         dbg_printf("%s\n", line);
