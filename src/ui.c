@@ -43,7 +43,7 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     // Clear area behind buttons and scrollbar
     gfx_SetColor(BACKGROUND);
     gfx_FillRectangle_NoClip(0, 225, 320, 15);
-    gfx_FillRectangle_NoClip(312, 0, 8, 223);
+    gfx_FillRectangle_NoClip(312, 14, 8, 209);
 
     // If a menu button is pressed, highlight it
     if (button) {
@@ -73,7 +73,8 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     fontlib_SetCursorPosition(260, 227);
     fontlib_DrawString("Settings");
 
-    ui_DrawScrollbar(312, 0, 223, totalLines, startLine, 14);
+    // ui_DrawScrollbar(312, 0, 223, totalLines, startLine, 14);
+    ui_DrawScrollbar(312, 14, 209, totalLines, startLine, 14);
 }
 
 // Draw a box with the menu items/cursor
@@ -172,10 +173,10 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
     if (highlighting) { // correctly highlight first item in case it was wrapped from a previous line
         char *tempString = util_GetStringStart(string);
 
-        if (highlighting && ui_CheckIsComment(tempString)) {
+        if (ui_CheckIsComment(tempString)) {
             fontlib_SetForegroundColor(TEXT_COMMENT);
             highlightComment = true;
-        } else if (highlighting && ui_CheckIsString(tempString)) {
+        } else if (ui_CheckIsString(tempString)) {
             fontlib_SetForegroundColor(TEXT_STRING);
             highlightString = true;
         } else {
@@ -243,6 +244,7 @@ void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
 }
 
 void ui_UpdateText(struct context_t *studioContext, struct preferences_t *studioPreferences, uint8_t drawMode) {
+    bool highlighting = studioPreferences->highlighting && !(kb_AnyKey() && !kb_IsDown(kb_KeyAlpha) && !kb_Data[7]);
     gfx_SetColor(BACKGROUND);
 
     switch (drawMode) {
@@ -264,7 +266,7 @@ void ui_UpdateText(struct context_t *studioContext, struct preferences_t *studio
 
     for (uint8_t row = 0; row < 14; row++) {
         if (row == 13 || drawMode != UPDATE_BOTTOM) {
-            textStart = ui_PrintLine(studioContext, textStart, studioPreferences->highlighting, row, currentLine);
+            textStart = ui_PrintLine(studioContext, textStart, highlighting, row, currentLine);
         } else {
             textStart = asm_files_NextLine(textStart);
         }

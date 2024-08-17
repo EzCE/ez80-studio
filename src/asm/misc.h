@@ -55,6 +55,15 @@ void asm_misc_SortVAT(void);
  */
 char asm_misc_GetCharFromKey(uint8_t inputMode);
 
+/**
+ * @brief Copy backwards (lddr) from src -> dest, for a specified number of bytes.
+ * 
+ * @param src Pointer to first byte of data source.
+ * @param dest Pointer to first byte of data destination.
+ * @param bytes Bytes to copy.
+ */
+void asm_misc_ReverseCopy(void *src, void *dest, unsigned int bytes);
+
 #ifdef __cplusplus
 }
 #endif

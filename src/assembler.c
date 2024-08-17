@@ -11,6 +11,7 @@
 
 #include "assembler.h"
 #include "highlight.h"
+#include "parser.h"
 #include "utility.h"
 #include "asm/misc.h"
 #include "asm/spi.h"
@@ -71,7 +72,10 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
             line += stringEnd - string;
             string = stringEnd;
         } else if ((!strncmp(string, ":=", 2) || !strncasecmp(string, "equ", 3) || !strncasecmp(string, ".equ", 4)) && *(string - 1) == ' ') {
-            if (*string == ':') { // This gets separated
+            *line = ' '; // Separate equates
+            line++;
+
+            if (*string == ':') { // This gets separated when tokenized
                 strcpy(line, ":=");
                 line += 2;
                 string += 2;
@@ -81,7 +85,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
                 string = stringEnd;
             }
 
-            *line = ' '; // Separate equates
+            *line = ' ';
             line++;
         } else if (inInstruction) {
             if (*string == ',' || *string == '(' || *string == ')') {
@@ -223,15 +227,27 @@ uint8_t assembler_Main(struct context_t *studioContext) {
 
         if (assembler_IsLabel(line)) {
             dbg_printf("Label @ Offset %p | ", offset);
-            strcpy(symbolEntry, line);
-            symbolEntry += strlen(line) + 1;
+            strncpy(symbolEntry, line, strlen(line) - 1); // Skip ':' at the end of label names
+            symbolEntry += strlen(line); // One extra byte for '\0'
             *(uint8_t *)symbolEntry = 3;
             symbolEntry++;
             *(void **)symbolEntry = offset;
             symbolEntry += 3;
         } else if (assembler_IsEquate(line)) {
-            dbg_printf("Equate | ");
+            dbg_printf("Equate @ Table %p | ", symbolEntry);
+            char *lineCurChar = line;
             // Add equate to symbol table
+            for (; *lineCurChar != ' '; lineCurChar++);
+
+            strncpy(symbolEntry, line, lineCurChar - line);
+            symbolEntry += lineCurChar - line + 1;
+            lineCurChar++;
+
+            for (; *lineCurChar != ' '; lineCurChar++);
+            *(uint8_t *)symbolEntry = sizeof(unsigned long);
+            symbolEntry++;
+            *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar);
+            symbolEntry += sizeof(long);
         } else if (assembler_GetDataSize(line)) {
             offset += assembler_GetDataSize(line);
         } else if (asm_misc_FindOpcode(line)) {
@@ -256,6 +272,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         dbg_printf("%s\n", line);
     }
 
+    while (kb_AnyKey());
     asm_spi_EndFrame();
     return ERROR_SUCCESS;
 }

@@ -119,8 +119,7 @@ bool hlight_Instruction(char *string, char *stringEnd) {
             !strcmp("db", stringConvert) ||
             !strcmp("dw", stringConvert) ||
             !strcmp("dl", stringConvert) ||
-            !strcmp("dd", stringConvert) ||
-            !strcmp("dq", stringConvert)) {
+            !strcmp("dd", stringConvert)) {
             return true;
         }
     } else if (stringEnd - string == 3) {
@@ -217,7 +216,7 @@ bool hlight_Instruction(char *string, char *stringEnd) {
     return false;
 }
 
-static bool hlight_Number(char *string, char *stringEnd) {
+bool hlight_Number(char *string, char *stringEnd) {
     uint8_t numberType = NUMBER_DEC;
 
     if (*string == '$') {
@@ -229,6 +228,8 @@ static bool hlight_Number(char *string, char *stringEnd) {
         numberType = NUMBER_OCT;
     } else if (*string == '%') {
         numberType = NUMBER_BIN;
+    } else {
+        string--;
     }
 
     string++;

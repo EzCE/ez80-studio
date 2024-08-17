@@ -93,7 +93,12 @@ char *util_GetStringEnd(char *string, char *openEOF) {
             *string == '+' ||
             *string == '-' ||
             *string == '*' ||
-            *string == '/') {
+            *string == '/' ||
+            *string == '<' ||
+            *string == '>' ||
+            *string == '&' ||
+            *string == '^' ||
+            *string == '|') {
 
             return string + singleChar;
         }
@@ -120,7 +125,12 @@ char *util_GetStringStart(char *string) {
             *string == '+' ||
             *string == '-' ||
             *string == '*' ||
-            *string == '/') {
+            *string == '/' ||
+            *string == '<' ||
+            *string == '>' ||
+            *string == '&' ||
+            *string == '^' ||
+            *string == '|') {
 
             return string + !singleChar;
         }

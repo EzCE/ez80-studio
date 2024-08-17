@@ -175,7 +175,7 @@ db "ld hl,#", 0
 
 db 4
 db $22, $00, $00, $00
-db "ld ($),hl", 0
+db "ld (#),hl", 0
 
 db 1
 db $23
@@ -207,7 +207,7 @@ db "add hl,hl", 0
 
 db 4
 db $2A, $00, $00, $00
-db "ld hl,($)", 0
+db "ld hl,(#)", 0
 
 db 1
 db $2B
@@ -239,7 +239,7 @@ db "ld sp,#", 0
 
 db 4
 db $32, $00, $00, $00
-db "ld ($),a", 0
+db "ld (#),a", 0
 
 db 1
 db $33
@@ -271,7 +271,7 @@ db "add hl,sp", 0
 
 db 4
 db $3A, $00, $00, $00
-db "ld a,($)", 0
+db "ld a,(#)", 0
 
 db 1
 db $3B
@@ -1397,6 +1397,10 @@ db 2
 db $07, $00
 db "ld bc,(ix#)", 0
 
+db 1
+db $09
+db "add ix,bc", 0
+
 db 2
 db $0F, $00
 db "ld (ix#),bc", 0
@@ -1405,13 +1409,65 @@ db 2
 db $17, $00
 db "ld de,(ix#)", 0
 
+db 1
+db $19
+db "add ix,de", 0
+
 db 2
 db $1F, $00
 db "ld (ix#),de", 0
 
+db 4
+db $21, $00, $00, $00
+db "ld ix,#", 0
+
+db 4
+db $22, $00, $00, $00
+db "ld (#),ix", 0
+
+db 1
+db $23
+db "inc ix", 0
+
+db 1
+db $24
+db "inc ixh", 0
+
+db 1
+db $25
+db "dec ixh", 0
+
+db 2
+db $26, $00
+db "ld ixh,#", 0
+
 db 2
 db $27, $00
 db "ld hl,(ix#)", 0
+
+db 1
+db $29
+db "add ix,ix", 0
+
+db 4
+db $2A, $00, $00, $00
+db "ld ix,(#)", 0
+
+db 1
+db $2B
+db "dec ix", 0
+
+db 1
+db $2C
+db "inc ixl", 0
+
+db 1
+db $2D
+db "dec ixl", 0
+
+db 2
+db $2E, $00
+db "ld ixl,#", 0
 
 db 2
 db $2F, $00
@@ -1437,6 +1493,10 @@ db 2
 db $37, $00
 db "ld ix,(ix#)", 0
 
+db 1
+db $39
+db "add ix,sp", 0
+
 db 2
 db $3E, $00
 db "ld (ix#),iy", 0
@@ -1445,29 +1505,117 @@ db 2
 db $3F, $00
 db "ld (ix#),ix", 0
 
+db 1
+db $44
+db "ld b,ixh", 0
+
+db 1
+db $45
+db "ld b,ixl", 0
+
 db 2
 db $46, $00
 db "ld b,(ix#)", 0
+
+db 1
+db $4C
+db "ld c,ixh", 0
+
+db 1
+db $4D
+db "ld c,ixl", 0
 
 db 2
 db $4E, $00
 db "ld c,(ix#)", 0
 
+db 1
+db $54
+db "ld d,ixh", 0
+
+db 1
+db $55
+db "ld d,ixl", 0
+
 db 2
 db $56, $00
 db "ld d,(ix#)", 0
+
+db 1
+db $5C
+db "ld e,ixh", 0
+
+db 1
+db $5D
+db "ld e,ixl", 0
 
 db 2
 db $5E, $00
 db "ld e,(ix#)", 0
 
+db 1
+db $60
+db "ld ixh,b", 0
+
+db 1
+db $61
+db "ld ixh,c", 0
+
+db 1
+db $62
+db "ld ixh,d", 0
+
+db 1
+db $63
+db "ld ixh,e", 0
+
+db 1
+db $64
+db "ld ixh,ixh", 0
+
+db 1
+db $65
+db "ld ixh,ixl", 0
+
 db 2
 db $66, $00
 db "ld h,(ix#)", 0
 
+db 1
+db $67
+db "ld ixh,a", 0
+
+db 1
+db $68
+db "ld ixl,b", 0
+
+db 1
+db $69
+db "ld ixl,c", 0
+
+db 1
+db $6A
+db "ld ixl,d", 0
+
+db 1
+db $6B
+db "ld ixl,e", 0
+
+db 1
+db $6C
+db "ld ixl,ixh", 0
+
+db 1
+db $6D
+db "ld ixl,ixl", 0
+
 db 2
 db $6E, $00
 db "ld l,(ix#)", 0
+
+db 1
+db $6F
+db "ld ixl,a", 0
 
 db 2
 db $70, $00
@@ -1497,41 +1645,133 @@ db 2
 db $77, $00
 db "ld (ix#),a", 0
 
+db 1
+db $7C
+db "ld a,ixh", 0
+
+db 1
+db $7D
+db "ld a,ixl", 0
+
 db 2
 db $7E, $00
 db "ld a,(ix#)", 0
+
+db 1
+db $84
+db "add a,ixh", 0
+
+db 1
+db $85
+db "add a,ixl", 0
 
 db 2
 db $86, $00
 db "add a,(ix#)", 0
 
+db 1
+db $8C
+db "adc a,ixh", 0
+
+db 1
+db $8D
+db "adc a,ixl", 0
+
 db 2
 db $8E, $00
 db "adc a,(ix#)", 0
+
+db 1
+db $94
+db "sub a,ixh", 0
+
+db 1
+db $95
+db "sub a,ixl", 0
 
 db 2
 db $96, $00
 db "sub a,(ix#)", 0
 
+db 1
+db $9C
+db "sbc a,ixh", 0
+
+db 1
+db $9D
+db "sbc a,ixl", 0
+
 db 2
 db $9E, $00
 db "sbc a,(ix#)", 0
+
+db 1
+db $A4
+db "and a,ixh", 0
+
+db 1
+db $A5
+db "and a,ixl", 0
 
 db 2
 db $A6, $00
 db "and a,(ix#)", 0
 
+db 1
+db $AC
+db "xor a,ixh", 0
+
+db 1
+db $AD
+db "xor a,ixl", 0
+
 db 2
 db $AE, $00
 db "xor a,(ix#)", 0
+
+db 1
+db $B4
+db "or a,ixh", 0
+
+db 1
+db $B5
+db "or a,ixl", 0
 
 db 2
 db $B6, $00
 db "or a,(ix#)", 0
 
+db 1
+db $BC
+db "cp a,ixh", 0
+
+db 1
+db $BD
+db "cp a,ixl", 0
+
 db 2
 db $BE, $00
 db "cp a,(ix#)", 0
+
+db 1
+db $E1
+db "pop ix", 0
+
+db 1
+db $E3
+db "ex (sp),ix", 0
+
+db 1
+db $E5
+db "push ix", 0
+
+db 1
+db $E9
+db "jp (ix)", 0
+
+db 1
+db $F9
+db "ld sp,ix", 0
 
 ;---------------------------------------
 ; Opcode Map - Second Opcode (after $ED)
@@ -1713,7 +1953,7 @@ db "sbc hl,bc", 0
 
 db 4
 db $43, $00, $00, $00
-db "ld ($),bc", 0
+db "ld (#),bc", 0
 
 db 1
 db $44
@@ -1745,7 +1985,7 @@ db "adc hl,bc", 0
 
 db 4
 db $4B, $00, $00, $00
-db "ld bc,($)", 0
+db "ld bc,(#)", 0
 
 db 1
 db $4C
@@ -1773,7 +2013,7 @@ db "sbc hl,de", 0
 
 db 4
 db $53, $00, $00, $00
-db "ld ($),de"
+db "ld (#),de"
 
 db 2
 db $54, $00
@@ -1805,7 +2045,7 @@ db "adc hl,de", 0
 
 db 4
 db $5B, $00, $00, $00
-db "ld de,($)", 0
+db "ld de,(#)", 0
 
 db 1
 db $5C
@@ -1833,7 +2073,7 @@ db "sbc hl,hl", 0
 
 db 4
 db $63, $00, $00, $00
-db "ld ($),hl", 0
+db "ld (#),hl", 0
 
 db 2
 db $64, $00
@@ -1865,7 +2105,7 @@ db "adc hl,hl", 0
 
 db 4
 db $6B, $00, $00
-db "ld hl,($)", 0
+db "ld hl,(#)", 0
 
 db 1
 db $6C
@@ -1889,7 +2129,7 @@ db "sbc hl,sp", 0
 
 db 4
 db $73, $00, $00, $00
-db "ld ($),sp", 0
+db "ld (#),sp", 0
 
 db 2
 db $74, $00
@@ -1913,7 +2153,7 @@ db "adc hl,sp", 0
 
 db 4
 db $7B, $00, $00, $00
-db "ld sp,($)", 0
+db "ld sp,(#)", 0
 
 db 1
 db $7C
@@ -2089,6 +2329,10 @@ db 2
 db $07, $00
 db "ld bc,(iy#)", 0
 
+db 1
+db $09
+db "add iy,bc", 0
+
 db 2
 db $0F, $00
 db "ld (iy#),bc", 0
@@ -2097,13 +2341,65 @@ db 2
 db $17, $00
 db "ld de,(iy#)", 0
 
+db 1
+db $19
+db "add iy,de", 0
+
 db 2
 db $1F, $00
 db "ld (iy#),de", 0
 
+db 4
+db $21, $00, $00, $00
+db "ld iy,#", 0
+
+db 4
+db $22, $00, $00, $00
+db "ld (#),iy", 0
+
+db 1
+db $23
+db "inc iy", 0
+
+db 1
+db $24
+db "inc iyh", 0
+
+db 1
+db $25
+db "dec iyh", 0
+
+db 2
+db $26, $00
+db "ld iyh,#", 0
+
 db 2
 db $27, $00
 db "ld hl,(iy#)", 0
+
+db 1
+db $29
+db "add iy,iy", 0
+
+db 4
+db $2A, $00, $00, $00
+db "ld iy,(#)", 0
+
+db 1
+db $2B
+db "dec iy", 0
+
+db 1
+db $2C
+db "inc iyl", 0
+
+db 1
+db $2D
+db "dec iyl", 0
+
+db 2
+db $2E, $00
+db "ld iyl,#", 0
 
 db 2
 db $2F, $00
@@ -2129,6 +2425,10 @@ db 2
 db $37, $00
 db "ld iy,(iy#)", 0
 
+db 1
+db $39
+db "add iy,sp", 0
+
 db 2
 db $3E, $00
 db "ld (iy#),ix", 0
@@ -2137,29 +2437,117 @@ db 2
 db $3F, $00
 db "ld (iy#),iy", 0
 
+db 1
+db $44
+db "ld b,iyh", 0
+
+db 1
+db $45
+db "ld b,iyl", 0
+
 db 2
 db $46, $00
 db "ld b,(iy#)", 0
+
+db 1
+db $4C
+db "ld c,iyh", 0
+
+db 1
+db $4D
+db "ld c,iyl", 0
 
 db 2
 db $4E, $00
 db "ld c,(iy#)", 0
 
+db 1
+db $54
+db "ld d,iyh", 0
+
+db 1
+db $55
+db "ld d,iyl", 0
+
 db 2
 db $56, $00
 db "ld d,(iy#)", 0
+
+db 1
+db $5C
+db "ld e,iyh", 0
+
+db 1
+db $5D
+db "ld e,iyl", 0
 
 db 2
 db $5E, $00
 db "ld e,(iy#)", 0
 
+db 1
+db $60
+db "ld iyh,b", 0
+
+db 1
+db $61
+db "ld iyh,c", 0
+
+db 1
+db $62
+db "ld iyh,d", 0
+
+db 1
+db $63
+db "ld iyh,e", 0
+
+db 1
+db $64
+db "ld iyh,iyh", 0
+
+db 1
+db $65
+db "ld iyh,iyl", 0
+
 db 2
 db $66, $00
 db "ld h,(iy#)", 0
 
+db 1
+db $67
+db "ld iyh,a", 0
+
+db 1
+db $68
+db "ld iyl,b", 0
+
+db 1
+db $69
+db "ld iyl,c", 0
+
+db 1
+db $6A
+db "ld iyl,d", 0
+
+db 1
+db $6B
+db "ld iyl,e", 0
+
+db 1
+db $6C
+db "ld iyl,iyh", 0
+
+db 1
+db $6D
+db "ld iyl,iyl", 0
+
 db 2
 db $6E, $00
 db "ld l,(iy#)", 0
+
+db 1
+db $6F
+db "ld iyl,a", 0
 
 db 2
 db $70, $00
@@ -2189,41 +2577,133 @@ db 2
 db $77, $00
 db "ld (iy#),a", 0
 
+db 1
+db $7C
+db "ld a,iyh", 0
+
+db 1
+db $7D
+db "ld a,iyl", 0
+
 db 2
 db $7E, $00
 db "ld a,(iy#)", 0
+
+db 1
+db $84
+db "add a,iyh", 0
+
+db 1
+db $85
+db "add a,iyl", 0
 
 db 2
 db $86, $00
 db "add a,(iy#)", 0
 
+db 1
+db $8C
+db "adc a,iyh", 0
+
+db 1
+db $8D
+db "adc a,iyl", 0
+
 db 2
 db $8E, $00
 db "adc a,(iy#)", 0
+
+db 1
+db $94
+db "sub a,iyh", 0
+
+db 1
+db $95
+db "sub a,iyl", 0
 
 db 2
 db $96, $00
 db "sub a,(iy#)", 0
 
+db 1
+db $9C
+db "sbc a,iyh", 0
+
+db 1
+db $9D
+db "sbc a,iyl", 0
+
 db 2
 db $9E, $00
 db "sbc a,(iy#)", 0
+
+db 1
+db $A4
+db "and a,iyh", 0
+
+db 1
+db $A5
+db "and a,iyl", 0
 
 db 2
 db $A6, $00
 db "and a,(iy#)", 0
 
+db 1
+db $AC
+db "xor a,iyh", 0
+
+db 1
+db $AD
+db "xor a,iyl", 0
+
 db 2
 db $AE, $00
 db "xor a,(iy#)", 0
+
+db 1
+db $B4
+db "or a,iyh", 0
+
+db 1
+db $B5
+db "or a,iyl", 0
 
 db 2
 db $B6, $00
 db "or a,(iy#)", 0
 
+db 1
+db $BC
+db "cp a,iyh", 0
+
+db 1
+db $BD
+db "cp a,iyl", 0
+
 db 2
 db $BE, $00
 db "cp a,(iy#)", 0
+
+db 1
+db $E1
+db "pop iy", 0
+
+db 1
+db $E3
+db "ex (sp),iy", 0
+
+db 1
+db $E5
+db "push iy", 0
+
+db 1
+db $E9
+db "jp (iy)", 0
+
+db 1
+db $F9
+db "ld sp,iy", 0
 
 ;-------------------------------------------
 ; Opcode Map - Fourth Opcode (after $DDCB##)

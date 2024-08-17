@@ -93,10 +93,10 @@ extern struct opcode_t asm_opcodes_TableEnd;
 /**
  * Number types, used by the highlighting code.
 */
-#define NUMBER_HEX      0           /* Hexadecimal number. */
-#define NUMBER_DEC      1           /* Decimal number. */
-#define NUMBER_OCT      2           /* Octal number. */
-#define NUMBER_BIN      3           /* Binary number. */
+#define NUMBER_HEX      16          /* Hexadecimal number. */
+#define NUMBER_DEC      10          /* Decimal number. */
+#define NUMBER_OCT      8           /* Octal number. */
+#define NUMBER_BIN      2           /* Binary number. */
 
 /**
  * GUI color themes.
@@ -182,8 +182,12 @@ struct context_t {
     unsigned int row;               /* Current row of the editor selected by the cursor (0 - 13). */
     uint8_t column;                 /* Current column of the editor selected by the cursor. */
     uint8_t rowLength;              /* Length of the currently selected row, in columns. */
+    uint8_t inputMode;              /* Current text input mode (A, a, 1). */
 };
 
+/** 
+ * Opcode struct which holds the size and bytes associated with an opcode.
+*/
 struct opcode_t {
     uint8_t size;
     void *data;

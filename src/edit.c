@@ -32,6 +32,11 @@ void edit_RedrawEditor(struct context_t *studioContext, struct preferences_t *st
         ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
         ui_UpdateText(studioContext, studioPreferences, UPDATE_ALL);
         ui_DrawCursor(studioContext->row, studioContext->column, true, false);
+        gfx_SetColor(OUTLINE);
+        fontlib_SetForegroundColor(TEXT_DEFAULT);
+        fontlib_SetCursorPosition(312, 0);
+        fontlib_DrawGlyph("1Aa"[studioContext->inputMode]);
+        gfx_Rectangle_NoClip(312, 12, 8, 2);
     } else {
         ui_NoFile();
     }
@@ -164,8 +169,8 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
     bool keyPressed = false;
     bool cursorActive = true;
     bool redraw = false;
+    bool updateHighlight = false;
 
-    uint8_t inputMode = INPUT_LOWERCASE;
     uint8_t inputChar = '\0';
 
     studioContext->fileIsSaved = true;
@@ -181,7 +186,15 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
         if (!kb_AnyKey() && keyPressed) {
             keyPressed = false;
+            updateHighlight = studioPreferences->highlighting; // Update the highlighting a bit later if it's enabled
             clockOffset = clock();
+        }
+
+        if (updateHighlight && !keyPressed && clock() - clockOffset > CLOCKS_PER_SEC / 3.5) {
+            updateHighlight = false;
+            asm_spi_BeginFrame();
+            edit_RedrawEditor(studioContext, studioPreferences);
+            asm_spi_EndFrame();
         }
 
         if (kb_AnyKey() && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 32)) {
@@ -282,16 +295,21 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                     edit_Delete(studioContext);
                 }
             } else if (kb_IsDown(kb_KeyAlpha)) {
-                if (inputMode == INPUT_LOWERCASE) {
-                    inputMode = 0;
+                if (studioContext->inputMode == INPUT_LOWERCASE) {
+                    studioContext->inputMode = 0;
                 } else {
-                    inputMode++;
+                    studioContext->inputMode += 1;
                 }
 
+                gfx_SetColor(BACKGROUND);
+                gfx_FillRectangle_NoClip(313, 2, 5, 8);
+                fontlib_SetForegroundColor(TEXT_DEFAULT);
+                fontlib_SetCursorPosition(312, 0);
+                fontlib_DrawGlyph("1Aa"[studioContext->inputMode]);
                 while (kb_AnyKey());
             } else if (studioContext->fileSize < MAX_FILE_SIZE && !redraw) {
                 if (!keyPressed) {
-                    inputChar = asm_misc_GetCharFromKey(inputMode);
+                    inputChar = asm_misc_GetCharFromKey(studioContext->inputMode);
                 }
 
                 redraw = util_InsertChar(inputChar, studioContext);

@@ -17,6 +17,7 @@ include 'include/equates.inc'
     public _asm_misc_StringToInt
     public _asm_misc_ClearBuffer
     public _asm_misc_GetCharFromKey
+    public _asm_misc_ReverseCopy
 
     extern _asm_opcodes_Table
     extern _asm_opcodes_TableEnd
@@ -39,15 +40,19 @@ _asm_misc_FindOpcode:
     inc hl
 
 .compare:
-    ld a, (de)
-    or a, a
-    jr nz, .check
     ld a, (hl)
     or a, a
-    jr z, .found
+    jr nz, .check
     ld a, (de)
+    or a, a
+    jr z, .found
+    pop de
+    pop de
+    inc hl
+    jr .search
 
 .check:
+    ld a, (de)
     cp a, (hl)
     inc hl
     inc de
@@ -165,4 +170,13 @@ _asm_misc_GetCharFromKey: ; Scans for a keypress and converts it to a character
     ld c, a
     add hl, bc
     ld a, (hl)
+    ret
+
+_asm_misc_ReverseCopy:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 3)
+    ld de, (iy + 6)
+    ld bc, (iy + 9)
+    lddr
     ret

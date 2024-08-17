@@ -59,6 +59,16 @@ bool hlight_Register(char *string, char *stringEnd);
 bool hlight_Instruction(char *string, char *stringEnd);
 
 /**
+ * @brief Check if a token is a number (including bases).
+ * 
+ * @param string Start of token string.
+ * @param stringEnd End of token string.
+ * @return true Token is a number.
+ * @return false Token is not a number.
+ */
+bool hlight_Number(char *string, char *stringEnd);
+
+/**
  * @brief Check if a token is a suffix modifier.
  * 
  * @param string Start of token string.

@@ -5,8 +5,8 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
- * Last Build: April 28, 2024
- * Version: 0.8.6
+ * Last Build: August 17, 2024
+ * Version: 0.8.7
  * 
  * --------------------------------------
 **/
@@ -14,9 +14,10 @@
 #include "gfx/gfx.h"
 #include "font/fontCherry.h"
 #include "defines.h"
-#include "ui.h"
-#include "menu.h"
 #include "edit.h"
+#include "menu.h"
+#include "parser.h"
+#include "ui.h"
 #include "utility.h"
 #include "asm/files.h"
 #include "asm/spi.h"
@@ -31,12 +32,16 @@ int main(void) {
 
     dbg_printf("Structs: %p | %p - %u\n", &studioPreferences, &studioContext, sizeof(struct context_t));
 
+    dbg_printf(" == %ld\n", parser_Eval("1+(320*240)-(10*240)"));
+    dbg_printf(" == %ld\n", (long)1+(320*240)-(10*240));
+
     studioContext.fileIsOpen = false;
 
     studioContext.lineStart = 0; // The scrollbar will be weird if we don't do this
     studioContext.newlineStart = 0;
     studioContext.totalLines = 0;
     studioContext.newlineCount = 0;
+    studioContext.inputMode = INPUT_LOWERCASE;
 
     util_ReadPrefs(&studioPreferences);
 
