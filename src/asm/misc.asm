@@ -18,6 +18,7 @@ include 'include/equates.inc'
     public _asm_misc_ClearBuffer
     public _asm_misc_GetCharFromKey
     public _asm_misc_ReverseCopy
+    public _asm_misc_FindSymbol
 
     extern _asm_opcodes_Table
     extern _asm_opcodes_TableEnd
@@ -179,4 +180,59 @@ _asm_misc_ReverseCopy:
     ld de, (iy + 6)
     ld bc, (iy + 9)
     lddr
+    ret
+
+_asm_misc_FindSymbol:
+    pop de
+    ex (sp), hl
+    push de
+    ld de, symbolTableStart
+    ex de, hl
+
+.search:
+    push de
+    push hl
+
+.compare:
+    ld a, (hl)
+    or a, a
+    jr nz, .check
+    ld a, (de)
+    or a, a
+    jr z, .found
+    pop de
+    pop de
+    inc hl
+    jr .skipData
+
+.check:
+    ld a, (de)
+    cp a, (hl)
+    inc hl
+    inc de
+    jr z, .compare
+    pop de
+    pop de
+    xor a, a
+    ld bc, 256
+    cpir
+
+.skipData:
+    ld bc, 0
+    ld c, (hl)
+    add hl, bc
+    inc hl
+    ld a, (hl)
+    or a, a ; reached the end of the table's entries
+    jr z, .notFound
+    jr .search
+
+.found:
+    pop hl
+    pop de
+    ret
+
+.notFound:
+    or a, a
+    sbc hl, hl
     ret

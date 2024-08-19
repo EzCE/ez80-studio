@@ -275,6 +275,19 @@ long parser_F(void) {
         return -F;
     }
 
+    static char symbol[MAX_LINE_LENGTH_ASM];
+    strncpy(symbol, parseNum, util_GetStringEnd(parseNum, inputEnd) - parseNum);
+    symbol[util_GetStringEnd(parseNum, inputEnd) - parseNum] = '\0';
+    void *found = asm_misc_FindSymbol(symbol);
+    
+    if (found != NULL) {
+        found += strlen(found) + 1;
+
+        memset(symbol, '\0', sizeof(char) * sizeof(long));
+        memcpy(symbol, found + 1, *(uint8_t *)found);
+        dbg_printf("%ld", *(long *)symbol);
+        return *(long *)symbol;
+    }
     // Look up in symbol table here eventually
 
     return 0;

@@ -135,6 +135,11 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define EDIT_BUFFER         (uint8_t *)0xD52C02
 
 /**
+ * Pointer to the start of the symbol table.
+*/
+#define SYMBOL_TABLE        EDIT_BUFFER + MAX_FILE_SIZE + 128
+
+/**
  * Maximum number of bytes for a token. (Highlighting)
 */
 #define MAX_TOK_LENGTH_HL   6

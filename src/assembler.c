@@ -98,9 +98,9 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
 
             string = stringEnd;
         } else {
-            *line = *string;
-            string++;
-            line++;
+            strncpy(line, string, stringEnd - string);
+            line += stringEnd - string;
+            string += stringEnd - string;
         }
     }
 
@@ -206,12 +206,13 @@ static unsigned int assembler_GetDataSize(char *data) {
 uint8_t assembler_Main(struct context_t *studioContext) {
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
     asm_misc_ClearBuffer(gfx_vram);
+    memset((void *)SYMBOL_TABLE, '\0', sizeof(char) * MAX_SYMBOL_TABLE);
 
     char *string = (char *)EDIT_BUFFER;
     static char line[MAX_LINE_LENGTH_ASM];
 
     void *offset = (void *)os_userMem;
-    void *symbolEntry = (void *)EDIT_BUFFER + MAX_FILE_SIZE + 128;
+    void *symbolEntry = (void *)SYMBOL_TABLE;
     dbg_printf("Symbol Table Start: %p\n", symbolEntry);
 
     while (string <= studioContext->openEOF) {

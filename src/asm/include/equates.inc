@@ -20,10 +20,13 @@ sortSecondHidden := 2
 
 editBuffer := ti.vRam + ti.lcdWidth * ti.lcdHeight + 2
 
+; Assembler
+
+symbolTableStart := editBuffer + 65500 + 128
+
 ; SPI defines
 
 spiValid := 8
-spiSearchStrSize := 11
 
 ; use cursorImage RAM for these variables
 ;-----------------------------------------

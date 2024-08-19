@@ -64,6 +64,13 @@ char asm_misc_GetCharFromKey(uint8_t inputMode);
  */
 void asm_misc_ReverseCopy(void *src, void *dest, unsigned int bytes);
 
+/**
+ * @brief Retrieve a value for a specified symbol from the symbol table.
+ * 
+ * @param search Symbol to search for.
+ */
+void *asm_misc_FindSymbol(char *search);
+
 #ifdef __cplusplus
 }
 #endif
