@@ -30,11 +30,6 @@ int main(void) {
     static struct preferences_t studioPreferences;
     static struct context_t studioContext;
 
-    dbg_printf("Structs: %p | %p - %u\n", &studioPreferences, &studioContext, sizeof(struct context_t));
-
-    dbg_printf(" == %ld\n", parser_Eval("1+(320*240)-(10*240)"));
-    dbg_printf(" == %ld\n", (long)1+(320*240)-(10*240));
-
     studioContext.fileIsOpen = false;
 
     studioContext.lineStart = 0; // The scrollbar will be weird if we don't do this

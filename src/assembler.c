@@ -19,7 +19,7 @@
 #include <graphx.h>
 #include <string.h>
 
-static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
+static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bool pass2) {
     bool inQuotes = false;
     bool inInstruction = false;
     char *stringEnd;
@@ -91,6 +91,10 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
             if (*string == ',' || *string == '(' || *string == ')') {
                 *line = *string;
                 line++;
+            } else if (pass2) {
+                strncpy(line, string, stringEnd - string);
+                line += stringEnd - string;
+                string = stringEnd;
             } else if (*(line - 1) != '#') {
                 *line = '#';
                 line++;
@@ -100,7 +104,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile) {
         } else {
             strncpy(line, string, stringEnd - string);
             line += stringEnd - string;
-            string += stringEnd - string;
+            string = stringEnd;
         }
     }
 
@@ -138,7 +142,7 @@ static bool assembler_IsEquate(char *line) {
     return false;
 }
 
-static unsigned int assembler_GetDataSize(char *data) {
+static unsigned int assembler_GetDataSize(char *data, bool pass2) {
     if (*data != 'd') {
         return 0;
     }
@@ -159,17 +163,15 @@ static unsigned int assembler_GetDataSize(char *data) {
         case 'd':
             perData = 4;
             break;
-        case 'q':
-            perData = 8;
-            break;
         default:
             return 0;
     }
 
     unsigned int size = 0;
+    data += 2;
 
     while (*data != '\0') {
-        if (*data == '#') {
+        if (!pass2 && *data == '#') {
             size += perData;
         } else if (*data == '\"' || *data == '\'') {
             unsigned int tempSize = 0;
@@ -193,6 +195,15 @@ static unsigned int assembler_GetDataSize(char *data) {
             }
 
             size += tempSize;
+        } else if (pass2) {
+            size += perData;
+            while (*data != '\0' && *data != ',') {
+                data++;
+            }
+
+            if (*data == '\0') {
+                data--;
+            }
         }
 
         data++;
@@ -203,9 +214,81 @@ static unsigned int assembler_GetDataSize(char *data) {
     return size;
 }
 
+uint8_t assembler_WriteData(char *output, char *line) {
+    uint8_t error = ERROR_SUCCESS;
+    line++;
+    uint8_t perData = 0;
+
+    switch (*line) {
+        case 'b':
+            perData = 1;
+            break;
+        case 'w':
+            perData = 2;
+            break;
+        case 'l':
+            perData = 3;
+            break;
+        case 'd':
+            perData = 4;
+    }
+
+    line++;
+    static char data[MAX_LINE_LENGTH_ASM - 3];
+
+    while (*line != '\0') {
+        line++;
+        uint8_t i = 0;
+
+        if (*line == '\"' || *line == '\'') {
+            line++;
+
+            while (*line != '\"' && *line != '\'') {
+                if (*line == '\\') {
+                    line++;
+                }
+
+                *(output++) = *(line++);
+            }
+
+            line++;
+        } else {
+            while (*line != '\0' && *line != ',') {
+                data[i++] = *(line++);
+            }
+
+            data[i] = '\0';
+
+            unsigned long result = parser_Eval(data, &error);
+
+            switch (perData) {
+                case 1:
+                    *(uint8_t *)output = (uint8_t)result;
+                    break;
+                case 2:
+                    *(uint16_t *)output = (uint16_t)result;
+                    break;
+                case 3:
+                    *(unsigned int *)output = (unsigned int)result;
+                    break;
+                case 4:
+                    *(unsigned long *)output = (unsigned long)result;
+                    break;
+            }
+
+            output += perData;
+        }
+    }
+
+    dbg_printf("%p\n", output);
+    asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
+
+    return error;
+}
+
 uint8_t assembler_Main(struct context_t *studioContext) {
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
-    asm_misc_ClearBuffer(gfx_vram);
+    asm_misc_ClearBuffer(OUTPUT);
     memset((void *)SYMBOL_TABLE, '\0', sizeof(char) * MAX_SYMBOL_TABLE);
 
     char *string = (char *)EDIT_BUFFER;
@@ -216,7 +299,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
     dbg_printf("Symbol Table Start: %p\n", symbolEntry);
 
     while (string <= studioContext->openEOF) {
-        assembler_SanitizeLine(line, string, studioContext->openEOF);
+        assembler_SanitizeLine(line, string, studioContext->openEOF, false);
 
         while (*string != '\n' && string <= studioContext->openEOF) {
             string++;
@@ -237,7 +320,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         } else if (assembler_IsEquate(line)) {
             dbg_printf("Equate @ Table %p | ", symbolEntry);
             char *lineCurChar = line;
-            // Add equate to symbol table
+
             for (; *lineCurChar != ' '; lineCurChar++);
 
             strncpy(symbolEntry, line, lineCurChar - line);
@@ -245,12 +328,19 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             lineCurChar++;
 
             for (; *lineCurChar != ' '; lineCurChar++);
+
             *(uint8_t *)symbolEntry = sizeof(unsigned long);
             symbolEntry++;
-            *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar);
+            uint8_t error;
+            *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar, &error);
+
+            if (error) {
+                return error;
+            }
+
             symbolEntry += sizeof(long);
-        } else if (assembler_GetDataSize(line)) {
-            offset += assembler_GetDataSize(line);
+        } else if (assembler_GetDataSize(line, false)) {
+            offset += assembler_GetDataSize(line, false);
         } else if (asm_misc_FindOpcode(line)) {
             struct opcode_t *opcode = asm_misc_FindOpcode(line);
             offset += opcode->size;
@@ -270,7 +360,66 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             return ERROR_INVAL_TOK;
         }
 
+        if (symbolEntry > (void *)SYMBOL_TABLE + MAX_SYMBOL_TABLE) {
+            return ERROR_MAX_SYMBOLS;
+        }
+
         dbg_printf("%s\n", line);
+    }
+
+    if (offset - (void *)os_userMem + 2 > MAX_FILE_SIZE) {
+        return ERROR_TOO_LARGE;
+    }
+
+    char *output = OUTPUT + 2;
+    string = EDIT_BUFFER;
+
+    strcpy(OUTPUT, OUTPUT_HEADER);
+
+    while (string <= studioContext->openEOF) {
+        assembler_SanitizeLine(line, string, studioContext->openEOF, true);
+
+        while (*string != '\n' && string <= studioContext->openEOF) {
+            string++;
+        }
+
+        string++;
+
+        dbg_printf("%s |", line);
+
+        if (assembler_GetDataSize(line, true)) {
+            uint8_t error = assembler_WriteData(output, line);
+
+            if (error) {
+                return error;
+            }
+
+            output += assembler_GetDataSize(line, true);
+        } else if (asm_misc_FindOpcode(line)) {
+            struct opcode_t *opcode = asm_misc_FindOpcode(line);
+
+            if (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD) {
+                *output = 0xCB;
+            } else if (opcode >= &asm_opcodes_AfterDD && opcode < &asm_opcodes_AfterED) {
+                *output = 0xDD;
+            } else if (opcode >= &asm_opcodes_AfterED && opcode < &asm_opcodes_AfterFD) {
+                *output = 0xED;
+            } else if (opcode >= &asm_opcodes_AfterFD && opcode < &asm_opcodes_AfterDDCB) {
+                *output = 0xFD;
+            } else if (opcode >= &asm_opcodes_AfterDDCB && opcode < &asm_opcodes_AfterFDCB) {
+                *output = 0xDD;
+                *(++output) = 0xCB;
+            } else if (opcode >= &asm_opcodes_AfterFDCB) {
+                *output = 0xFD;
+                *(++output) = 0xCB;
+            }
+
+            output += opcode->size;
+            dbg_printf("Size %u", opcode->size);
+
+            dbg_printf(" | ");
+            // Check table location to properly adjust for size
+        }
     }
 
     while (kb_AnyKey());

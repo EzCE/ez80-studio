@@ -59,6 +59,18 @@ void menu_Error(uint8_t error) {
             fontlib_SetCursorPosition(86, 112);
             fontlib_DrawString("Invalid instruction.");
             break;
+        case ERROR_INVAL_EXPR:
+            fontlib_SetCursorPosition(89, 112);
+            fontlib_DrawString("Invalid expression.");
+            break;
+        case ERROR_MAX_SYMBOLS:
+            fontlib_SetCursorPosition(96, 112);
+            fontlib_DrawString("Too many symbols.");
+            break;
+        case ERROR_TOO_LARGE:
+            fontlib_SetCursorPosition(96, 112);
+            fontlib_DrawString("Output too large.");
+            break;
         default:
             break;
     }

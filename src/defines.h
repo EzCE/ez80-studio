@@ -76,6 +76,11 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define SOURCE_HEADER       "\xEF\x7A"
 
 /**
+ * File header for output: 0xEF7B.
+*/
+#define OUTPUT_HEADER       "\xEF\x7B"
+
+/**
  * Palette entries (Also used for token types when highlighting because why not, they're already here).
 */
 #define BACKGROUND          0       /* Background color. */
@@ -128,6 +133,9 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define ERROR_UNKNOWN       1       /* The action failed for an unknown reason. (Not sure if this will be used?) */
 #define ERROR_NO_MEM        2       /* There is not enough memory to perform the requested action. */
 #define ERROR_INVAL_TOK     3       /* A token was invalid. */
+#define ERROR_INVAL_EXPR    4       /* An expression was invalid. */
+#define ERROR_MAX_SYMBOLS   5       /* Symbols or labels in the assembly source overflowed the symbol table. */
+#define ERROR_TOO_LARGE     6       /* Assembly output produced was too large. */
 
 /**
  * Pointer to the start of editable data in the edit buffer. Note: Does not include file header. To include the file header, use EDIT_BUFFER - 2
@@ -138,6 +146,11 @@ extern struct opcode_t asm_opcodes_TableEnd;
  * Pointer to the start of the symbol table.
 */
 #define SYMBOL_TABLE        EDIT_BUFFER + MAX_FILE_SIZE + 128
+
+/**
+ * Pointer to the start of where the assembler puts its output. (Start of VRAM)
+*/
+#define OUTPUT              (uint8_t *)0xD40000
 
 /**
  * Maximum number of bytes for a token. (Highlighting)

@@ -29,6 +29,11 @@ static char *nextToken;
 */
 static char *inputEnd;
 
+/**
+ * Error code returned by the parser if necessary.
+*/
+uint8_t *retErr;
+
 static char *parser_GetTokStart(char *token) {
     bool singleChar = true;
 
@@ -264,6 +269,7 @@ long parser_F(void) {
             nextToken = parser_GetTokStart(nextToken - 1);
             return BR;
         } else {
+            *retErr = ERROR_INVAL_EXPR;
             return 0;
         }
     } else if (*parseNum == '-') {
@@ -279,7 +285,7 @@ long parser_F(void) {
     strncpy(symbol, parseNum, util_GetStringEnd(parseNum, inputEnd) - parseNum);
     symbol[util_GetStringEnd(parseNum, inputEnd) - parseNum] = '\0';
     void *found = asm_misc_FindSymbol(symbol);
-    
+
     if (found != NULL) {
         found += strlen(found) + 1;
 
@@ -288,13 +294,14 @@ long parser_F(void) {
         dbg_printf("%ld", *(long *)symbol);
         return *(long *)symbol;
     }
-    // Look up in symbol table here eventually
 
+    *retErr = ERROR_INVAL_EXPR;
     return 0;
 }
 
-unsigned long parser_Eval(char *input) {
+unsigned long parser_Eval(char *input, uint8_t *error) {
     unsigned int length = strlen(input);
+    retErr = error;
     asm_misc_ReverseCopy(input + length - 1, input + length, length); // Very cursed parsing reversed
     *input = '\0';
     inputEnd = input + length;

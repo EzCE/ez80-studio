@@ -62,6 +62,7 @@ long parser_F(void);
  * @brief Evalute a string containing a mathematical expression.
  * 
  * @param input String to evaluate.
+ * @param error Address to store error code at.
  * @return unsigned long Result of evaluation.
  */
-unsigned long parser_Eval(char *input);
+unsigned long parser_Eval(char *input, uint8_t *error);
