@@ -142,7 +142,7 @@ static bool assembler_IsEquate(char *line) {
     return false;
 }
 
-static unsigned int assembler_GetDataSize(char *data, bool pass2) {
+static unsigned int assembler_GetDataSize(char *data) {
     if (*data != 'd') {
         return 0;
     }
@@ -171,7 +171,7 @@ static unsigned int assembler_GetDataSize(char *data, bool pass2) {
     data += 2;
 
     while (*data != '\0') {
-        if (!pass2 && *data == '#') {
+        if (*data == '#') {
             size += perData;
         } else if (*data == '\"' || *data == '\'') {
             unsigned int tempSize = 0;
@@ -195,15 +195,6 @@ static unsigned int assembler_GetDataSize(char *data, bool pass2) {
             }
 
             size += tempSize;
-        } else if (pass2) {
-            size += perData;
-            while (*data != '\0' && *data != ',') {
-                data++;
-            }
-
-            if (*data == '\0') {
-                data--;
-            }
         }
 
         data++;
@@ -339,8 +330,8 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             }
 
             symbolEntry += sizeof(long);
-        } else if (assembler_GetDataSize(line, false)) {
-            offset += assembler_GetDataSize(line, false);
+        } else if (assembler_GetDataSize(line)) {
+            offset += assembler_GetDataSize(line);
         } else if (asm_misc_FindOpcode(line)) {
             struct opcode_t *opcode = asm_misc_FindOpcode(line);
             offset += opcode->size;
@@ -371,55 +362,62 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         return ERROR_TOO_LARGE;
     }
 
-    char *output = OUTPUT + 2;
-    string = EDIT_BUFFER;
+    char *output = (char *)(OUTPUT + 2);
+    string = (char *)EDIT_BUFFER;
 
-    strcpy(OUTPUT, OUTPUT_HEADER);
+    strcpy((char *)OUTPUT, OUTPUT_HEADER);
 
     while (string <= studioContext->openEOF) {
-        assembler_SanitizeLine(line, string, studioContext->openEOF, true);
-
-        while (*string != '\n' && string <= studioContext->openEOF) {
-            string++;
-        }
-
-        string++;
+        assembler_SanitizeLine(line, string, studioContext->openEOF, false);
 
         dbg_printf("%s |", line);
 
-        if (assembler_GetDataSize(line, true)) {
+        if (assembler_GetDataSize(line)) {
+            unsigned int tempSize = assembler_GetDataSize(line);
+            assembler_SanitizeLine(line, string, studioContext->openEOF, true);
             uint8_t error = assembler_WriteData(output, line);
 
             if (error) {
                 return error;
             }
 
-            output += assembler_GetDataSize(line, true);
+            output += tempSize;
         } else if (asm_misc_FindOpcode(line)) {
+            dbg_printf("\nOutput: %p\n", output);
             struct opcode_t *opcode = asm_misc_FindOpcode(line);
+            assembler_SanitizeLine(line, string, studioContext->openEOF, true);
 
             if (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD) {
-                *output = 0xCB;
+                *(output++) = 0xCB;
             } else if (opcode >= &asm_opcodes_AfterDD && opcode < &asm_opcodes_AfterED) {
-                *output = 0xDD;
+                *(output++) = 0xDD;
             } else if (opcode >= &asm_opcodes_AfterED && opcode < &asm_opcodes_AfterFD) {
-                *output = 0xED;
+                *(output++) = 0xED;
             } else if (opcode >= &asm_opcodes_AfterFD && opcode < &asm_opcodes_AfterDDCB) {
-                *output = 0xFD;
+                *(output++) = 0xFD;
             } else if (opcode >= &asm_opcodes_AfterDDCB && opcode < &asm_opcodes_AfterFDCB) {
-                *output = 0xDD;
-                *(++output) = 0xCB;
+                *(output++) = 0xDD;
+                *(output++) = 0xCB;
             } else if (opcode >= &asm_opcodes_AfterFDCB) {
-                *output = 0xFD;
-                *(++output) = 0xCB;
+                *(output++) = 0xFD;
+                *(output++) = 0xCB;
             }
+
+            memcpy(output, &opcode->data, opcode->size);
 
             output += opcode->size;
             dbg_printf("Size %u", opcode->size);
 
             dbg_printf(" | ");
+            asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
             // Check table location to properly adjust for size
         }
+
+        while (*string != '\n' && string <= studioContext->openEOF) {
+            string++;
+        }
+
+        string++;
     }
 
     while (kb_AnyKey());
