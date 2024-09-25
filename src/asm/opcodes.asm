@@ -2104,7 +2104,7 @@ db $6A
 db "adc hl,hl", 0
 
 db 4
-db $6B, $00, $00
+db $6B, $00, $00, $00
 db "ld hl,(#)", 0
 
 db 1

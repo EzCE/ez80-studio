@@ -277,6 +277,54 @@ uint8_t assembler_WriteData(char *output, char *line) {
     return error;
 }
 
+static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opcode) {
+    while (*line != ' ' && *line != '\0') {
+        line++;
+    }
+
+    if (*line == '\0') {
+        return ERROR_SUCCESS;
+    }
+
+    line++;
+    char *tokEnd = NULL;
+    char *endOfLine = line + strlen(line) - 1;
+    static char data[MAX_LINE_LENGTH_ASM - 4];
+    uint8_t error = ERROR_SUCCESS;
+
+    while (*line != '\0' && line < endOfLine) {
+        tokEnd = util_GetStringEnd(line, endOfLine);
+
+        dbg_printf("\n%s\n%p\n", line, tokEnd);
+
+        if (hlight_Register(line, tokEnd) || hlight_Condition(line, tokEnd)) {
+            line = tokEnd;
+            dbg_printf("REGISTER OR CONDITION CODE\n");
+        } else if (*line == ',' || *line == '(' || *line == ')' || *line == '+') {
+            line++;
+        } else {
+            strncpy(data, line, tokEnd - line);
+            data[tokEnd - line + 1] = '\0';
+            unsigned long arg = parser_Eval(data , &error);
+
+            if (opcode->size == 4) {
+                *(unsigned int *)(output + 1) = (unsigned int)arg;
+                return error;
+            } else if (opcode->size == 3) {
+                *(uint8_t *)(output + 1) = (uint8_t)arg;
+                output++;
+            } else if (opcode->size == 2) {
+                *(uint8_t *)(output + 1) = (uint8_t)arg;
+                return error;
+            }
+
+            line = tokEnd;
+        }
+    }
+
+    return error;
+}
+
 uint8_t assembler_Main(struct context_t *studioContext) {
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
     asm_misc_ClearBuffer(OUTPUT);
@@ -404,6 +452,11 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             }
 
             memcpy(output, &opcode->data, opcode->size);
+            uint8_t error = assembler_PutArgs(output, line, opcode);
+
+            if (error) {
+                return error;
+            }
 
             output += opcode->size;
             dbg_printf("Size %u", opcode->size);
