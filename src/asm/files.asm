@@ -22,6 +22,7 @@ include 'include/equates.inc'
     public _asm_files_PreviousLine
     public _asm_files_InsertChar
     public _asm_files_DeleteChar
+    public _asm_files_CreateProg
 
     extern _asm_misc_ClearBuffer
 
@@ -358,6 +359,40 @@ _asm_files_DeleteChar:
 .return:
     dec hl
     ld (hl), 0
+    ret
+
+_asm_files_CreateProg:
+    pop de
+    pop bc
+    ex (sp), hl
+    push bc
+    push de
+    call ti.SetBCUTo0
+    push bc
+    dec hl
+    call ti.Mov9ToOP1
+    ld a, ti.ProtProgObj
+    ld (ti.OP1), a
+    pop bc
+    push bc
+    ld hl, 128
+    add hl, bc
+    call ti.EnoughMem
+    ld a, 2
+    pop bc
+    ret c
+    push bc
+    call ti.ChkFindSym
+    call nc, ti.DelVarArc
+    pop hl
+    push hl
+    call ti.CreateProtProg
+    pop bc
+    ld hl, ti.vRam
+    inc de
+    inc de
+    ldir
+    xor a, a
     ret
 
 _checkEOF: ; bc = current address being read; destroys hl and a

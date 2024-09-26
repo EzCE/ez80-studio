@@ -98,6 +98,15 @@ void asm_files_InsertChar(char character, char *openEOF, unsigned int copySize);
  */
 void asm_files_DeleteChar(char *delete, unsigned int copySize);
 
+/**
+ * @brief Creates a protected program containing the data at ti.vRam.
+ * 
+ * @param size Size of the program / data, including assembly header.
+ * @param name Name of the program to create.
+ * @return uint8_t Error code.
+ */
+uint8_t asm_files_CreateProg(uint16_t size, char *name);
+
 #ifdef __cplusplus
 }
 #endif

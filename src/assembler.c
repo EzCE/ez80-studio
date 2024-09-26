@@ -13,6 +13,7 @@
 #include "highlight.h"
 #include "parser.h"
 #include "utility.h"
+#include "asm/files.h"
 #include "asm/misc.h"
 #include "asm/spi.h"
 
@@ -272,7 +273,6 @@ uint8_t assembler_WriteData(char *output, char *line) {
     }
 
     dbg_printf("%p\n", output);
-    asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
 
     return error;
 }
@@ -295,16 +295,13 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     while (*line != '\0' && line < endOfLine) {
         tokEnd = util_GetStringEnd(line, endOfLine);
 
-        dbg_printf("\n%s\n%p\n", line, tokEnd);
-
         if (hlight_Register(line, tokEnd) || hlight_Condition(line, tokEnd)) {
             line = tokEnd;
-            dbg_printf("REGISTER OR CONDITION CODE\n");
         } else if (*line == ',' || *line == '(' || *line == ')' || *line == '+') {
             line++;
         } else {
             strncpy(data, line, tokEnd - line);
-            data[tokEnd - line + 1] = '\0';
+            data[tokEnd - line] = '\0';
             unsigned long arg = parser_Eval(data , &error);
 
             if (opcode->size == 4) {
@@ -336,6 +333,8 @@ uint8_t assembler_Main(struct context_t *studioContext) {
     void *offset = (void *)os_userMem;
     void *symbolEntry = (void *)SYMBOL_TABLE;
     dbg_printf("Symbol Table Start: %p\n", symbolEntry);
+
+    uint8_t error = ERROR_SUCCESS;
 
     while (string <= studioContext->openEOF) {
         assembler_SanitizeLine(line, string, studioContext->openEOF, false);
@@ -370,7 +369,6 @@ uint8_t assembler_Main(struct context_t *studioContext) {
 
             *(uint8_t *)symbolEntry = sizeof(unsigned long);
             symbolEntry++;
-            uint8_t error;
             *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar, &error);
 
             if (error) {
@@ -423,7 +421,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         if (assembler_GetDataSize(line)) {
             unsigned int tempSize = assembler_GetDataSize(line);
             assembler_SanitizeLine(line, string, studioContext->openEOF, true);
-            uint8_t error = assembler_WriteData(output, line);
+            error = assembler_WriteData(output, line);
 
             if (error) {
                 return error;
@@ -452,7 +450,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             }
 
             memcpy(output, &opcode->data, opcode->size);
-            uint8_t error = assembler_PutArgs(output, line, opcode);
+            error = assembler_PutArgs(output, line, opcode);
 
             if (error) {
                 return error;
@@ -462,7 +460,6 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             dbg_printf("Size %u", opcode->size);
 
             dbg_printf(" | ");
-            asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
             // Check table location to properly adjust for size
         }
 
@@ -473,7 +470,9 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         string++;
     }
 
+    error = asm_files_CreateProg(studioContext->fileSize, studioContext->fileName);
+
     while (kb_AnyKey());
     asm_spi_EndFrame();
-    return ERROR_SUCCESS;
+    return error;
 }
