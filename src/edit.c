@@ -160,6 +160,10 @@ static void edit_Delete(struct context_t *studioContext) {
         studioContext->newlineStart -= ((*(studioContext->pageDataStart - 1) == '\n') || !(studioContext->lineStart));
     }
 
+    if (*(studioContext->rowDataStart - 1) != '\n' && *(studioContext->rowDataStart) == '\n') {
+        studioContext->rowDataStart += 1;
+    }
+
     studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 }
 
