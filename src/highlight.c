@@ -10,6 +10,7 @@
 **/
 
 #include "highlight.h"
+#include "lexer.h"
 #include "defines.h"
 
 #include <stdlib.h>
@@ -279,31 +280,31 @@ bool hlight_Modifier(char *string, char *stringEnd) {
 }
 
 uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlighting) {
-    uint8_t highlightColor = TEXT_DEFAULT; // If we don't end up changing the color later, it stays as the default
-
     if (!highlighting) {
         return TEXT_DEFAULT;
     }
 
     if (*(stringEnd - 1) == ':' && stringEnd - 1 != string) {
-        highlightColor = TEXT_LABEL;
-    } else if (*string >= 'A' && *string <= 'z') {
-        if (hlight_Condition(string, stringEnd)) {
-            highlightColor = TEXT_REGISTER; // Use the same color as registers
-        } else if (hlight_Register(string, stringEnd)) {
-            highlightColor = TEXT_REGISTER;
-        } else if (hlight_Instruction(string, stringEnd)) {
-            highlightColor = TEXT_INSTRUCTION;
-        }
-    } else if ((*string >= '0' && *string <= '9') || *string == '$' || *string == '@' || *string == '%') {
-        if (hlight_Number(string, stringEnd)) {
-            highlightColor = TEXT_NUMBER;
-        }
-    } else if (*string == '(' || *string == ')') {
-        highlightColor = TEXT_PARENTHESIS;
-    } else if (hlight_Modifier(string, stringEnd)) {
-        highlightColor = TEXT_INSTRUCTION;
+        return TEXT_LABEL;
     }
 
-    return highlightColor;
+    if (*string >= 'A' && *string <= 'z') {
+        uint8_t highlightColor = asm_lexer_TokType(string, stringEnd);
+
+        if (highlightColor) {
+            return highlightColor;
+        }
+    }
+
+    if ((*string >= '0' && *string <= '9') || *string == '$' || *string == '@' || *string == '%') {
+        if (hlight_Number(string, stringEnd)) {
+            return TEXT_NUMBER;
+        }
+    } else if (*string == '(' || *string == ')') {
+        return TEXT_PARENTHESIS;
+    } else if (hlight_Modifier(string, stringEnd)) {
+        return TEXT_INSTRUCTION;
+    }
+
+    return TEXT_DEFAULT;
 }

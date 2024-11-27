@@ -277,7 +277,7 @@ void ui_UpdateText(struct context_t *studioContext, struct preferences_t *studio
 
         currentLine += (*(textStart - 1) == '\n');
 
-        if (currentLine > studioContext->newlineCount) {
+        if (textStart > studioContext->openEOF + 1) {
             break;
         }
     }

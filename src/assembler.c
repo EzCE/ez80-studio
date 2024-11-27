@@ -11,6 +11,7 @@
 
 #include "assembler.h"
 #include "highlight.h"
+#include "lexer.h"
 #include "parser.h"
 #include "utility.h"
 #include "asm/files.h"
@@ -22,6 +23,7 @@
 
 static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bool pass2) {
     bool inQuotes = false;
+    uint8_t nestParens = 0;
     bool inInstruction = false;
     char *stringEnd;
 
@@ -53,7 +55,9 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
 
         stringEnd = util_GetStringEnd(string, endOfFile);
 
-        if (hlight_Instruction(string, stringEnd)) {
+        uint8_t lexerType = asm_lexer_TokType(string, stringEnd);
+
+        if (lexerType == TEXT_INSTRUCTION) {
             inInstruction = true;
             strcpy(line, hlight_GetTokenString(string, stringEnd));
             line += stringEnd - string;
@@ -68,7 +72,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
 
             *line = ' '; // Separate arguments
             line++;
-        } else if (hlight_Register(string, stringEnd) || hlight_Condition(string, stringEnd)) {
+        } else if (lexerType == TEXT_REGISTER) {
             strcpy(line, hlight_GetTokenString(string, stringEnd));
             line += stringEnd - string;
             string = stringEnd;
@@ -90,8 +94,21 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             line++;
         } else if (inInstruction) {
             if (*string == ',' || *string == '(' || *string == ')') {
-                *line = *string;
-                line++;
+                if (*string == ')') {
+                    nestParens--;
+                }
+
+                if (!nestParens || pass2) {
+                    *line = *string;
+                    line++;
+                } else if (*(line - 1) != '#') {
+                    *line = '#';
+                    line++;
+                }
+
+                if (*string == '(') {
+                    nestParens++;
+                }
             } else if (pass2) {
                 strncpy(line, string, stringEnd - string);
                 line += stringEnd - string;
@@ -290,32 +307,55 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     char *tokEnd = NULL;
     char *endOfLine = line + strlen(line) - 1;
     static char data[MAX_LINE_LENGTH_ASM - 4];
+    memset(data, 0, MAX_LINE_LENGTH_ASM - 4);
     uint8_t error = ERROR_SUCCESS;
+    uint8_t nestParens = 0;
+    uint8_t dataOffset = 0;
 
-    while (*line != '\0' && line < endOfLine) {
+    while (line <= endOfLine + 1) {
         tokEnd = util_GetStringEnd(line, endOfLine);
 
-        if (hlight_Register(line, tokEnd) || hlight_Condition(line, tokEnd)) {
+        if (asm_lexer_TokType(line, tokEnd) == TEXT_REGISTER) {
             line = tokEnd;
-        } else if (*line == ',' || *line == '(' || *line == ')' || *line == '+') {
-            line++;
-        } else {
-            strncpy(data, line, tokEnd - line);
-            data[tokEnd - line] = '\0';
-            unsigned long arg = parser_Eval(data , &error);
-
-            if (opcode->size == 4) {
-                *(unsigned int *)(output + 1) = (unsigned int)arg;
-                return error;
-            } else if (opcode->size == 3) {
-                *(uint8_t *)(output + 1) = (uint8_t)arg;
-                output++;
-            } else if (opcode->size == 2) {
-                *(uint8_t *)(output + 1) = (uint8_t)arg;
-                return error;
+        } else if (*line == '(') {
+            if (nestParens) {
+                data[dataOffset++] = *line;
             }
 
-            line = tokEnd;
+            nestParens++;
+            line++;
+        } else if (*line == '+' && !dataOffset) {
+            line++;
+        } else if (*line == '\0' || *line == ')' || *line == ',') {
+            if (nestParens && *line == ')') {
+                nestParens--;
+
+                if (nestParens) {
+                    data[dataOffset++] = *line;
+                }
+            }
+
+            if (!nestParens && dataOffset) {
+                dbg_printf("test | %p\n", data);
+                asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
+                unsigned long arg = parser_Eval(data, &error);
+                dbg_printf("arg: %lu", arg);
+
+                if (opcode->size == 4) {
+                    *(unsigned int *)(output + 1) = (unsigned int)arg;
+                    return error;
+                } else if (opcode->size == 3) {
+                    *(uint8_t *)(output + 1) = (uint8_t)arg;
+                    output++;
+                } else if (opcode->size == 2) {
+                    *(uint8_t *)(output + 1) = (uint8_t)arg;
+                    return error;
+                }
+            }
+
+            line++;
+        } else {
+            data[dataOffset++] = *(line++);
         }
     }
 

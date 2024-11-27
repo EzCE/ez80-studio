@@ -28,6 +28,18 @@ symbolTableStart := editBuffer + 65500 + 128
 
 spiValid := 8
 
+; Lexer types
+typeDefault := 3
+typeLabel := 4
+typeInstruction := 5
+typeRegister := 6
+typeCondition := 6
+typeNumber := 7
+typeParenthesis := 8
+typeString := 9
+typeComment := 10
+typeModifier := 11
+
 ; use cursorImage RAM for these variables
 ;-----------------------------------------
 
