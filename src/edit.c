@@ -173,7 +173,6 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
     bool keyPressed = false;
     bool cursorActive = true;
     bool redraw = false;
-    bool updateHighlight = false;
 
     uint8_t inputChar = '\0';
 

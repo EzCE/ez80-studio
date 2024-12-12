@@ -194,13 +194,15 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
             }
 
             if (!highlightComment) {
-                if (ui_CheckIsString(string)) {
-                    fontlib_SetForegroundColor(TEXT_STRING);
-                    highlightString = true;
-                } else if (highlightString) {
-                    stringEnd = util_GetStringEnd(string, studioContext->openEOF);
-                    fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
-                    highlightString = false;
+                if (*string == '\"' || *string == '\'') {
+                    if (ui_CheckIsString(string)) {
+                        fontlib_SetForegroundColor(TEXT_STRING);
+                        highlightString = true;
+                    } else if (highlightString) {
+                        stringEnd = util_GetStringEnd(string, studioContext->openEOF);
+                        fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
+                        highlightString = false;
+                    }
                 }
             }
 
