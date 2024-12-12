@@ -187,7 +187,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
     uint8_t charsDrawn = 0;
 
     while (*string != '\n' && string <= studioContext->openEOF) {
-        if (highlighting) {
+        if (string >= stringEnd && highlighting) {
             if (!highlightString && *string == ';') {
                 fontlib_SetForegroundColor(TEXT_COMMENT);
                 highlightComment = true;
@@ -204,7 +204,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
                 }
             }
 
-            if (string >= stringEnd && !highlightComment && !highlightString) {
+            if (!highlightComment && !highlightString) {
                 stringEnd = util_GetStringEnd(string, studioContext->openEOF);
                 fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
             }
@@ -244,7 +244,7 @@ void ui_DrawCursor(uint8_t row, uint8_t column, bool cursorActive, bool erase) {
 }
 
 void ui_UpdateText(struct context_t *studioContext, struct preferences_t *studioPreferences, uint8_t drawMode) {
-    bool highlighting = studioPreferences->highlighting && !(kb_AnyKey() && !kb_IsDown(kb_KeyAlpha) && !kb_Data[7]);
+    bool highlighting = studioPreferences->highlighting;
     gfx_SetColor(BACKGROUND);
 
     switch (drawMode) {

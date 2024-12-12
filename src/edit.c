@@ -190,15 +190,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
         if (!kb_AnyKey() && keyPressed) {
             keyPressed = false;
-            updateHighlight = studioPreferences->highlighting; // Update the highlighting a bit later if it's enabled
             clockOffset = clock();
-        }
-
-        if (updateHighlight && !keyPressed && clock() - clockOffset > CLOCKS_PER_SEC / 3.5) {
-            updateHighlight = false;
-            asm_spi_BeginFrame();
-            edit_RedrawEditor(studioContext, studioPreferences);
-            asm_spi_EndFrame();
         }
 
         if (kb_AnyKey() && (!keyPressed || clock() - clockOffset > CLOCKS_PER_SEC / 32)) {
