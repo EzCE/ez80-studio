@@ -29,36 +29,6 @@ extern "C" {
 char *hlight_GetTokenString(char *string, char *stringEnd);
 
 /**
- * @brief Check if a token is a condition code.
- * 
- * @param string Start of token string.
- * @param stringEnd End of token string.
- * @return true Token is a condition code.
- * @return false Token is not a condition code.
- */
-bool hlight_Condition(char *string, char *stringEnd);
-
-/**
- * @brief Check if a token is a register.
- * 
- * @param string Start of token string.
- * @param stringEnd End of token string.
- * @return true Token is a register.
- * @return false Token is not a register.
- */
-bool hlight_Register(char *string, char *stringEnd);
-
-/**
- * @brief Check if a token is an instruction.
- * 
- * @param string Start of token string.
- * @param stringEnd End of token string.
- * @return true Token is instruction.
- * @return false Token is not instruction.
- */
-bool hlight_Instruction(char *string, char *stringEnd);
-
-/**
  * @brief Check if a token is a number (including bases).
  * 
  * @param string Start of token string.
