@@ -194,7 +194,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
             }
 
             if (!highlightComment) {
-                if (*string == '\"' || *string == '\'') {
+                if (*string == '\"' || *string == '\'' || *(string - 1) == '\"' || *(string - 1) == '\'') {
                     if (ui_CheckIsString(string)) {
                         fontlib_SetForegroundColor(TEXT_STRING);
                         highlightString = true;
