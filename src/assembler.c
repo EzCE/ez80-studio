@@ -295,6 +295,12 @@ uint8_t assembler_WriteData(char *output, char *line) {
 }
 
 static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opcode) {
+    bool relative = false;
+
+    if (strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
+        relative = true;
+    }
+
     while (*line != ' ' && *line != '\0') {
         line++;
     }
@@ -336,10 +342,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
             }
 
             if (!nestParens && dataOffset) {
-                dbg_printf("test | %p\n", data);
-                asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
                 unsigned long arg = parser_Eval(data, &error);
-                dbg_printf("arg: %lu", arg);
 
                 if (opcode->size == 4) {
                     *(unsigned int *)(output + 1) = (unsigned int)arg;
@@ -348,14 +351,22 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
                     *(uint8_t *)(output + 1) = (uint8_t)arg;
                     output++;
                 } else if (opcode->size == 2) {
-                    *(uint8_t *)(output + 1) = (uint8_t)arg;
+                    if (relative) {
+                        *(int8_t *)(output + 1) = (int8_t)((uint8_t *)arg - (os_userMem + ((uint8_t *)output - OUTPUT)));
+                        dbg_printf("\nRelative: %d\n",  *(int8_t *)(output + 1));
+                    } else {
+                        *(uint8_t *)(output + 1) = (uint8_t)arg;
+                    }
+
                     return error;
                 }
             }
 
             line++;
         } else {
-            data[dataOffset++] = *(line++);
+            strncpy(data + dataOffset, line, tokEnd - line);
+            dataOffset += tokEnd - line;
+            line = tokEnd;
         }
     }
 
