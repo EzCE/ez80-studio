@@ -21,9 +21,9 @@ extern "C" {
 /**
  * @brief Displays an error message based on the specified error code.
  * 
- * @param error Error code representing the error encountered.
+ * @param error Error message info to display.
  */
-void menu_Error(uint8_t error);
+void menu_Error(struct error_t error);
 
 /**
  * @brief Displays an option box for yes or no.

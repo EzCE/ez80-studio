@@ -352,7 +352,13 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
                     output++;
                 } else if (opcode->size == 2) {
                     if (relative) {
-                        *(int8_t *)(output + 1) = (int8_t)((uint8_t *)arg - (os_userMem + ((uint8_t *)output - OUTPUT)));
+                        arg = ((uint8_t *)arg - (os_userMem + ((uint8_t *)output - OUTPUT)));
+
+                        if ((int)arg < -128 || (int)arg > 127) {
+                            error = ERROR_INVAL_EXPR;
+                        }
+
+                        *(int8_t *)(output + 1) = (int8_t)arg;
                         dbg_printf("\nRelative: %d\n",  *(int8_t *)(output + 1));
                     } else {
                         *(uint8_t *)(output + 1) = (uint8_t)arg;
@@ -373,7 +379,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     return error;
 }
 
-uint8_t assembler_Main(struct context_t *studioContext) {
+struct error_t assembler_Main(struct context_t *studioContext) {
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
     asm_misc_ClearBuffer(OUTPUT);
     memset((void *)SYMBOL_TABLE, '\0', sizeof(char) * MAX_SYMBOL_TABLE);
@@ -385,9 +391,10 @@ uint8_t assembler_Main(struct context_t *studioContext) {
     void *symbolEntry = (void *)SYMBOL_TABLE;
     dbg_printf("Symbol Table Start: %p\n", symbolEntry);
 
-    uint8_t error = ERROR_SUCCESS;
+    struct error_t error = {0, ERROR_SUCCESS};
 
     while (string <= studioContext->openEOF) {
+        error.line += 1;
         assembler_SanitizeLine(line, string, studioContext->openEOF, false);
 
         while (*string != '\n' && string <= studioContext->openEOF) {
@@ -420,9 +427,9 @@ uint8_t assembler_Main(struct context_t *studioContext) {
 
             *(uint8_t *)symbolEntry = sizeof(unsigned long);
             symbolEntry++;
-            *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar, &error);
+            *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar, &(error.code));
 
-            if (error) {
+            if (error.code) {
                 return error;
             }
 
@@ -445,18 +452,23 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             dbg_printf(" | ");
             // Check table location to properly adjust for size
         } else if (*line != '\0') {
-            return ERROR_INVAL_TOK;
+            error.code = ERROR_INVAL_TOK;
+            return error;
         }
 
         if (symbolEntry > (void *)SYMBOL_TABLE + MAX_SYMBOL_TABLE) {
-            return ERROR_MAX_SYMBOLS;
+            error.code = ERROR_MAX_SYMBOLS;
+            return error;
         }
 
         dbg_printf("%s\n", line);
     }
 
+    error.line = 0;
+
     if (offset - (void *)os_userMem + 2 > MAX_FILE_SIZE) {
-        return ERROR_TOO_LARGE;
+        error.code = ERROR_TOO_LARGE;
+        return error;
     }
 
     char *output = (char *)(OUTPUT + 2);
@@ -465,6 +477,7 @@ uint8_t assembler_Main(struct context_t *studioContext) {
     strcpy((char *)OUTPUT, OUTPUT_HEADER);
 
     while (string <= studioContext->openEOF) {
+        error.line += 1;
         assembler_SanitizeLine(line, string, studioContext->openEOF, false);
 
         dbg_printf("%s |", line);
@@ -472,9 +485,9 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         if (assembler_GetDataSize(line)) {
             unsigned int tempSize = assembler_GetDataSize(line);
             assembler_SanitizeLine(line, string, studioContext->openEOF, true);
-            error = assembler_WriteData(output, line);
+            error.code = assembler_WriteData(output, line);
 
-            if (error) {
+            if (error.code) {
                 return error;
             }
 
@@ -501,9 +514,9 @@ uint8_t assembler_Main(struct context_t *studioContext) {
             }
 
             memcpy(output, &opcode->data, opcode->size);
-            error = assembler_PutArgs(output, line, opcode);
+            error.code = assembler_PutArgs(output, line, opcode);
 
-            if (error) {
+            if (error.code) {
                 return error;
             }
 
@@ -521,7 +534,8 @@ uint8_t assembler_Main(struct context_t *studioContext) {
         string++;
     }
 
-    error = asm_files_CreateProg(studioContext->fileSize, studioContext->fileName);
+    error.line = 0;
+    error.code = asm_files_CreateProg(studioContext->fileSize, studioContext->fileName);
 
     while (kb_AnyKey());
     asm_spi_EndFrame();

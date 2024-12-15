@@ -211,6 +211,11 @@ struct opcode_t {
     void *data;
 };
 
+struct error_t {
+    uint16_t line;
+    uint8_t code;
+};
+
 #ifdef __cplusplus
 }
 #endif

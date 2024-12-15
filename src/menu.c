@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <string.h>
 
-void menu_Error(uint8_t error) {
+void menu_Error(struct error_t error) {
     asm_spi_BeginFrame();
     gfx_SetColor(OUTLINE);
     gfx_FillRectangle_NoClip(81, 94, 148, 34);
@@ -34,15 +34,26 @@ void menu_Error(uint8_t error) {
     gfx_FillRectangle_NoClip(83, 110, 144, 16);
     fontlib_SetForegroundColor(TEXT_DEFAULT);
 
-    if (error) {
-        fontlib_SetCursorPosition(137, 96);
+    if (error.code) {
+        if (error.line) {
+            fontlib_SetCursorPosition(96, 96);
+        } else {
+            fontlib_SetCursorPosition(137, 96);
+        }
+
         fontlib_DrawString("Error");
+
+        if (error.line) {
+            fontlib_DrawString(" (Line ");
+            fontlib_DrawUInt(error.line, 4);
+            fontlib_DrawGlyph(')');
+        }
     } else {
         fontlib_SetCursorPosition(130, 96);
         fontlib_DrawString("Success");
     }
 
-    switch (error) {
+    switch (error.code) {
         case ERROR_SUCCESS:
             fontlib_SetCursorPosition(90, 112);
             fontlib_DrawString("Operation complete.");
@@ -229,7 +240,8 @@ static void menu_FileNew(struct context_t *studioContext) {
         ti_Close(file);
 
         if (!util_OpenFile(studioContext, newFile)) {
-            menu_Error(ERROR_NO_MEM);
+            struct error_t error = {0, ERROR_NO_MEM};
+            menu_Error(error);
         }
 
         //dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
@@ -361,8 +373,8 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
         }
 
         ui_DrawMenuBox(0, 168, 73, 55, 1, 3, "New file", "Open file", "Save file");
-
-        menu_Error(ERROR_NO_MEM);
+        struct error_t error = {0, ERROR_NO_MEM};
+        menu_Error(error);
     }
 
     //dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
@@ -441,10 +453,13 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 studioContext->fileIsSaved = true;
 
                 if (!asm_files_WriteFile(studioContext->fileName, studioContext->fileSize)) {
-                    menu_Error(ERROR_NO_MEM);
+                    struct error_t error = {0, ERROR_NO_MEM};
+                    menu_Error(error);
                 }
 
                 while (kb_AnyKey());
+
+                // dbg_printf("fileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewLineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\ninputMode: %d\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength, studioContext->inputMode);
 
                 break;
             default:

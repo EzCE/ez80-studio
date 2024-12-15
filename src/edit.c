@@ -233,9 +233,9 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyWindow)) {
-                uint8_t errorCode = assembler_Main(studioContext);
+                struct error_t error = assembler_Main(studioContext);
                 edit_RedrawEditor(studioContext, studioPreferences);
-                menu_Error(errorCode);
+                menu_Error(error);
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyZoom)) {

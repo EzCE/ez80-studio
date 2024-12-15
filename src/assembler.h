@@ -22,9 +22,9 @@ extern "C" {
  * @brief Assemble the currently open file.
  * 
  * @param studioContext eZ80 Studio context struct.
- * @return uint8_t Error code returned by assembler.
+ * @return struct error_t Error returned by assembler.
  */
-uint8_t assembler_Main(struct context_t *studioContext);
+struct error_t assembler_Main(struct context_t *studioContext);
 
 #ifdef __cplusplus
 }
