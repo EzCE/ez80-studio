@@ -40,11 +40,12 @@ bool asm_files_WriteFile(char *fileName, unsigned int fileSize);
 /**
  * @brief Check if a file with the specified name exists.
  * 
- * @param fileName Name to check.
+ * @param name Name to check.
+ * @param type File type.
  * @return true The file exists.
  * @return false The file doesn't exist.
  */
-bool asm_files_CheckFileExists(char *fileName);
+bool asm_files_CheckFileExists(char *name, uint8_t type);
 
 /**
  * @brief Counts the number of newlines and word-wrapped lines in the currently opened file.

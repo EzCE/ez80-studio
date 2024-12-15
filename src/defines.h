@@ -138,6 +138,12 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define ERROR_TOO_LARGE     6       /* Assembly output produced was too large. */
 
 /**
+ * Warning codes used in the editor and assembler.
+*/
+#define WARNING_UNSAVED     0       /* The file contains unsaved changes. */
+#define WARNING_EXISTS      1       /* A file with the same name already exists. */
+
+/**
  * Pointer to the start of editable data in the edit buffer. Note: Does not include file header. To include the file header, use EDIT_BUFFER - 2
 */
 #define EDIT_BUFFER         (uint8_t *)0xD52C02

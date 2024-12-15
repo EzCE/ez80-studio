@@ -37,6 +37,15 @@ void menu_Error(struct error_t error);
 bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth);
 
 /**
+ * @brief Displays a warning message based on the specified warning code.
+ * 
+ * @param warning Warning message code.
+ * @return true Warning was acknowledged.
+ * @return false Warning was ignored.
+ */
+bool menu_Warning(uint8_t warning);
+
+/**
  * @brief Opens the file options menu.
  * 
  * @param studioContext eZ80 Studio context struct.

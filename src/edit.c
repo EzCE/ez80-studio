@@ -21,6 +21,7 @@
 
 #include <graphx.h>
 #include <keypadc.h>
+#include <fileioc.h>
 #include <fontlibc.h>
 #include <time.h>
 
@@ -200,25 +201,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
 
             if (kb_IsDown(kb_KeyClear)) {
                 if (!studioContext->fileIsSaved) {
-                    asm_spi_BeginFrame();
-                    gfx_SetColor(OUTLINE);
-                    gfx_FillRectangle_NoClip(80, 68, 150, 87);
-                    gfx_SetColor(BACKGROUND);
-                    gfx_FillRectangle_NoClip(82, 84, 146, 69);
-                    fontlib_SetForegroundColor(TEXT_DEFAULT);
-                    fontlib_SetCursorPosition(130, 70);
-                    fontlib_DrawString("Warning");
-                    fontlib_SetCursorPosition(85, 85);
-                    fontlib_DrawString("The currently opened");
-                    fontlib_SetCursorPosition(85, 96);
-                    fontlib_DrawString("file has unsaved");
-                    fontlib_SetCursorPosition(85, 108);
-                    fontlib_DrawString("changes. Do you wish");
-                    fontlib_SetCursorPosition(85, 121);
-                    fontlib_DrawString("to discard them?");
-                    asm_spi_EndFrame();
-
-                    if (menu_YesNo(83, 136, 71)) {
+                    if (menu_Warning(WARNING_UNSAVED)) {
                         studioContext->fileIsOpen = false;
                     } else {
                         redraw = true;
@@ -233,9 +216,12 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyWindow)) {
-                struct error_t error = assembler_Main(studioContext);
-                edit_RedrawEditor(studioContext, studioPreferences);
-                menu_Error(error);
+                if (!asm_files_CheckFileExists(studioContext->fileName, OS_TYPE_PRGM) || menu_Warning(WARNING_EXISTS)) {
+                    struct error_t error = assembler_Main(studioContext);
+                    edit_RedrawEditor(studioContext, studioPreferences);
+                    menu_Error(error);
+                }
+
                 edit_RedrawEditor(studioContext, studioPreferences);
                 while (kb_AnyKey());
             } else if (kb_IsDown(kb_KeyZoom)) {

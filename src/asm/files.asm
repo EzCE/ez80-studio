@@ -128,8 +128,9 @@ _asm_files_CheckFileExists:
     ld iy, 0
     add iy, sp
     ld de, (iy + 3) ; name of file
+    ld a, (iy + 6) ; type of file
     ld hl, ti.OP1
-    ld (hl), ti.AppVarObj
+    ld (hl), a
     inc hl
     ld bc, 8
     ex de, hl

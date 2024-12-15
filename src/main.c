@@ -5,7 +5,7 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
- * Last Build: December 14, 2024
+ * Last Build: December 15, 2024
  * Version: 0.8.9
  * 
  * --------------------------------------
@@ -31,6 +31,7 @@ int main(void) {
     static struct context_t studioContext;
 
     studioContext.fileIsOpen = false;
+    studioContext.fileIsSaved = true;
 
     studioContext.lineStart = 0; // The scrollbar will be weird if we don't do this
     studioContext.newlineStart = 0;

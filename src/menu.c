@@ -133,6 +133,44 @@ bool menu_YesNo(unsigned int x, uint8_t y, uint8_t buttonWidth) {
     return returnVal;
 }
 
+bool menu_Warning(uint8_t warning) {
+    asm_spi_BeginFrame();
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(80, 68, 150, 87);
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(82, 84, 146, 69);
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_SetCursorPosition(130, 70);
+    fontlib_DrawString("Warning");
+
+    switch (warning) {
+        case WARNING_UNSAVED:
+            fontlib_SetCursorPosition(85, 85);
+            fontlib_DrawString("The currently opened");
+            fontlib_SetCursorPosition(85, 96);
+            fontlib_DrawString("file has unsaved");
+            fontlib_SetCursorPosition(85, 108);
+            fontlib_DrawString("changes. Do you wish");
+            fontlib_SetCursorPosition(85, 121);
+            fontlib_DrawString("to discard them?");
+            break;
+        case WARNING_EXISTS:
+            fontlib_SetCursorPosition(85, 85);
+            fontlib_DrawString("A program with this");
+            fontlib_SetCursorPosition(85, 96);
+            fontlib_DrawString("name already exists.");
+            fontlib_SetCursorPosition(85, 108);
+            fontlib_DrawString("Do you wish to");
+            fontlib_SetCursorPosition(85, 121);
+            fontlib_DrawString("overwrite it?");
+            break;
+    }
+
+    asm_spi_EndFrame();
+
+    return menu_YesNo(83, 136, 71);
+}
+
 static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsigned int width, uint8_t height, char *option1, char *option2) {
     ui_DrawMenuBox(x, y, width, height, 0, 2, option1, option2);
 
@@ -212,7 +250,7 @@ static void menu_FileNew(struct context_t *studioContext) {
     char *newFile = util_StringInputBox(126, 112, 9, INPUT_UPPERCASE, kb_KeyClear);
 
     if (newFile != NULL) {
-        if (asm_files_CheckFileExists(newFile)) {
+        if (asm_files_CheckFileExists(newFile, OS_TYPE_APPVAR)) {
             asm_spi_BeginFrame();
             gfx_SetColor(OUTLINE);
             gfx_FillRectangle_NoClip(82, 82, 146, 60);
@@ -437,12 +475,20 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
     } else if (kb_IsDown(kb_Key2nd) || kb_IsDown(kb_KeyEnter)) {
         switch (option) {
             case 0: // New file
-                menu_FileNew(studioContext);
+                if (studioContext->fileIsSaved || menu_Warning(WARNING_UNSAVED)) {
+                    edit_RedrawEditor(studioContext, studioPreferences);
+                    menu_FileNew(studioContext);
+                }
+
                 break;
             case 1: { // Open file
-                unsigned int fileCount = 0;
-                util_GetFiles(&fileCount);
-                menu_FileOpen(studioContext, studioPreferences, (char *)os_PixelShadow, fileCount);
+                if (studioContext->fileIsSaved || menu_Warning(WARNING_UNSAVED)) {
+                    edit_RedrawEditor(studioContext, studioPreferences);
+                    unsigned int fileCount = 0;
+                    util_GetFiles(&fileCount);
+                    menu_FileOpen(studioContext, studioPreferences, (char *)os_PixelShadow, fileCount);
+                }
+
                 break;
             }
             case 2: // Save file
