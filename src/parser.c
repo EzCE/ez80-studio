@@ -241,7 +241,6 @@ long parser_F(void) {
 
     if (hlight_Number(parseNum, util_GetStringEnd(parseNum, inputEnd))) {
         dbg_printf("%p | %s\n", parseNum, parseNum);
-        asm("push hl\n\tld hl, -1\n\tld (hl), 2\n\tpop hl");
         uint8_t base = NUMBER_DEC;
 
         if (*parseNum == '$') {

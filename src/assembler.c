@@ -384,16 +384,20 @@ struct error_t assembler_Main(struct context_t *studioContext) {
     asm_misc_ClearBuffer(OUTPUT);
     memset((void *)SYMBOL_TABLE, '\0', sizeof(char) * MAX_SYMBOL_TABLE);
 
+    *(char *)(SYMBOL_TABLE) = '$';
+    *(uint8_t *)(SYMBOL_TABLE + 2) = 3; 
+
     char *string = (char *)EDIT_BUFFER;
     static char line[MAX_LINE_LENGTH_ASM];
 
     void *offset = (void *)os_userMem;
-    void *symbolEntry = (void *)SYMBOL_TABLE;
+    void *symbolEntry = (void *)SYMBOL_TABLE + sizeof(char) * 3 + sizeof(void *);
     dbg_printf("Symbol Table Start: %p\n", symbolEntry);
 
     struct error_t error = {0, ERROR_SUCCESS};
 
     while (string <= studioContext->openEOF) {
+        *(void **)(SYMBOL_TABLE + 3) = offset; // Update $ equate
         error.line += 1;
         assembler_SanitizeLine(line, string, studioContext->openEOF, false);
 
@@ -477,6 +481,7 @@ struct error_t assembler_Main(struct context_t *studioContext) {
     strcpy((char *)OUTPUT, OUTPUT_HEADER);
 
     while (string <= studioContext->openEOF) {
+        *(void **)(SYMBOL_TABLE + 3) = os_userMem + ((uint8_t *)output - OUTPUT) - 2;
         error.line += 1;
         assembler_SanitizeLine(line, string, studioContext->openEOF, false);
 

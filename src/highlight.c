@@ -51,6 +51,10 @@ bool hlight_Number(char *string, char *stringEnd) {
 
     string++;
 
+    if (string == stringEnd && numberType != NUMBER_DEC) {
+        return false;
+    }
+
     while (string != stringEnd) {
         if (numberType == NUMBER_HEX &&
             !((*string >= '0' && *string <= '9') ||
