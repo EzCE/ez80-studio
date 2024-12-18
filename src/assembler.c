@@ -379,6 +379,41 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     return error;
 }
 
+unsigned long assembler_ReserveBytes(char *line, char *string, char *endOfFile, uint8_t *error) {
+    if (*line != 'r') {
+        return 0;
+    }
+
+    uint8_t perData = 0;
+
+    switch (*(line + 1)) {
+        case 'b':
+            perData = 1;
+            break;
+        case 'w':
+            perData = 2;
+            break;
+        case 'l':
+            perData = 3;
+            break;
+        case 'd':
+            perData = 4;
+            break;
+        default:
+            return 0;
+    }
+
+    if (strncmp(" #", line + 2, 3)) {
+        return 0;
+    }
+
+    memset(line, 0, MAX_LINE_LENGTH_ASM);
+
+    assembler_SanitizeLine(line, string, endOfFile, true);
+
+    return perData * parser_Eval(line + 3, error);
+}
+
 struct error_t assembler_Main(struct context_t *studioContext) {
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
     asm_misc_ClearBuffer(OUTPUT);
@@ -395,17 +430,13 @@ struct error_t assembler_Main(struct context_t *studioContext) {
     dbg_printf("Symbol Table Start: %p\n", symbolEntry);
 
     struct error_t error = {0, ERROR_SUCCESS};
+    unsigned int result; // Use this for values we have to save occasionally
+    struct opcode_t *opcode;
 
     while (string <= studioContext->openEOF) {
         *(void **)(SYMBOL_TABLE + 3) = offset; // Update $ equate
         error.line += 1;
         assembler_SanitizeLine(line, string, studioContext->openEOF, false);
-
-        while (*string != '\n' && string <= studioContext->openEOF) {
-            string++;
-        }
-
-        string++;
 
         dbg_printf("%s |", line);
 
@@ -433,15 +464,12 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             symbolEntry++;
             *(unsigned long *)symbolEntry = parser_Eval(++lineCurChar, &(error.code));
 
-            if (error.code) {
-                return error;
-            }
-
             symbolEntry += sizeof(long);
-        } else if (assembler_GetDataSize(line)) {
-            offset += assembler_GetDataSize(line);
-        } else if (asm_misc_FindOpcode(line)) {
-            struct opcode_t *opcode = asm_misc_FindOpcode(line);
+        } else if ((result = assembler_GetDataSize(line))) {
+            offset += result;
+        } else if ((result = assembler_ReserveBytes(line, string, studioContext->openEOF, &(error.code)))) {
+            offset += result;
+        } else if ((opcode = asm_misc_FindOpcode(line))) {
             offset += opcode->size;
             dbg_printf("Size %u", opcode->size);
 
@@ -460,10 +488,20 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             return error;
         }
 
+        if (error.code) {
+            return error;
+        }
+
         if (symbolEntry > (void *)SYMBOL_TABLE + MAX_SYMBOL_TABLE) {
             error.code = ERROR_MAX_SYMBOLS;
             return error;
         }
+
+        while (*string != '\n' && string <= studioContext->openEOF) {
+            string++;
+        }
+
+        string++;
 
         dbg_printf("%s\n", line);
     }
@@ -487,19 +525,15 @@ struct error_t assembler_Main(struct context_t *studioContext) {
 
         dbg_printf("%s |", line);
 
-        if (assembler_GetDataSize(line)) {
-            unsigned int tempSize = assembler_GetDataSize(line);
+        if ((result = assembler_GetDataSize(line))) {
             assembler_SanitizeLine(line, string, studioContext->openEOF, true);
             error.code = assembler_WriteData(output, line);
 
-            if (error.code) {
-                return error;
-            }
-
-            output += tempSize;
-        } else if (asm_misc_FindOpcode(line)) {
+            output += result;
+        } else if ((result = assembler_ReserveBytes(line, string, studioContext->openEOF, &(error.code)))) {
+            output += result;
+        } else if ((opcode = asm_misc_FindOpcode(line))) {
             dbg_printf("\nOutput: %p\n", output);
-            struct opcode_t *opcode = asm_misc_FindOpcode(line);
             assembler_SanitizeLine(line, string, studioContext->openEOF, true);
 
             if (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD) {
@@ -521,15 +555,15 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             memcpy(output, &opcode->data, opcode->size);
             error.code = assembler_PutArgs(output, line, opcode);
 
-            if (error.code) {
-                return error;
-            }
-
             output += opcode->size;
             dbg_printf("Size %u", opcode->size);
 
             dbg_printf(" | ");
             // Check table location to properly adjust for size
+        }
+
+        if (error.code) {
+            return error;
         }
 
         while (*string != '\n' && string <= studioContext->openEOF) {

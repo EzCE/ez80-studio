@@ -468,7 +468,10 @@ _lexer2P:
     db "po", typeCondition
 
 _lexer2R:
+    db "rb", typeInstruction
+    db "rw", typeInstruction
     db "rl", typeInstruction
+    db "rd", typeInstruction
     db "rr", typeInstruction
 
 _lexer2S:

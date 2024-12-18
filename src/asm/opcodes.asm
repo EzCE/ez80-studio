@@ -914,7 +914,7 @@ _asm_opcodes_Table:
     db "jp c,#", 0
 
     db 2
-    db $    db, $00
+    db $DB, $00
     db "in a,(#)", 0
 
     db 4
