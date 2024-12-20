@@ -39,16 +39,6 @@ char *hlight_GetTokenString(char *string, char *stringEnd);
 bool hlight_Number(char *string, char *stringEnd);
 
 /**
- * @brief Check if a token is a suffix modifier.
- * 
- * @param string Start of token string.
- * @param stringEnd End of token string.
- * @return true Token is suffix modifier.
- * @return false Token is not suffix modifier.
- */
-bool hlight_Modifier(char *string, char *stringEnd);
-
-/**
  * @brief Finds the color to highlight a specific token.
  * 
  * @param string Pointer to start of token.

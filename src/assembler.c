@@ -64,17 +64,18 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             string = stringEnd;
             stringEnd = util_GetStringEnd(string, endOfFile);
 
-            if (hlight_Modifier(string, stringEnd)) {
-                strcpy(line, hlight_GetTokenString(string, stringEnd));
-                line += stringEnd - string;
-                string = stringEnd;
-            }
-
             *line = ' '; // Separate arguments
             line++;
         } else if (lexerType == TEXT_REGISTER) {
             strcpy(line, hlight_GetTokenString(string, stringEnd));
             line += stringEnd - string;
+            string = stringEnd;
+        } else if (inInstruction && lexerType == TEXT_MODIFIER) {
+            if (pass2) {
+                strcpy(line, hlight_GetTokenString(string, stringEnd));
+                line += 4;
+            }
+
             string = stringEnd;
         } else if ((!strncmp(string, ":=", 2) || !strncasecmp(string, "equ", 3) || !strncasecmp(string, ".equ", 4)) && *(string - 1) == ' ') {
             *line = ' '; // Separate equates
@@ -414,6 +415,36 @@ unsigned long assembler_ReserveBytes(char *line, char *string, char *endOfFile, 
     return perData * parser_Eval(line + 3, error);
 }
 
+uint8_t assembler_GetSuffix(char *line, char *string, char *endOfFile, uint8_t *error) {
+    assembler_SanitizeLine(line, string, endOfFile, true);
+
+    uint8_t i = 0;
+
+    for (; line[i] != '.'; i++) {
+        if (line[i] != ' ' || line[i] != '\0') {
+            return NO_SUFFIX;
+        }
+    }
+
+    i++;
+
+    if (line[i] == 's') {
+        if (line[i + 2] == 's') {
+            return SUFFIX_SIS;
+        } else if (line[i + 2] == 'l') {
+            return SUFFIX_SIL;
+        }
+    } else if (line[i] == 'l') {
+        if (line[i + 2] == 's') {
+            return SUFFIX_LIS;
+        } else if (line[i + 2] == 'l') {
+            return SUFFIX_LIL;
+        }
+    }
+
+    return NO_SUFFIX;
+}
+
 struct error_t assembler_Main(struct context_t *studioContext) {
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
     asm_misc_ClearBuffer(OUTPUT);
@@ -479,6 +510,14 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             } else if (opcode >= &asm_opcodes_AfterDDCB) {
                 offset += 3;
                 dbg_printf(" (+ 3)");
+            }
+
+            if ((result = assembler_GetSuffix(line, string, studioContext->openEOF, &(error.code)))) {
+                if (result == SUFFIX_LIS || SUFFIX_SIL) {
+                    offset++;
+                } else if (result == SUFFIX_SIS && opcode->size == 4) {
+                    offset--;
+                }
             }
 
             dbg_printf(" | ");

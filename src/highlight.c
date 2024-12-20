@@ -76,29 +76,6 @@ bool hlight_Number(char *string, char *stringEnd) {
     return true; // Number is valid
 }
 
-bool hlight_Modifier(char *string, char *stringEnd) {
-    if (stringEnd - string > 4) {
-        return false;
-    }
-
-    char *stringConvert = hlight_GetTokenString(string, stringEnd);
-
-    if (stringEnd - string == 2) {
-        if (*(stringConvert + 1) == 's' || *(stringConvert + 1) == 'l') {
-            return true;
-        }
-    } else if (stringEnd - string == 4) {
-        if (strcmp("sis", stringConvert + 1) == 0 ||
-            strcmp("sil", stringConvert + 1) == 0 ||
-            strcmp("lis", stringConvert + 1) == 0 ||
-            strcmp("lil", stringConvert + 1) == 0) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlighting) {
     if (!highlighting) {
         return TEXT_DEFAULT;
@@ -108,11 +85,11 @@ uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlightin
         return TEXT_LABEL;
     }
 
-    if (*string >= 'A' && *string <= 'z') {
+    if ((*string >= 'A' && *string <= 'z') || *string == '.') {
         uint8_t highlightColor = asm_lexer_TokType(string, stringEnd);
 
         if (highlightColor) {
-            return highlightColor;
+            return (highlightColor == TEXT_MODIFIER) ? TEXT_INSTRUCTION : highlightColor;
         }
     }
 
@@ -122,8 +99,6 @@ uint8_t hlight_GetHighlightColor(char *string, char *stringEnd, bool highlightin
         }
     } else if (*string == '(' || *string == ')') {
         return TEXT_PARENTHESIS;
-    } else if (hlight_Modifier(string, stringEnd)) {
-        return TEXT_INSTRUCTION;
     }
 
     return TEXT_DEFAULT;

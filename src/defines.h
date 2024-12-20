@@ -94,6 +94,7 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define TEXT_PARENTHESIS    8       /* Text color for parenthesis. */
 #define TEXT_STRING         9       /* Text color for strings. */
 #define TEXT_COMMENT        10      /* Text color for comments. */
+#define TEXT_MODIFIER       11      /* Text color for suffixes. */
 
 /**
  * Number types, used by the highlighting code.
@@ -102,6 +103,15 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define NUMBER_DEC      10          /* Decimal number. */
 #define NUMBER_OCT      8           /* Octal number. */
 #define NUMBER_BIN      2           /* Binary number. */
+
+/**
+ * Suffix types.
+*/
+#define NO_SUFFIX       0           /* No suffix for the instruction. */
+#define SUFFIX_SIS      1           /* Instruction has the SIS suffix. */
+#define SUFFIX_SIL      2           /* Instruction has the SIL suffix. */
+#define SUFFIX_LIS      3           /* Instruction has the LIS suffix. */
+#define SUFFIX_LIL      4           /* Instruction has the LIL suffix. */
 
 /**
  * GUI color themes.

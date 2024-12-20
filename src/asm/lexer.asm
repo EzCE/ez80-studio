@@ -66,6 +66,13 @@ _lexer5:
     jr _findMatch
 
 _lexer4:
+    cp a, '.' + 'a' - 'A'
+    jr nz, .notSuffix
+    push hl
+    ld hl, _lexer4Suffix
+    jr .gotOffset
+
+.notSuffix:
     sub a, 'c'
     jp c, _noMatch
     cp a, 'r' + 1 - 'c'
@@ -80,6 +87,8 @@ _lexer4:
     dec e
     ld hl, _lexer4LUT
     add hl, de
+
+.gotOffset:
     ld a, 4
     ld (_smcLength), a
     inc a
@@ -245,6 +254,12 @@ _lexer4AlphaLUT:
     db _lexer4R - _lexer4LUT ; 'r'
 
 _lexer4LUT:
+_lexer4Suffix:
+    db "Nsis", typeModifier ; N instead of . because it broke since we correct cases
+    db "Nsil", typeModifier
+    db "Nlis", typeModifier
+    db "Nlil", typeModifier
+
 _lexer4C:
     db "call", typeInstruction
     db "cpir", typeInstruction
@@ -346,8 +361,6 @@ _lexer3L:
     db "ldi", typeInstruction
     db "ldd", typeInstruction
     db "lea", typeInstruction
-    db "lis", typeModifier
-    db "lil", typeModifier
 
 _lexer3M:
     db "mlt", typeInstruction
@@ -384,8 +397,6 @@ _lexer3S:
     db "srl", typeInstruction
     db "scf", typeInstruction
     db "slp", typeInstruction
-    db "sis", typeModifier
-    db "sil", typeModifier
 
 _lexer3T:
     db "tst", typeInstruction
@@ -415,7 +426,6 @@ _lexer2AlphaLUT:
     db _lexer2S - _lexer2LUT ; 's'
 
 _lexer2LUT:
-
 _lexer2A:
     db "af", typeRegister
 
