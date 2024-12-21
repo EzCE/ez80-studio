@@ -64,8 +64,9 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             string = stringEnd;
             stringEnd = util_GetStringEnd(string, endOfFile);
 
-            *line = ' '; // Separate arguments
-            line++;
+            if (*string != '.' || !pass2) {
+                *(line++) = ' '; // Separate arguments
+            }
         } else if (lexerType == TEXT_REGISTER) {
             strcpy(line, hlight_GetTokenString(string, stringEnd));
             line += stringEnd - string;
@@ -74,12 +75,12 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             if (pass2) {
                 strcpy(line, hlight_GetTokenString(string, stringEnd));
                 line += 4;
+                *(line++) = ' '; // Separate arguments
             }
 
             string = stringEnd;
         } else if ((!strncmp(string, ":=", 2) || !strncasecmp(string, "equ", 3) || !strncasecmp(string, ".equ", 4)) && *(string - 1) == ' ') {
-            *line = ' '; // Separate equates
-            line++;
+            *(line++) = ' '; // Separate equates
 
             if (*string == ':') { // This gets separated when tokenized
                 strcpy(line, ":=");
@@ -91,8 +92,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
                 string = stringEnd;
             }
 
-            *line = ' ';
-            line++;
+            *(line++) = ' ';
         } else if (inInstruction) {
             if (*string == ',' || *string == '(' || *string == ')') {
                 if (*string == ')') {
@@ -100,11 +100,9 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
                 }
 
                 if (!nestParens || pass2) {
-                    *line = *string;
-                    line++;
+                    *(line++) = *string;
                 } else if (*(line - 1) != '#') {
-                    *line = '#';
-                    line++;
+                    *(line++) = '#';
                 }
 
                 if (*string == '(') {
@@ -115,8 +113,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
                 line += stringEnd - string;
                 string = stringEnd;
             } else if (*(line - 1) != '#') {
-                *line = '#';
-                line++;
+                *(line++) = '#';
             }
 
             string = stringEnd;
@@ -295,7 +292,7 @@ uint8_t assembler_WriteData(char *output, char *line) {
     return error;
 }
 
-static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opcode) {
+static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opcode, uint8_t suffix) {
     bool relative = false;
 
     if (strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
@@ -346,7 +343,12 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
                 unsigned long arg = parser_Eval(data, &error);
 
                 if (opcode->size == 4) {
-                    *(unsigned int *)(output + 1) = (unsigned int)arg;
+                    if (suffix == SUFFIX_SIS || suffix == SUFFIX_LIS) {
+                        *(uint16_t *)(output + 1) = (uint16_t)arg;
+                    } else {
+                        *(unsigned int *)(output + 1) = (unsigned int)arg;
+                    }
+
                     return error;
                 } else if (opcode->size == 3) {
                     *(uint8_t *)(output + 1) = (uint8_t)arg;
@@ -380,7 +382,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     return error;
 }
 
-unsigned long assembler_ReserveBytes(char *line, char *string, char *endOfFile, uint8_t *error) {
+static unsigned long assembler_ReserveBytes(char *line, char *string, char *endOfFile, uint8_t *error) {
     if (*line != 'r') {
         return 0;
     }
@@ -415,13 +417,13 @@ unsigned long assembler_ReserveBytes(char *line, char *string, char *endOfFile, 
     return perData * parser_Eval(line + 3, error);
 }
 
-uint8_t assembler_GetSuffix(char *line, char *string, char *endOfFile, uint8_t *error) {
+static uint8_t assembler_GetSuffix(char *line, char *string, char *endOfFile, uint8_t *error) {
     assembler_SanitizeLine(line, string, endOfFile, true);
 
     uint8_t i = 0;
 
     for (; line[i] != '.'; i++) {
-        if (line[i] != ' ' || line[i] != '\0') {
+        if (line[i] == ' ' || line[i] == '\0') {
             return NO_SUFFIX;
         }
     }
@@ -441,6 +443,8 @@ uint8_t assembler_GetSuffix(char *line, char *string, char *endOfFile, uint8_t *
             return SUFFIX_LIL;
         }
     }
+
+    *error = ERROR_INVAL_TOK;
 
     return NO_SUFFIX;
 }
@@ -513,10 +517,10 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             }
 
             if ((result = assembler_GetSuffix(line, string, studioContext->openEOF, &(error.code)))) {
-                if (result == SUFFIX_LIS || SUFFIX_SIL) {
+                if (result == SUFFIX_LIL || result == SUFFIX_SIL) {
                     offset++;
-                } else if (result == SUFFIX_SIS && opcode->size == 4) {
-                    offset--;
+                } else if (opcode->size != 4) {
+                    offset++;
                 }
             }
 
@@ -575,6 +579,23 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             dbg_printf("\nOutput: %p\n", output);
             assembler_SanitizeLine(line, string, studioContext->openEOF, true);
 
+            switch ((result = assembler_GetSuffix(line, string, studioContext->openEOF, &(error.code)))) {
+                case SUFFIX_SIS:
+                    *(output++) = 0x40;
+                    break;
+                case SUFFIX_LIS:
+                    *(output++) = 0x49;
+                    break;
+                case SUFFIX_SIL:
+                    *(output++) = 0x52;
+                    break;
+                case SUFFIX_LIL:
+                    *(output++) = 0x5B;
+                    break;
+                default:
+                    break;
+            }
+
             if (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD) {
                 *(output++) = 0xCB;
             } else if (opcode >= &asm_opcodes_AfterDD && opcode < &asm_opcodes_AfterED) {
@@ -592,9 +613,9 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             }
 
             memcpy(output, &opcode->data, opcode->size);
-            error.code = assembler_PutArgs(output, line, opcode);
+            error.code = assembler_PutArgs(output, line, opcode, result);
 
-            output += opcode->size;
+            output += ((result == SUFFIX_SIS || result == SUFFIX_LIS) && opcode->size == 4) ? opcode->size - 1 : opcode->size;
             dbg_printf("Size %u", opcode->size);
 
             dbg_printf(" | ");
