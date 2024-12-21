@@ -100,7 +100,6 @@ _asm_files_WriteFile:
     ldir ; move name to OP1
     call ti.ChkFindSym
     jr c, .createFile
-    call ti.ChkInRam
     call ti.DelVarArc
 
 .createFile:
@@ -120,6 +119,7 @@ _asm_files_WriteFile:
     ld hl, editBuffer - 2
     ldir
     call ti.OP4ToOP1
+    ld iy, ti.flags
     call ti.Arc_Unarc
     ld a, 1
     ret
