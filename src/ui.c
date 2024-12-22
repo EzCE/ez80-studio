@@ -158,6 +158,7 @@ static bool ui_CheckIsString(char *dataStart) {
 static char *ui_PrintLine(struct context_t *studioContext, char *string, bool highlighting, uint8_t row, unsigned int line) {
     bool highlightComment = false;
     bool highlightString = false;
+    bool highlightInstruction = false;
     char *stringEnd = util_GetStringEnd(string, studioContext->openEOF);
 
     fontlib_SetCursorPosition(0, 2 + row * 16);
@@ -210,6 +211,13 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
                 stringEnd = util_GetStringEnd(string, studioContext->openEOF);
                 fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
             }
+
+            if (fontlib_GetForegroundColor() == TEXT_INSTRUCTION) {
+                highlightInstruction = true;
+            } else if (fontlib_GetForegroundColor() == TEXT_DEFAULT && highlightInstruction && ((unsigned)(*string - '0') < 10 || (unsigned)(*string - 'A') < 26 || (unsigned)(*string - 'a') < 26 || *string == '.' || *string == '_')) {
+                fontlib_SetForegroundColor(TEXT_LABEL);
+            }
+
         }
 
         fontlib_DrawGlyph(*string);

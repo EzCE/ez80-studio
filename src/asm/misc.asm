@@ -1,6 +1,6 @@
 ;--------------------------------------
 ;
-; eZ80 Studio Source Code - files.asm
+; eZ80 Studio Source Code - misc.asm
 ; By RoccoLox Programs and TIny_Hacker
 ; Copyright 2022 - 2024
 ; License: GPL-3.0
