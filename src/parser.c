@@ -14,6 +14,7 @@
 #include "utility.h"
 #include "asm/misc.h"
 
+#include <fileioc.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -285,15 +286,39 @@ long parser_F(void) {
     static char symbol[MAX_LINE_LENGTH_ASM];
     strncpy(symbol, parseNum, util_GetStringEnd(parseNum, inputEnd) - parseNum);
     symbol[util_GetStringEnd(parseNum, inputEnd) - parseNum] = '\0';
-    void *found = asm_misc_FindSymbol(symbol);
 
-    if (found != NULL) {
-        found += strlen(found) + 1;
+    unsigned int includeCount;
+    char *table = (char *)SYMBOL_TABLE;
 
-        memset(symbol, '\0', sizeof(char) * sizeof(long));
-        memcpy(symbol, found + 1, *(uint8_t *)found);
-        dbg_printf("%ld", *(long *)symbol);
-        return *(long *)symbol;
+    util_GetFiles(&includeCount, INCLUDE_HEADER);
+
+    for (; (int)includeCount >= 0; includeCount--) {
+        void *found = asm_misc_FindSymbol(symbol, table);
+
+        if (found != NULL) {
+            found += strlen(found) + 1;
+
+            memset(symbol, '\0', sizeof(char) * sizeof(long));
+            memcpy(symbol, found + 1, *(uint8_t *)found);
+            dbg_printf("%ld", *(long *)symbol);
+            return *(long *)symbol;
+        }
+
+        if (includeCount) {
+            uint8_t slot = ti_Open((const char *)(os_PixelShadow + (includeCount - 1) * 9), "r");
+            table = ti_GetDataPtr(slot);
+            ti_Close(slot);
+
+            if ((unsigned)symbol[0] - 'A' < 26) {
+                table += ((uint16_t *)(table + 8))[symbol[0] - 'A'];
+            } else if ((unsigned)symbol[0] - 'a' < 26) {
+                table += ((uint16_t *)(table + 8))[26 + symbol[0] - 'a'];
+            } else if (symbol[0] == '.') {
+                table += ((uint16_t *)(table + 8))[52];
+            } else {
+                table += ((uint16_t *)(table + 8))[53];
+            }
+        }
     }
 
     *retErr = ERROR_INVAL_EXPR;

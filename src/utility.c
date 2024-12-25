@@ -48,7 +48,7 @@ void util_WritePrefs(struct preferences_t *studioPreferences) {
     ti_SetArchiveStatus(true, appvar);
 }
 
-void util_GetFiles(unsigned int *fileCount) {
+void util_GetFiles(unsigned int *fileCount, char *header) {
     uint8_t fileType = '\0';
     char *fileName;
     void *vatPtr = NULL;
@@ -57,18 +57,11 @@ void util_GetFiles(unsigned int *fileCount) {
 
     asm_misc_SortVAT();
 
-    while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
+    while ((fileName = ti_DetectAny(&vatPtr, header, &fileType))) {
         if (fileType == OS_TYPE_APPVAR) {
-            *fileCount = *fileCount + 1;
-        }
-    }
-
-    vatPtr = NULL;
-
-    while ((fileName = ti_DetectAny(&vatPtr, SOURCE_HEADER, &fileType))) {
-        if (fileType == OS_TYPE_APPVAR) {
-            strcpy(&((char *)os_PixelShadow)[currentOffset], fileName); 
+            strcpy(&((char *)os_PixelShadow)[currentOffset], fileName);
             currentOffset += 9;
+            *fileCount = *fileCount + 1;
         }
     }
 

@@ -183,10 +183,10 @@ _asm_misc_ReverseCopy:
     ret
 
 _asm_misc_FindSymbol:
-    pop de
-    ex (sp), hl
-    push de
-    ld de, symbolTableStart
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 3)
+    ld de, (iy + 6)
     ex de, hl
 
 .search:

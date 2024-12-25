@@ -68,8 +68,9 @@ void asm_misc_ReverseCopy(void *src, void *dest, unsigned int bytes);
  * @brief Retrieve a value for a specified symbol from the symbol table.
  * 
  * @param search Symbol to search for.
+ * @param table Pointer to start of symbol table.
  */
-void *asm_misc_FindSymbol(char *search);
+void *asm_misc_FindSymbol(char *search, char *table);
 
 #ifdef __cplusplus
 }

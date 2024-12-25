@@ -216,8 +216,8 @@ _asm_misc_SortVAT:
     ld a, (hl)
     and a, $1F ; mask out state bytes
     push hl
-    ld hl, fileSystem_sortTypes
-    ld bc, fileSystem_sortTypes.length
+    ld hl, misc_sortTypes
+    ld bc, misc_sortTypes.length
     cpir
     pop hl
     jr nz, .skipToNext ; skip to next entry
@@ -233,6 +233,6 @@ _asm_misc_SortVAT:
     scf
     ret
 
-fileSystem_sortTypes:
+misc_sortTypes:
     db ti.ProgObj, ti.ProtProgObj, ti.AppVarObj
 .length := $-.

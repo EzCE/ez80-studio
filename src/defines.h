@@ -81,6 +81,11 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define OUTPUT_HEADER       "\xEF\x7B"
 
 /**
+ * File header for includes (BASM compatible).
+*/
+#define INCLUDE_HEADER      "eZ80 INC"
+
+/**
  * Palette entries (Also used for token types when highlighting because why not, they're already here).
 */
 #define BACKGROUND          0       /* Background color. */

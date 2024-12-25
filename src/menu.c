@@ -485,7 +485,7 @@ void menu_File(struct context_t *studioContext, struct preferences_t *studioPref
                 if (studioContext->fileIsSaved || menu_Warning(WARNING_UNSAVED)) {
                     edit_RedrawEditor(studioContext, studioPreferences);
                     unsigned int fileCount = 0;
-                    util_GetFiles(&fileCount);
+                    util_GetFiles(&fileCount, SOURCE_HEADER);
                     menu_FileOpen(studioContext, studioPreferences, (char *)os_PixelShadow, fileCount);
                 }
 

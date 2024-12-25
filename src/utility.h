@@ -39,8 +39,9 @@ void util_WritePrefs(struct preferences_t *studioPreferences);
  * @brief Gets a list of openable files into os_PixelShadow.
  * 
  * @param fileCount Pointer to an int holding the number of openable files.
+ * @param header Header string to search for.
  */
-void util_GetFiles(unsigned int *fileCount);
+void util_GetFiles(unsigned int *fileCount, char *header);
 
 /**
  * @brief Returns a pointer to the end of a token.
