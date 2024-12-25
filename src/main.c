@@ -46,6 +46,7 @@ int main(void) {
     fontlib_SetNewlineOptions(1);
     fontlib_SetTransparency(true);
 
+    asm_spi_SetupSPI();
     gfx_Begin();
 
     if (studioPreferences.theme) {
