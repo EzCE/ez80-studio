@@ -189,6 +189,10 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
 
     while (*string != '\n' && string <= studioContext->openEOF) {
         if (string >= stringEnd && highlighting) {
+            if (fontlib_GetForegroundColor() == TEXT_INSTRUCTION) {
+                highlightInstruction = true;
+            }
+
             if (!highlightString && *string == ';') {
                 fontlib_SetForegroundColor(TEXT_COMMENT);
                 highlightComment = true;
@@ -212,9 +216,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
                 fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
             }
 
-            if (fontlib_GetForegroundColor() == TEXT_INSTRUCTION) {
-                highlightInstruction = true;
-            } else if (fontlib_GetForegroundColor() == TEXT_DEFAULT && highlightInstruction && ((unsigned)(*string - '0') < 10 || (unsigned)(*string - 'A') < 26 || (unsigned)(*string - 'a') < 26 || *string == '.' || *string == '_')) {
+            if (fontlib_GetForegroundColor() == TEXT_DEFAULT && highlightInstruction && ((unsigned)(*string - '0') < 10 || (unsigned)(*string - 'A') < 26 || (unsigned)(*string - 'a') < 26 || *string == '.' || *string == '_')) {
                 fontlib_SetForegroundColor(TEXT_LABEL);
             }
 
