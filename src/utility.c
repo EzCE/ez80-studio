@@ -20,10 +20,6 @@
 #include <graphx.h>
 #include <fontlibc.h>
 
-
-#include <debug.h>
-
-
 static void util_SetDefaults(struct preferences_t *studioPreferences) {
     studioPreferences->theme = LIGHT_THEME;
     studioPreferences->highlighting = true;

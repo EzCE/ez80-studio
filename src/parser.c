@@ -9,6 +9,7 @@
  * --------------------------------------
 **/
 
+#include "assembler.h"
 #include "highlight.h"
 #include "parser.h"
 #include "utility.h"
@@ -17,8 +18,6 @@
 #include <fileioc.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <debug.h>
 
 /**
  * Token currently being parsed.
@@ -262,6 +261,9 @@ long parser_F(void) {
         dbg_printf("%ld", strtol(parseNum, NULL, base));
 
         return strtol(parseNum, NULL, base);
+    } else if (assembler_IsChar(parseNum)) {
+        dbg_printf("%d", *(parseNum + 1 + (*(parseNum + 1) == '\\')));
+        return *(parseNum + 1 + (*(parseNum + 1) == '\\'));
     } else if (*parseNum == ')') {
         dbg_printf("(");
         long BR = parser_BR();

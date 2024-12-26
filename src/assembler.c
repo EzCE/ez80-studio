@@ -19,7 +19,18 @@
 #include "asm/spi.h"
 
 #include <graphx.h>
+#include <fontlibc.h>
 #include <string.h>
+
+bool assembler_IsChar(char *string) {
+    if (*(++string) == '\\') {
+        string++;
+    }
+
+    string++;
+
+    return *string == '\'' || *string == '\"';
+}
 
 static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bool pass2) {
     bool inQuotes = false;
@@ -28,7 +39,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
     char *stringEnd;
 
     while (*string != '\n' && string <= endOfFile) {
-        if (*string == '\'' || *string == '\"') {
+        if ((*string == '\'' || *string == '\"') && *(string - 1) != '\\' && (!assembler_IsChar(string) || pass2)) {
             inQuotes = !inQuotes;
 
             if (!inQuotes) { // Just exited quotes
@@ -37,6 +48,13 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
                 line++;
                 continue;
             }
+        } else if ((*string == '\'' || *string == '\"') && *(string - 1) != '\\') {
+            if (*line != '#') {
+                *(line++) = '#';
+            }
+
+            string++;
+            string += (*string == '\\') ? 2 : 1;
         }
 
         if (inQuotes) {
@@ -295,7 +313,7 @@ uint8_t assembler_WriteData(char *output, char *line) {
 static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opcode, uint8_t suffix) {
     bool relative = false;
 
-    if (strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
+    if (!strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
         relative = true;
     }
 
@@ -450,6 +468,16 @@ static uint8_t assembler_GetSuffix(char *line, char *string, char *endOfFile, ui
 }
 
 struct error_t assembler_Main(struct context_t *studioContext) {
+    asm_spi_BeginFrame();
+    gfx_SetColor(OUTLINE);
+    gfx_FillRectangle_NoClip(102, 101, 106, 20);
+    gfx_SetColor(BACKGROUND);
+    gfx_FillRectangle_NoClip(104, 103, 102, 16);
+    fontlib_SetForegroundColor(TEXT_DEFAULT);
+    fontlib_SetCursorPosition(107, 105);
+    fontlib_DrawString("In progress...");
+    asm_spi_EndFrame();
+
     asm_spi_BeginFrame(); // Stop display updates since we use the other buffer
     asm_misc_ClearBuffer(OUTPUT);
     memset((void *)SYMBOL_TABLE, '\0', sizeof(char) * MAX_SYMBOL_TABLE);

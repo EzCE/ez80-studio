@@ -19,6 +19,15 @@ extern "C" {
 #endif
 
 /**
+ * @brief Check if a string is a 1-byte char.
+ * 
+ * @param string String to evaluate
+ * @return true String is a char.
+ * @return false String is not a char.
+ */
+bool assembler_IsChar(char *string);
+
+/**
  * @brief Assemble the currently open file.
  * 
  * @param studioContext eZ80 Studio context struct.
