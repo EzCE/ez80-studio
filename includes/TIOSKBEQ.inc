@@ -629,11 +629,6 @@
 ?kvnA			:= 0FAh
 ?kwnA			:= 0FBh
 
-; THIS KEY MEANS THAT IT IS A 2 BYTE KEYCODE
-; THERE ARE 2 OF THESE KEYS; BE CAREFUL WITH USAGE
-;--------------------------------------------------------
-?kExtendEcho2		:= 0FCh
-
 ; THIS KEY MEANS THAT THE KEY PRESS IS ONE THAT ECHOS
 ; INTO A BUFFER, AND IT IS A 2 BYTE KEY CODE, GO LOOK AT
 ; (EXTECHO) FOR THE KEY VALUE
@@ -926,6 +921,11 @@
 ?kZFitA			:= kE2BT+148
 ?kE2BT_End		:= kZFitA
 
+; THIS KEY MEANS THAT IT IS A 2 BYTE KEYCODE
+; THERE ARE 3 OF THESE KEYS; BE CAREFUL WITH USAGE
+;--------------------------------------------------------
+?kExtendEcho2		:= 0FCh
+
 ;More 2 Byte Keys
 ;-------------------------------------
 ?kE2BT2			:= 00h
@@ -1184,6 +1184,44 @@
 ?kLz			:= k83_00End + 98
 ?kGarbageC		:= k83_00End + 99 ;GarbageCollect
 ?kE2BT2_End		:= kGarbageC
+
+; THIS KEY MEANS THAT IT IS A 2 BYTE KEYCODE
+; UNLESS (EXTECHO) IS 0 THEN IT IS AN OLD 1 BYTE KEYCODE
+; THERE ARE 3 OF THESE KEYS; BE CAREFUL WITH USAGE
+;--------------------------------------------------------
+?kExtendEcho3		:= 0FBh
+
+;Even More 2 Byte Keys
+;-------------------------------------
+?kE2BT3			:= 00h
+?kSingleQuote		:= kE2BT3+1
+?kAt			:= kE2BT3+2
+?kHash			:= kE2BT3+3
+?kDollar			:= kE2BT3+4
+?kAmp			:= kE2BT3+5
+?kBackquote		:= kE2BT3+6
+?kSemicolon		:= kE2BT3+7
+?kBackslash		:= kE2BT3+8
+?kBar			:= kE2BT3+9
+?kUnderscore		:= kE2BT3+10
+?kTilde			:= kE2BT3+11
+?kPercent		:= kE2BT3+12
+?kEllipsis		:= kE2BT3+140
+?kAng			:= kE2BT3+141
+?kSS			:= kE2BT3+142
+?kSupX			:= kE2BT3+143
+?kSubT			:= kE2BT3+144
+?kSub0			:= kE2BT3+145
+?kSub1			:= kE2BT3+146
+?kSub2			:= kE2BT3+147
+?kSub3			:= kE2BT3+148
+?kSub4			:= kE2BT3+149
+?kSub5			:= kE2BT3+150
+?kSub6			:= kE2BT3+151
+?kSub7			:= kE2BT3+152
+?kSub8			:= kE2BT3+153
+?kSub9			:= kE2BT3+154
+?kSub10			:= kE2BT3+155
 
 ;TI-83 Plus Context Equates
 ;--------------------------------------------------------------
@@ -1481,7 +1519,7 @@
 ?tCubicR			:= 2Eh
 ?tQuartR			:= 2Fh
 
-;Number Tokens 
+;Number Tokens
 ;---------------------------------------
 ?NUMS			:= 30h
 ;
@@ -2330,6 +2368,10 @@
 
 ;Data Type Equates
 ;---------------------------------------------------------------------
+?varTypeMask        := 1Fh
+?varGraphRef        := 6
+?dataTypeMask       := 3Fh
+
 ?RealObj			:= 0
 ?ListObj			:= 1
 ?MatObj			:= 2
@@ -2354,6 +2396,16 @@
 ?AppVarObj		:= 15h	;application variable
 ?TempProgObj		:= 16h ;program, home deletes when finished
 ?GroupObj		:= 17h ;group.
+?FracObj        := 18h
+;               := 19h
+?ImageObj       := 1Ah
+?CFracObj       := 1Bh
+?RadObj         := 1Ch
+?CRadObj        := 1Dh
+?CPiObj         := 1Eh
+?CPiFracObj     := 1Fh
+?PiObj          := 20h
+?PiFracObj      := 21h
 
 ;System Error Codes
 ;-----------------------------------------------------------
@@ -2411,6 +2463,12 @@
 ?E_ArchFull		:= 49
 ?E_Variable		:= 50+E_EDIT
 ?E_Duplicate		:= 51+E_EDIT
+?E_Date         := 52+E_EDIT
+?E_UnknownCmd   := 53+E_EDIT
+?E_OverLimit    := 54
+?E_Disabled     := 55
+?E_Xmit         := 56
+?E_MemFull      := 57
 
 ;System Variable Equates
 ;------------------------------
@@ -2498,13 +2556,10 @@
 ?SLower			:= StdXP2 + FPLEN
 ?SUpper			:= SLower + FPLEN
 ?SStat			:= SUpper + FPLEN
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-; Bloody hell
-;?F_DF			:= anovaf_vars
-;?F_SS			:= F_DF + FPLEN
-;?F_MS			:= F_SS + FPLEN
-;?E_DF			:= F_MS + FPLEN
-;?E_SS			:= E_DF + FPLEN
-;?E_MS			:= E_SS + FPLEN
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+?anovaf_vars		:= SStat + FPLEN
+?F_DF			:= anovaf_vars
+?F_SS			:= F_DF + FPLEN
+?F_MS			:= F_SS + FPLEN
+?E_DF			:= F_MS + FPLEN
+?E_SS			:= E_DF + FPLEN
+?E_MS			:= E_SS + FPLEN

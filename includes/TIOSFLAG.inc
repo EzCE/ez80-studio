@@ -203,9 +203,6 @@
 ;----------------------------------------------------------------------
 ;There is a flag 1Eh.
 ;----------------------------------------------------------------------
-?varTypeMask		:= 1Fh		;is this a flag byte? yes
-?varGraphRef		:= 6
-;----------------------------------------------------------------------
 ?graphFlags2		:= 1Fh
 ?splitOverride		:= 3		;0 = force full screen with ParseInp, or something
 ;----------------------------------------------------------------------
@@ -335,10 +332,18 @@
 ?mathprintEnabled	:= 5		;1 = use mathprint styling
 ;----------------------------------------------------------------------
 ?InitialBootMenuFlags	:= 45h
+?statWizards            := 2        ; 1 = stat wizards off
 ?dispinitialBootMenu	:= 4		; 1 = don't display the initial boot menu
 ;----------------------------------------------------------------------
 ?backlightFlags		:= 46h
 ?restoreBrightness	:= 0		;1 = restore lcd brightness when needed
+;----------------------------------------------------------------------
+?asymptoteFlags     := 47h
+?detectAsymptotes   := 0        ; 1 = detect asymptotes off
+;----------------------------------------------------------------------
+?fracFlags          := 48h
+?mixedFractions     := 0        ; 1 = display mixed fractions (Un/d)
+?answersAuto        := 1        ; 1 = display decimal answers
 ;----------------------------------------------------------------------
 ?grFlags			:= 4Ah
 ?drawGrLbls		:= 0		;1 = don't draw Graph Labels (this is usually reset anyway)
@@ -350,4 +355,6 @@
 ?graphDispFlags		:= 4Bh
 ?backgroundValid		:= 4		;1 = items in graph background are still valid
 ;----------------------------------------------------------------------
-
+?graphBgFlags        := 4Fh
+?drawGrBackground   := 0            ; 1 = graphBG is a solid color or an image that exists
+;----------------------------------------------------------------------

@@ -136,7 +136,7 @@
 ?Mov9ToOP1                 := 0020320h
 ?Mov9OP1OP2                := 0020324h
 ?Mov9ToOP2                 := 0020328h
-?MovFROP1                  := 002032Ch
+?MovFrOP1                  := 002032Ch
 ?OP4Set1                   := 0020330h
 ?OP3Set1                   := 0020334h
 ?OP2Set8                   := 0020338h
@@ -1663,7 +1663,7 @@
 ;                          equ 0021AFCh
 ?DrawTILogo                := 0021B00h
 ?DrawThickRectBorder       := 0021B04h
-;                          equ 0021B08h
+?PutSCentered              := 0021B08h
 ?DrawStatusBarTextClr      := 0021B0Ch
 ;                          equ 0021B10h
 ;                          equ 0021B14h
@@ -1759,8 +1759,8 @@
 ?os.PopErrorHandler        := 0021C7Ch
 ?os.ThrowError             := 0021C80h
 ?os.RealCopy               := 0021C84h
-?os.RealAsinRad            := 0021C88h
-?os.RealAcosRad            := 0021C8Ch
+?os.RealAcosRad            := 0021C88h
+?os.RealAsinRad            := 0021C8Ch
 ?os.RealAtanRad            := 0021C90h
 ?os.RealAdd                := 0021C94h
 ?os.CplxAdd                := 0021C98h
@@ -1866,8 +1866,8 @@
 ?os.FontSelect             := 0021E28h
 ;                          equ 0021E2Ch
 ;                          equ 0021E30h
-?os.ReturnByte             := 0021E34h
-?os.ReturnByteEvenBetter   := 0021E38h
+?tolower                   := 0021E34h
+?toupper                   := 0021E38h
 ;                          equ 0021E3Ch
 ;                          equ 0021E40h
 ;                          equ 0021E44h
@@ -1906,7 +1906,7 @@
 ?os.SetTimer1              := 0021EC8h
 ?os.DisableTimer1          := 0021ECCh
 ?os.SetKbdKey              := 0021ED0h
-?os.GetSystemStats         := 0021ED4h
+?os.GetSystemInfo          := 0021ED4h
 ;                          equ 0021ED8h
 ;                          equ 0021EDCh
 ?DispHL                    := 0021EE0h
@@ -2077,14 +2077,14 @@
 ?os.RealToFloat            := 0022174h
 ?os.FontDrawTransText      := 0022178h
 ?os.DelAppVar              := 002217Ch
-?os.GetAppVarDataPtr       := 0022180h
+?os.GetAppVarData          := 0022180h
 ?os.CreateAppVar           := 0022184h
 ;                          equ 0022188h
 ;                          equ 002218Ch
 ;                          equ 0022190h
 ;                          equ 0022194h
 ?os.CreateString           := 0022198h
-?os.GetStringDataPtr       := 002219Ch
+?os.GetStringData          := 002219Ch
 ;                          equ 00221A0h
 ;                          equ 00221A4h
 ;                          equ 00221A8h
@@ -2108,6 +2108,25 @@
 ;                          equ 00221F0h
 ;                          equ 00221F4h
 ;                          equ 00221F8h
+;                          equ 00221FCh
+;                          equ 0022200h
+;                          equ 0022204h
+;                          equ 0022208h
+;                          equ 002220Ch
+;                          equ 0022210h
+;                          equ 0022214h
+;                          equ 0022218h
+;                          equ 002221Ch
+;                          equ 0022220h
+;                          equ 0022224h
+;                          equ 0022228h
+;                          equ 002222Ch
+;                          equ 0022230h
+;                          equ 0022234h
+;                          equ 0022238h
+;                          equ 002223Ch
+?os.CreateEquation         := 0022240h
+?os.GetEquationData        := 0022244h
 
 ; Boot Calls
 ;-----------------------------------
