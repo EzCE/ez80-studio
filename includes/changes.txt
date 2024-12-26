@@ -1,0 +1,4 @@
+Include conversion script for BASM-3 by beckadamtheinventor: https://github.com/beckadamtheinventor/BASM-3/
+
+The conversion script has been modified to support lowercase letters and the '_' and '.' characters, along with a modified header.
+The original can be found here: https://github.com/beckadamtheinventor/BASM-3/blob/master/data/conv-inc.py

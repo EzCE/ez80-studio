@@ -1,6 +1,8 @@
 concept/
 obj/
 bin/
+includes/obj/
+includes/bin/
 .vscode/
 src/gfx/*.c
 src/gfx/*.h

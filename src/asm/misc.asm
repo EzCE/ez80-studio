@@ -185,9 +185,8 @@ _asm_misc_ReverseCopy:
 _asm_misc_FindSymbol:
     ld iy, 0
     add iy, sp
-    ld hl, (iy + 3)
-    ld de, (iy + 6)
-    ex de, hl
+    ld de, (iy + 3)
+    ld hl, (iy + 6)
 
 .search:
     push de
