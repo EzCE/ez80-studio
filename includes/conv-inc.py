@@ -79,12 +79,12 @@ with open("obj/"+fname+".bin","wb") as f:
 		for word in letters[letter]:
 			f.write(bytes(word[0],'UTF-8'))
 			arg=[word[1]&0xFF,(word[1]//0x100)&0xFF,(word[1]//0x10000)&0xFF]
-			a=0
-			for i in range(3):
-				if not arg[i]:
+			a=3
+			for i in range(2, -1, -1):
+				if arg[i]:
 					break
 				else:
-					a+=1
+					a-=1
 			if not a: a=1
 			f.write(bytes([0,a]+arg[:a]))
 		f.write(bytes([0]))

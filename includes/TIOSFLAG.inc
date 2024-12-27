@@ -122,14 +122,14 @@
 ?appCurWord		:= 6		;1=text cursor covers entire word
 ?appExit 		:= 7		;1=application handles [EXIT] key itself
 
-?appWantIntrptF		:= 1 shl appWantIntrpt
-?appTextSaveF		:= 1 shl appTextSave
-?appAutoScrollF		:= 1 shl appAutoScroll
-?appMenusF		:= 1 shl appMenus
-?appLockMenusF		:= 1 shl appLockMenus
-?appCurGraphicF		:= 1 shl appCurGraphic
-?appCurWordF		:= 1 shl appCurWord
-?appExitF		:= 1 shl appExit
+?appWantIntrptF		:= 1
+?appTextSaveF		:= 2
+?appAutoScrollF		:= 4
+?appMenusF			:= 8
+?appLockMenusF		:= 16
+?appCurGraphicF		:= 32
+?appCurWordF		:= 64
+?appExitF			:= 128
 ;----------------------------------------------------------------------
 ?rclFlag			:= 0Eh		;OS recall queue flags
 ?enableQueue		:= 7		;1 = enable recall queue
