@@ -168,7 +168,7 @@ namespace ti?
 ?Mov9ToOP1                 := 0020320h
 ?Mov9OP1OP2                := 0020324h
 ?Mov9ToOP2                 := 0020328h
-?MovFROP1                  := 002032Ch
+?MovFrOP1                  := 002032Ch
 ?OP4Set1                   := 0020330h
 ?OP3Set1                   := 0020334h
 ?OP2Set8                   := 0020338h
@@ -1695,7 +1695,7 @@ namespace ti?
 ;                          equ 0021AFCh
 ?DrawTILogo                := 0021B00h
 ?DrawThickRectBorder       := 0021B04h
-;                          equ 0021B08h
+?PutSCentered              := 0021B08h
 ?DrawStatusBarTextClr      := 0021B0Ch
 ;                          equ 0021B10h
 ;                          equ 0021B14h
@@ -1791,8 +1791,8 @@ namespace ti?
 ?os.PopErrorHandler        := 0021C7Ch
 ?os.ThrowError             := 0021C80h
 ?os.RealCopy               := 0021C84h
-?os.RealAsinRad            := 0021C88h
-?os.RealAcosRad            := 0021C8Ch
+?os.RealAcosRad            := 0021C88h
+?os.RealAsinRad            := 0021C8Ch
 ?os.RealAtanRad            := 0021C90h
 ?os.RealAdd                := 0021C94h
 ?os.CplxAdd                := 0021C98h
@@ -1898,8 +1898,8 @@ namespace ti?
 ?os.FontSelect             := 0021E28h
 ;                          equ 0021E2Ch
 ;                          equ 0021E30h
-?os.ReturnByte             := 0021E34h
-?os.ReturnByteEvenBetter   := 0021E38h
+?tolower                   := 0021E34h
+?toupper                   := 0021E38h
 ;                          equ 0021E3Ch
 ;                          equ 0021E40h
 ;                          equ 0021E44h
@@ -1938,7 +1938,7 @@ namespace ti?
 ?os.SetTimer1              := 0021EC8h
 ?os.DisableTimer1          := 0021ECCh
 ?os.SetKbdKey              := 0021ED0h
-?os.GetSystemStats         := 0021ED4h
+?os.GetSystemInfo          := 0021ED4h
 ;                          equ 0021ED8h
 ;                          equ 0021EDCh
 ?DispHL                    := 0021EE0h
@@ -2109,14 +2109,14 @@ namespace ti?
 ?os.RealToFloat            := 0022174h
 ?os.FontDrawTransText      := 0022178h
 ?os.DelAppVar              := 002217Ch
-?os.GetAppVarDataPtr       := 0022180h
+?os.GetAppVarData          := 0022180h
 ?os.CreateAppVar           := 0022184h
 ;                          equ 0022188h
 ;                          equ 002218Ch
 ;                          equ 0022190h
 ;                          equ 0022194h
 ?os.CreateString           := 0022198h
-?os.GetStringDataPtr       := 002219Ch
+?os.GetStringData          := 002219Ch
 ;                          equ 00221A0h
 ;                          equ 00221A4h
 ;                          equ 00221A8h
@@ -2140,6 +2140,25 @@ namespace ti?
 ;                          equ 00221F0h
 ;                          equ 00221F4h
 ;                          equ 00221F8h
+;                          equ 00221FCh
+;                          equ 0022200h
+;                          equ 0022204h
+;                          equ 0022208h
+;                          equ 002220Ch
+;                          equ 0022210h
+;                          equ 0022214h
+;                          equ 0022218h
+;                          equ 002221Ch
+;                          equ 0022220h
+;                          equ 0022224h
+;                          equ 0022228h
+;                          equ 002222Ch
+;                          equ 0022230h
+;                          equ 0022234h
+;                          equ 0022238h
+;                          equ 002223Ch
+?os.CreateEquation         := 0022240h
+?os.GetEquationData        := 0022244h
 
 ; Boot Calls
 ;-----------------------------------
@@ -2981,8 +3000,8 @@ namespace ti?
 
 ?tempFreeArc		:= 0D02655h ; set after _ArcChk call
 
-?textBGcolor		:= 0D02688h
-?textFGcolor		:= 0D0268Ah
+?textFGcolor		:= 0D02688h
+?textBGcolor		:= 0D0268Ah
 
 ?drawBGColor		:= 0D026AAh
 ?drawFGColor		:= 0D026ACh
@@ -3024,6 +3043,7 @@ namespace ti?
 ;semiSafeRAM Locations
 ;---------------------------------------------
 ?usbArea			:= 0D13FD8h ; 14306 bytes used for usb, probably need to disable timer3/usb interrupts to use
+?usbHandleKeys		:= 0D14091h ; zero this byte while using usbArea to keep GetCSC from affecting other parts of usbArea
 ?usbInited		:= 0D177B7h ; zero this byte while using usbArea and to reset the usb stack when interrupts are re-enabled
 ?heapBot			:= 0D1887Ch ; 1024 bytes used for flash ram routines, rest used rarely
 ?ramCodeTop		:= 0D18C7Ch
@@ -3049,15 +3069,15 @@ namespace ti?
 ?mpShaRange		:= 0E10000h
 
 ?shaCtrl			:= 00h ; 1 byte
-?pShaCtrl		:= 020000h
+?pShaCtrl		:= 02000h
 ?mpShaCtrl		:= 0E10000h
 
 ?shaData			:= 10h ; 40h bytes
-?pShaData		:= 020010h
+?pShaData		:= 02010h
 ?mpShaData		:= 0E10010h
 
 ?shaState		:= 60h ; 20h bytes
-?pShaState		:= 020060h
+?pShaState		:= 02060h
 ?mpShaState		:= 0E10060h
 
 ;LCD Ports
@@ -3066,41 +3086,41 @@ namespace ti?
 ?mpLcdRange		:= 0E30000h
 
 ?lcdTiming0		:= 0000h
-?pLcdTiming0		:= pLcdRange + lcdTiming0
-?mpLcdTiming0		:= mpLcdRange + lcdTiming0
+?pLcdTiming0		:= 04000h
+?mpLcdTiming0		:= 0E30000h
 ?lcdTiming1		:= 0004h
-?pLcdTiming1		:= pLcdRange + lcdTiming1
-?mpLcdTiming1		:= mpLcdRange + lcdTiming1
+?pLcdTiming1		:= 04004h
+?mpLcdTiming1		:= 0E30004h
 ?lcdTiming2		:= 0008h
-?pLcdTiming2		:= pLcdRange + lcdTiming2
-?mpLcdTiming2		:= mpLcdRange + lcdTiming2
+?pLcdTiming2		:= 04008h
+?mpLcdTiming2		:= 0E30008h
 ?lcdTiming3		:= 000Ch
-?pLcdTiming3		:= pLcdRange + lcdTiming3
-?mpLcdTiming3		:= mpLcdRange + lcdTiming3
+?pLcdTiming3		:= 0400Ch
+?mpLcdTiming3		:= 0E3000Ch
 
 ?lcdBase			:= 0010h
-?pLcdBase		:= pLcdRange + lcdBase
-?mpLcdBase		:= mpLcdRange + lcdBase
+?pLcdBase		:= 04010h
+?mpLcdBase		:= 0E30010h
 ?lcdUpbase		:= 0010h
-?pLcdUpbase		:= pLcdRange + lcdUpbase
-?mpLcdUpbase		:= mpLcdRange + lcdUpbase
+?pLcdUpbase		:= 04010h
+?mpLcdUpbase		:= 0E30010h
 ?lcdLpbase		:= 0014h
-?pLcdLpbase		:= pLcdRange + lcdLpbase
-?mpLcdLpbase		:= mpLcdRange + lcdLpbase
+?pLcdLpbase		:= 04014h
+?mpLcdLpbase		:= 0E30014h
 
 ?lcdCtrl			:= 0018h
-?pLcdCtrl		:= pLcdRange + lcdCtrl
-?mpLcdCtrl		:= mpLcdRange + lcdCtrl
+?pLcdCtrl		:= 04018h
+?mpLcdCtrl		:= 0E30018h
 ?lcdEn			:= 01h
 ?lcdTft			:= 20h
-?lcdBpp1			:= 0000b or lcdTft or lcdEn
-?lcdBpp2			:= 0010b or lcdTft or lcdEn
-?lcdBpp4			:= 0100b or lcdTft or lcdEn
-?lcdBpp8			:= 0110b or lcdTft or lcdEn
-?lcdBpp16Alt		:= 1000b or lcdTft or lcdEn
-?lcdBpp24		:= 1010b or lcdTft or lcdEn
-?lcdBpp16		:= 1100b or lcdTft or lcdEn ; Default LCD mode
-?lcdBpp12		:= 1110b or lcdTft or lcdEn
+?lcdBpp1			:= 021h
+?lcdBpp2			:= 023h
+?lcdBpp4			:= 025h
+?lcdBpp8			:= 027h
+?lcdBpp16Alt		:= 029h
+?lcdBpp24		:= 02Bh
+?lcdBpp16		:= 02Dh ; Default LCD mode
+?lcdBpp12		:= 02Fh
 ?lcdBgr			:= 100h
 ?lcdBigEndian		:= 200h
 ?lcdBigEndianPixels	:= 400h
@@ -3110,76 +3130,76 @@ namespace ti?
 ?lcdIntActiveVideo	:= 2000h
 ?lcdIntFront		:= 3000h
 ?lcdWatermark		:= 10000h
-?lcdNormalMode		:= lcdPwr or lcdBgr or lcdBpp16
+?lcdNormalMode		:= 092Dh
 
 ?lcdImsc			:= 001Ch
-?pLcdImsc		:= pLcdRange + lcdImsc
-?mpLcdImsc		:= mpLcdRange + lcdImsc
+?pLcdImsc		:= 0401Ch
+?mpLcdImsc		:= 0E3001Ch
 ?lcdRis			:= 0020h
-?pLcdRis			:= pLcdRange + lcdRis
-?mpLcdRis		:= mpLcdRange + lcdRis
+?pLcdRis			:= 04020h
+?mpLcdRis		:= 0E30020h
 ?lcdMis			:= 0024h
-?pLcdMis			:= pLcdRange + lcdMis
-?mpLcdMis		:= mpLcdRange + lcdMis
+?pLcdMis			:= 04024h
+?mpLcdMis		:= 0E30024h
 ?lcdIcr			:= 0028h
-?pLcdIcr			:= pLcdRange + lcdIcr
-?mpLcdIcr		:= mpLcdRange + lcdIcr
+?pLcdIcr			:= 04028h
+?mpLcdIcr		:= 0E30028h
 
 ?bLcdIntFuf		:= 1
-?lcdIntFuf		:= 1 shl bLcdIntFuf
+?lcdIntFuf		:= 2
 ?bLcdIntLNBU		:= 2
-?lcdIntLNBU		:= 1 shl bLcdIntLNBU
+?lcdIntLNBU		:= 4
 ?bLcdIntVcomp		:= 3
-?lcdIntVcomp		:= 1 shl bLcdIntVcomp
+?lcdIntVcomp		:= 8
 ?bLcdIntMbErr		:= 4
-?lcdIntMbErr		:= 1 shl bLcdIntMbErr
+?lcdIntMbErr		:= 16
 
 ?lcdCurr			:= 002Ch
-?pLcdCurr		:= pLcdRange + lcdCurr
-?mpLcdCurr		:= mpLcdRange + lcdCurr
+?pLcdCurr		:= 402Ch
+?mpLcdCurr		:= E3002Ch
 ?lcdUpcurr		:= 002Ch
-?pLcdUpcurr		:= pLcdRange + lcdUpcurr
-?mpLcdUpcurr		:= mpLcdRange + lcdUpcurr
+?pLcdUpcurr		:= 402Ch
+?mpLcdUpcurr		:= E3002Ch
 ?lcdLpcurr		:= 0030h
-?pLcdLpcurr		:= pLcdRange + lcdLpcurr
-?mpLcdLpcurr		:= mpLcdRange + lcdLpcurr
+?pLcdLpcurr		:= 4030h
+?mpLcdLpcurr		:= E30030h
 ?lcdPalette		:= 0200h
-?pLcdPalette		:= pLcdRange + lcdPalette
-?mpLcdPalette		:= mpLcdRange + lcdPalette
+?pLcdPalette		:= 04200h
+?mpLcdPalette		:= 0E30200h
 
 ?lcdCrsrImage		:= 0800h
-?pLcdCrsrImage		:= pLcdRange + lcdCrsrImage
-?mpLcdCrsrImage		:= mpLcdRange + lcdCrsrImage
+?pLcdCrsrImage		:= 04800h
+?mpLcdCrsrImage		:= 0E30800h
 ?lcdCrsrCtrl		:= 0C00h
-?pLcdCrsrCtrl		:= pLcdRange + lcdCrsrCtrl
-?mpLcdCrsrCtrl		:= mpLcdRange + lcdCrsrCtrl
+?pLcdCrsrCtrl		:= 04C00h
+?mpLcdCrsrCtrl		:= 0E30C00h
 ?lcdCrsrConfig		:= 0C04h
-?pLcdCrsrConfig		:= pLcdRange + lcdCrsrConfig
-?mpLcdCrsrConfig		:= mpLcdRange + lcdCrsrConfig
+?pLcdCrsrConfig		:= 04C04h
+?mpLcdCrsrConfig		:= 0E30C04h
 ?lcdCrsrPalette0		:= 0C08h
-?pLcdCrsrPalette0	:= pLcdRange + lcdCrsrPalette0
-?mpLcdCrsrPalette0	:= mpLcdRange + lcdCrsrPalette0
+?pLcdCrsrPalette0	:= 04C08h
+?mpLcdCrsrPalette0	:= 0E30C08h
 ?lcdCrsrPalette1		:= 0C0Ch
-?pLcdCrsrPalette1	:= pLcdRange + lcdCrsrPalette1
-?mpLcdCrsrPalette1	:= mpLcdRange + lcdCrsrPalette1
+?pLcdCrsrPalette1	:= 04C0Ch
+?mpLcdCrsrPalette1	:= 0E30C0Ch
 ?lcdCrsrXY		:= 0C10h
-?pLcdCrsrXY		:= pLcdRange + lcdCrsrXY
-?mpLcdCrsrXY		:= mpLcdRange + lcdCrsrXY
+?pLcdCrsrXY		:= 04C10h
+?mpLcdCrsrXY		:= 0E30C10h
 ?lcdCrsrClip		:= 0C14h
-?pLcdCrsrClip		:= pLcdRange + lcdCrsrClip
-?mpLcdCrsrClip		:= mpLcdRange + lcdCrsrClip
+?pLcdCrsrClip		:= 04C14h
+?mpLcdCrsrClip		:= 0E30C14h
 ?lcdCrsrImsc		:= 0C20h
-?pLcdCrsrImsc		:= pLcdRange + lcdCrsrImsc
-?mpLcdCrsrImsc		:= mpLcdRange + lcdCrsrImsc
+?pLcdCrsrImsc		:= 04C20h
+?mpLcdCrsrImsc		:= 0E30C20h
 ?lcdCrsrIcr		:= 0C24h
-?pLcdCrsrIcr		:= pLcdRange + lcdCrsrIcr
-?mpLcdCrsrIcr		:= mpLcdRange + lcdCrsrIcr
+?pLcdCrsrIcr		:= 04C24h
+?mpLcdCrsrIcr		:= 0E30C24h
 ?lcdCrsrRis		:= 0C28h
-?pLcdCrsrRis		:= pLcdRange + lcdCrsrRis
-?mpLcdCrsrRis		:= mpLcdRange + lcdCrsrRis
+?pLcdCrsrRis		:= 04C28h
+?mpLcdCrsrRis		:= 0E30C28h
 ?lcdCrsrMis		:= 0C2Ch
-?pLcdCrsrMis		:= pLcdRange + lcdCrsrMis
-?mpLcdCrsrMis		:= mpLcdRange + lcdCrsrMis
+?pLcdCrsrMis		:= 04C2Ch
+?mpLcdCrsrMis		:= 0E30C2Ch
 
 ;Interrupt Ports
 ;-----------------------------------
@@ -3187,43 +3207,43 @@ namespace ti?
 ?mpIntRange		:= 0F00000h
 
 ?intStat			:= 0
-?pIntStat		:= pIntRange + intStat
-?mpIntStat		:= mpIntRange + intStat
+?pIntStat		:= 05000h
+?mpIntStat		:= 0F00000h
 ?intMask			:= 4
-?pIntMask		:= pIntRange + intMask
-?mpIntMask		:= mpIntRange + intMask
+?pIntMask		:= 05004h
+?mpIntMask		:= 0F00004h
 ?intAck			:= 8
-?pIntAck			:= pIntRange + intAck
-?mpIntAck		:= mpIntRange + intAck
+?pIntAck			:= 05008h
+?mpIntAck		:= 0F00008h
 ?intLatch		:= 12
-?pIntLatch		:= pIntRange + intLatch
-?mpIntLatch		:= mpIntRange + intLatch
+?pIntLatch		:= 0500Ch
+?mpIntLatch		:= 0F0000Ch
 ?intInvert		:= 16
-?pIntInvert		:= pIntRange + intInvert
-?mpIntInvert		:= mpIntRange + intInvert
+?pIntInvert		:= 05010h
+?mpIntInvert		:= 0F00010h
 ?intMasked		:= 20
-?pIntMasked		:= pIntRange + intMasked
-?mpIntMasked		:= mpIntRange + intMasked
+?pIntMasked		:= 05014h
+?mpIntMasked		:= 0F00014h
 
 ?bIntOn			:= 0
-?intOn			:= 1 shl bIntOn
+?intOn			:= 1
 ?bIntTmr1		:= 1
-?intTmr1			:= 1 shl bIntTmr1
+?intTmr1		:= 2
 ?bIntTmr2		:= 2
-?intTmr2			:= 1 shl bIntTmr2
+?intTmr2		:= 4
 ?bIntTmr3		:= 3
-?intTmr3			:= 1 shl bIntTmr3
+?intTmr3		:= 8
 ?bIntOSTmr		:= 4
-?intOSTmr		:= 1 shl bIntOSTmr
-?bIntKey			:= 10
-?intKey			:= 1 shl bIntKey
-?bIntLcd			:= 11
-?intLcd			:= 1 shl bIntLcd
-?bIntRtc			:= 12
-?intRtc			:= 1 shl bIntRtc
-?bIntUsb			:= 13
-?intUsb			:= 1 shl bIntUsb
-?intDefaultMask		:= intOn or intTmr3 or intOSTmr or intRtc or intUsb
+?intOSTmr		:= 16
+?bIntKey		:= 10
+?intKey			:= 1024
+?bIntLcd		:= 11
+?intLcd			:= 2048
+?bIntRtc		:= 12
+?intRtc			:= 4096
+?bIntUsb		:= 13
+?intUsb			:= 8192
+?intDefaultMask	:= 0011000000011001b
 
 ;Timer Ports
 ;-----------------------------------
@@ -3274,53 +3294,53 @@ namespace ti?
 ?pTmrCtrl		:= 7030h
 ?mpTmrCtrl		:= 0F20030h
 
-?bTmr1Enable		:= 0
-?tmr1Enable		:= 1 shl bTmr1Enable
-?bTmr1Crystal		:= 1
-?tmr1Crystal		:= 1 shl bTmr1Crystal
-?bTmr1Overflow		:= 2
-?tmr1Overflow		:= 1 shl bTmr1Overflow
-?bTmr2Enable		:= 3
-?tmr2Enable		:= 1 shl bTmr2Enable
-?bTmr2Crystal		:= 4
-?tmr2Crystal		:= 1 shl bTmr2Crystal
-?bTmr2Overflow		:= 5
-?tmr2Overflow		:= 1 shl bTmr2Overflow
-?bTmr3Enable		:= 6
-?tmr3Enable		:= 1 shl bTmr3Enable
-?bTmr3Crystal		:= 7
-?tmr3Crystal		:= 1 shl bTmr3Crystal
-?bTmr3Overflow		:= 8
-?tmr3Overflow		:= 1 shl bTmr3Overflow
-?bTmr1CountUp		:= 9
-?tmr1CountUp		:= 1 shl bTmr1CountUp
-?bTmr2CountUp		:= 10
-?tmr2CountUp		:= 1 shl bTmr2CountUp
-?bTmr3CountUp		:= 11
-?tmr3CountUp		:= 1 shl bTmr3CountUp
+?bTmr1Enable	:= 0
+?tmr1Enable		:= 1
+?bTmr1Crystal	:= 1
+?tmr1Crystal	:= 2
+?bTmr1Overflow	:= 2
+?tmr1Overflow	:= 4
+?bTmr2Enable	:= 3
+?tmr2Enable		:= 8
+?bTmr2Crystal	:= 4
+?tmr2Crystal	:= 16
+?bTmr2Overflow	:= 5
+?tmr2Overflow	:= 32
+?bTmr3Enable	:= 6
+?tmr3Enable		:= 64
+?bTmr3Crystal	:= 7
+?tmr3Crystal	:= 128
+?bTmr3Overflow	:= 8
+?tmr3Overflow	:= 256
+?bTmr1CountUp	:= 9
+?tmr1CountUp	:= 512
+?bTmr2CountUp	:= 10
+?tmr2CountUp	:= 1024
+?bTmr3CountUp	:= 11
+?tmr3CountUp	:= 2048
 
-?tmrIntStatus		:= 34h
-?pTmrIntStatus		:= 7034h
-?mpTmrIntStatus		:= 0F20034h
+?tmrIntStatus	:= 34h
+?pTmrIntStatus	:= 7034h
+?mpTmrIntStatus	:= 0F20034h
 
 ?bTmr1IntMatch1		:= 0
-?tmr1IntMatch1		:= 1 shl bTmr1IntMatch1
+?tmr1IntMatch1		:= 1
 ?bTmr1IntMatch2		:= 1
-?tmr1IntMatch2		:= 1 shl bTmr1IntMatch2
+?tmr1IntMatch2		:= 2
 ?bTmr1IntOverflow	:= 2
-?tmr1IntOverflow		:= 1 shl bTmr1IntOverflow
+?tmr1IntOverflow	:= 4
 ?bTmr2IntMatch1		:= 3
-?tmr2IntMatch1		:= 1 shl bTmr2IntMatch1
+?tmr2IntMatch1		:= 8
 ?bTmr2IntMatch2		:= 4
-?tmr2IntMatch2		:= 1 shl bTmr2IntMatch2
+?tmr2IntMatch2		:= 16
 ?bTmr2IntOverflow	:= 5
-?tmr2IntOverflow		:= 1 shl bTmr2IntOverflow
+?tmr2IntOverflow	:= 32
 ?bTmr3IntMatch1		:= 6
-?tmr3IntMatch1		:= 1 shl bTmr3IntMatch1
+?tmr3IntMatch1		:= 64
 ?bTmr3IntMatch2		:= 7
-?tmr3IntMatch2		:= 1 shl bTmr3IntMatch2
+?tmr3IntMatch2		:= 128
 ?bTmr3IntOverflow	:= 8
-?tmr3IntOverflow		:= 1 shl bTmr3IntOverflow
+?tmr3IntOverflow	:= 256
 
 ?tmrIntMask		:= 38h
 ?pTmrIntMask		:= 7038h
@@ -3341,36 +3361,36 @@ namespace ti?
 ?mpKeyRange		:= 0F50000h
 
 ?keyMode			:= 0
-?pKeyMode		:= pKeyRange + keyMode
-?mpKeyMode		:= mpKeyRange + keyMode
+?pKeyMode		:= 0A000h
+?mpKeyMode		:= 0F50000h
 ?keyRows			:= 4
-?pKeyRows		:= pKeyRange + keyRows
-?mpKeyRows		:= mpKeyRange + keyRows
+?pKeyRows		:= 0A004h
+?mpKeyRows		:= 0F50004h
 ?keyCols			:= 5
-?pKeyCols		:= pKeyRange + keyCols
-?mpKeyCols		:= mpKeyRange + keyCols
+?pKeyCols		:= 0A005h
+?mpKeyCols		:= 0F50005h
 ?keyIntStat		:= 8
-?pKeyIntStat		:= pKeyRange + keyIntStat
-?mpKeyIntStat		:= mpKeyRange + keyIntStat
+?pKeyIntStat		:= 0A008h
+?mpKeyIntStat		:= 0F50008h
 ?keyIntAck		:= 8
-?pKeyIntAck		:= pKeyRange + keyIntAck
-?mpKeyIntAck		:= mpKeyRange + keyIntAck
+?pKeyIntAck		:= 0A008h
+?mpKeyIntAck		:= 0F50008h
 ?keyIntMask		:= 12
-?pKeyIntMask		:= pKeyRange + keyIntMask
-?mpKeyIntMask		:= mpKeyRange + keyIntMask
+?pKeyIntMask		:= 0A00Ch
+?mpKeyIntMask		:= 0F5000Ch
 ?keyData			:= 16
-?pKeyData		:= pKeyRange + keyData
-?mpKeyData		:= mpKeyRange + keyData
+?pKeyData		:= 0A010h
+?mpKeyData		:= 0F50010h
 ?keyGpio			:= 48
-?pKeyGpio		:= pKeyRange + keyGpio
-?mpKeyGpio		:= mpKeyRange + keyGpio
+?pKeyGpio		:= 0A030h
+?mpKeyGpio		:= 0F50030h
 
 ?bKeyIntScanDone		:= 0
-?keyIntScanDone		:= 1 shl bKeyIntScanDone
+?keyIntScanDone		:= 1
 ?bKeyIntKeyChange	:= 1
-?keyIntKeyChange		:= 1 shl bKeyIntKeyChange
+?keyIntKeyChange		:= 2
 ?bKeyIntKeyPress		:= 2
-?keyIntKeyPress		:= 1 shl bKeyIntKeyPress
+?keyIntKeyPress		:= 4
 
 ?keyModeIdle		:= 0
 ?keyModeAny		:= 1
@@ -3815,12 +3835,12 @@ namespace ti?
 ?kList			:= 03Ah
 ?kCalc			:= 03Bh
 ?kFin			:= 03Ch
-?menuEnd			:= kFin
+?menuEnd			:= 03Ch
 ?kCatalog		:= 03Eh
 ?kInputDone		:= 03Fh
-?kOff			:= kInputDone
+?kOff			:= 03Fh
 ?kQuit			:= 040h
-?appStart		:= kQuit
+?appStart		:= 040h
 ?kLinkIO			:= 041h
 ?kMatrixEd		:= 042h
 ?kStatEd			:= 043h
@@ -3846,7 +3866,7 @@ namespace ti?
 ?kFormat			:= 057h ;FORMAT
 ?kExtApps		:= 058h ;External Applications.		NEW
 ?kNewApps		:= 059h ;New Apps for Cerberus.
-?append			:= kNewApps
+?append			:= 059h
 ?echoStart1		:= 05Ah
 ?kTrace			:= 05Ah
 ?kZFit			:= 05Bh
@@ -4025,582 +4045,625 @@ namespace ti?
 ?kExtendEcho		:= 0FEh
 
 ?kE1BT			:= 0
-?kDrawInv		:= kE1BT
-?kDrawF			:= kE1BT+1
-?kPixelOn		:= kE1BT+2
-?kPixelOff		:= kE1BT+3
-?kPxlTest		:= kE1BT+4
-?kRCGDB			:= kE1BT+5
-?kRCPic			:= kE1BT+6
-?kSTGDB			:= kE1BT+7
-?kSTPic			:= kE1BT+8
-?kAbs			:= kE1BT+9
-?kTequ 		:= kE1BT+10 ;==
-?kTNoteQ			:= kE1BT+11 ;<>
-?kTGT			:= kE1BT+12 ;>
-?kTGTE			:= kE1BT+13 ;>=
-?kTLT			:= kE1BT+14 ;<
-?kTLTE			:= kE1BT+15 ;<=
-?kAnd			:= kE1BT+16
-?kOr			:= kE1BT+17
-?kXor			:= kE1BT+18
-?kNot			:= kE1BT+19
-?kLR1			:= kE1BT+20
-?kXRoot			:= kE1BT+21
-?kCube			:= kE1BT+22
-?kCbRt			:= kE1BT+23 ;Cube ROOT
-?kToDec			:= kE1BT+24
-?kCubicR			:= kE1BT+25
-?kQuartR			:= kE1BT+26
-?kPlot1			:= kE1BT+27
-?kPlot2			:= kE1BT+28
-?kRound			:= kE1BT+29
-?kIPart			:= kE1BT+30
-?kFPart			:= kE1BT+31
-?kInt			:= kE1BT+32
-?kRand			:= kE1BT+33
-?kNPR			:= kE1BT+34
-?kNCR			:= kE1BT+35
-?kXFactorial		:= kE1BT+36
-?kRad			:= kE1BT+37
-?kDegr			:= kE1BT+38 ;DEGREES CONV
-?kAPost			:= kE1BT+39
-?kToDMS			:= kE1BT+40
-?kRToPo			:= kE1BT+41 ;R
-?kRToPr			:= kE1BT+42
-?kPToRx			:= kE1BT+43
-?kPToRy			:= kE1BT+44
-?kRowSwap		:= kE1BT+45
-?kRowPlus		:= kE1BT+46
-?kTimRow			:= kE1BT+47
-?kTRowP			:= kE1BT+48
-?kSortA			:= kE1BT+49
-?kSortD			:= kE1BT+50
-?kSeq			:= kE1BT+51
-?kMin			:= kE1BT+52
-?kMax			:= kE1BT+53
-?kMean			:= kE1BT+54
-?kMedian			:= kE1BT+55
-?kSum			:= kE1BT+56
-?kProd			:= kE1BT+57
-?kDet			:= kE1BT+58
-?kTransp			:= kE1BT+59
-?kDim			:= kE1BT+60
-?kFill			:= kE1BT+61
-?kIdent			:= kE1BT+62
-?kRandm			:= kE1BT+63
-?kAug			:= kE1BT+64
-?kOneVar			:= kE1BT+65
-?kTwoVar			:= kE1BT+66
-?kLR			:= kE1BT+67
-?kLRExp			:= kE1BT+68
-?kLRLn			:= kE1BT+69
-?kLRPwr			:= kE1BT+70
-?kMedMed			:= kE1BT+71
-?kQuad			:= kE1BT+72
-?kClrLst			:= kE1BT+73
-?kHist			:= kE1BT+74
-?kxyLine			:= kE1BT+75
-?kScatter		:= kE1BT+76
-?kmRad			:= kE1BT+77
-?kmDeg			:= kE1BT+78
-?kmNormF			:= kE1BT+79
-?kmSci			:= kE1BT+80
-?kmEng			:= kE1BT+81
-?kmFloat			:= kE1BT+82
-?kFix			:= kE1BT+83
-?kSplitOn		:= kE1BT+84
-?kFullScreen		:= kE1BT+85
-?kStndrd			:= kE1BT+86
-?kParam			:= kE1BT+87
-?kPolar			:= kE1BT+88
-?kSeqG			:= kE1BT+89
-?kAFillOn		:= kE1BT+90
-?kAFillOff		:= kE1BT+91
-?kACalcOn		:= kE1BT+92
-?kACalcOff		:= kE1BT+93
-?kFNOn			:= kE1BT+94
-?kFNOff			:= kE1BT+95
-?kPlotsOn		:= kE1BT+96
-?kPlotsOff		:= kE1BT+97
-?kPixelChg		:= kE1BT+98
-?kSendMBL		:= kE1BT+99
-?kRecvMBL		:= kE1BT+100
-?kBoxPlot		:= kE1BT+101
-?kBoxIcon		:= kE1BT+102
-?kCrossIcon		:= kE1BT+103
-?kDotIcon		:= kE1BT+104
-?kE2BT			:= kE1BT+105
-?kSeqential		:= kE2BT
-?kSimulG			:= kE2BT+1
-?kPolarG			:= kE2BT+2
-?kRectG			:= kE2BT+3
-?kCoordOn		:= kE2BT+4
-?kCoordOff		:= kE2BT+5
-?kDrawLine		:= kE2BT+6
-?kDrawDot		:= kE2BT+7
-?kAxisOn			:= kE2BT+8
-?kAxisOff		:= kE2BT+9
-?kGridOn			:= kE2BT+10
-?kGridOff		:= kE2BT+11
-?kLblOn			:= kE2BT+12
-?kLblOff			:= kE2BT+13
-?kL1			:= kE2BT+14
-?kL2			:= kE2BT+15
-?kL3			:= kE2BT+16
-?kL4			:= kE2BT+17
-?kL5			:= kE2BT+18
-?kL6			:= kE2BT+19
+?kDrawInv		:= 0
+?kDrawF			:= 1
+?kPixelOn		:= 2
+?kPixelOff		:= 3
+?kPxlTest		:= 4
+?kRCGDB			:= 5
+?kRCPic			:= 6
+?kSTGDB			:= 7
+?kSTPic			:= 8
+?kAbs			:= 9
+?kTequ 		:= 10 ;==
+?kTNoteQ			:= 11 ;<>
+?kTGT			:= 12 ;>
+?kTGTE			:= 13 ;>=
+?kTLT			:= 14 ;<
+?kTLTE			:= 15 ;<=
+?kAnd			:= 16
+?kOr			:= 17
+?kXor			:= 18
+?kNot			:= 19
+?kLR1			:= 20
+?kXRoot			:= 21
+?kCube			:= 22
+?kCbRt			:= 23 ;Cube ROOT
+?kToDec			:= 24
+?kCubicR			:= 25
+?kQuartR			:= 26
+?kPlot1			:= 27
+?kPlot2			:= 28
+?kRound			:= 29
+?kIPart			:= 30
+?kFPart			:= 31
+?kInt			:= 32
+?kRand			:= 33
+?kNPR			:= 34
+?kNCR			:= 35
+?kXFactorial		:= 36
+?kRad			:= 37
+?kDegr			:= 38 ;DEGREES CONV
+?kAPost			:= 39
+?kToDMS			:= 40
+?kRToPo			:= 41 ;R
+?kRToPr			:= 42
+?kPToRx			:= 43
+?kPToRy			:= 44
+?kRowSwap		:= 45
+?kRowPlus		:= 46
+?kTimRow			:= 47
+?kTRowP			:= 48
+?kSortA			:= 49
+?kSortD			:= 50
+?kSeq			:= 51
+?kMin			:= 52
+?kMax			:= 53
+?kMean			:= 54
+?kMedian			:= 55
+?kSum			:= 56
+?kProd			:= 57
+?kDet			:= 58
+?kTransp			:= 59
+?kDim			:= 60
+?kFill			:= 61
+?kIdent			:= 62
+?kRandm			:= 63
+?kAug			:= 64
+?kOneVar			:= 65
+?kTwoVar			:= 66
+?kLR			:= 67
+?kLRExp			:= 68
+?kLRLn			:= 69
+?kLRPwr			:= 70
+?kMedMed			:= 71
+?kQuad			:= 72
+?kClrLst			:= 73
+?kHist			:= 74
+?kxyLine			:= 75
+?kScatter		:= 76
+?kmRad			:= 77
+?kmDeg			:= 78
+?kmNormF			:= 79
+?kmSci			:= 80
+?kmEng			:= 81
+?kmFloat			:= 82
+?kFix			:= 83
+?kSplitOn		:= 84
+?kFullScreen		:= 85
+?kStndrd			:= 86
+?kParam			:= 87
+?kPolar			:= 88
+?kSeqG			:= 89
+?kAFillOn		:= 90
+?kAFillOff		:= 91
+?kACalcOn		:= 92
+?kACalcOff		:= 93
+?kFNOn			:= 94
+?kFNOff			:= 95
+?kPlotsOn		:= 96
+?kPlotsOff		:= 97
+?kPixelChg		:= 98
+?kSendMBL		:= 99
+?kRecvMBL		:= 100
+?kBoxPlot		:= 101
+?kBoxIcon		:= 102
+?kCrossIcon		:= 103
+?kDotIcon		:= 104
+?kE2BT			:= 105
+?kSeqential		:= 105
+?kSimulG			:= 106
+?kPolarG			:= 107
+?kRectG			:= 108
+?kCoordOn		:= 109
+?kCoordOff		:= 110
+?kDrawLine		:= 111
+?kDrawDot		:= 112
+?kAxisOn			:= 113
+?kAxisOff		:= 114
+?kGridOn			:= 115
+?kGridOff		:= 116
+?kLblOn			:= 117
+?kLblOff			:= 118
+?kL1			:= 119
+?kL2			:= 120
+?kL3			:= 121
+?kL4			:= 122
+?kL5			:= 123
+?kL6			:= 124
 
 ;These keys are laid on top of existing keys to
 ;enable localization in the inferential stats editor.
 ;----------------------------------------------------
-?kinfData		:= kL1
-?kinfStats		:= kL1+1
-?kinfYes			:= kL1+2
-?kinfNo			:= kL1+3
-?kinfCalc		:= kL1+4
-?kinfDraw		:= kL1+5
-?kinfAlt1ne		:= kL1+6
-?kinfAlt1lt		:= kL1+7
-?kinfAlt1gt		:= kL1+8
-?kinfAlt2ne		:= kL1+9
-?kinfAlt2lt		:= kL1+10
-?kinfAlt2gt		:= kL1+11
-?kinfAlt3ne		:= kL1+12
-?kinfAlt3lt		:= kL1+13
-?kinfAlt3gt		:= kL1+14
-?kinfAlt4ne		:= kL1+15
-?kinfAlt4lt		:= kL1+16
-?kinfAlt4gt		:= kL1+17
-?kinfAlt5ne		:= kL1+18
-?kinfAlt5lt		:= kL1+19
-?kinfAlt5gt		:= kL1+20
-?kinfAlt6ne		:= kL1+21
-?kinfAlt6lt		:= kL1+22
-?kinfAlt6gt		:= kL1+23
-?kMatA			:= kE2BT+20
-?kMatB			:= kE2BT+21
-?kMatC			:= kE2BT+22
-?kMatD			:= kE2BT+23
-?kMatE			:= kE2BT+24
-?kXmin			:= kE2BT+25
-?kXmax			:= kE2BT+26
-?kXscl			:= kE2BT+27
-?kYmin			:= kE2BT+28
-?kYmax			:= kE2BT+29
-?kYscl			:= kE2BT+30
-?kTmin			:= kE2BT+31
-?kTmax			:= kE2BT+32
-?kTStep			:= kE2BT+33
-?kOmin			:= kE2BT+34
-?kOmax			:= kE2BT+35
-?kOStep			:= kE2BT+36
-?ku0			:= kE2BT+37
-?kv0			:= kE2BT+38
-?knMin			:= kE2BT+39
-?knMax			:= kE2BT+40
-?kDeltaY			:= kE2BT+41
-?kDeltaX			:= kE2BT+42
-?kZXmin			:= kE2BT+43
-?kZXmax			:= kE2BT+44
-?kZXscl			:= kE2BT+45
-?kZYmin			:= kE2BT+46
-?kZYmax			:= kE2BT+47
-?kZYscl			:= kE2BT+48
-?kZTmin			:= kE2BT+49
-?kZTmax			:= kE2BT+50
-?kZTStep			:= kE2BT+51
-?kZOmin			:= kE2BT+52
-?kZOmax			:= kE2BT+53
-?kZOStep			:= kE2BT+54
-?kZu0			:= kE2BT+55
-?kZv0			:= kE2BT+56
-?kZnMin			:= kE2BT+57
-?kZnMax			:= kE2BT+58
-?kDelLast		:= kE2BT+59
-?kSinReg			:= kE2BT+60
-?kConstE			:= kE2BT+61
-?kPic1			:= kE2BT+62
-?kPic2			:= kE2BT+63
-?kPic3			:= kE2BT+64
-?kDelVar			:= kE2BT+65
-?kGetCalc		:= kE2BT+66
-?kRealM			:= kE2BT+67
-?kPolarM			:= kE2BT+68
-?kRectM			:= kE2BT+69
-?kuv			:= kE2BT+70 ;U vs V
-?kvw			:= kE2BT+71 ;V vs W
-?kuw			:= kE2BT+72 ;U vs W
-?kFinPMTend		:= kE2BT+73
-?kFinPMTbeg		:= kE2BT+74
-?kGraphStyle		:= kE2BT+75
-?kExprOn			:= kE2BT+76
-?kExprOff		:= kE2BT+77
-?kStatA			:= kE2BT+78
-?kStatB			:= kE2BT+79
-?kStatC			:= kE2BT+80
-?kCorr			:= kE2BT+81
-?kStatD			:= kE2BT+82
-?kStatE			:= kE2BT+83
-?kRegEq			:= kE2BT+84
-?kMinX			:= kE2BT+85
-?kQ1			:= kE2BT+86
-?kMD			:= kE2BT+87
-?kQ3			:= kE2BT+88
-?kMaxX			:= kE2BT+89
-?kStatX1			:= kE2BT+90
-?kStatY1			:= kE2BT+91
-?kStatX2			:= kE2BT+92
-?kStatY2			:= kE2BT+93
-?kStatX3			:= kE2BT+94
-?kStatY3			:= kE2BT+95
-?kTblMin			:= kE2BT+96
-?kTblStep		:= kE2BT+97
-?kSetupLst		:= kE2BT+98
-?kClrAllLst		:= kE2BT+99
-?kLogistic		:= kE2BT+100
-?kZTest			:= kE2BT+101
-?kTTest			:= kE2BT+102
-?k2SampZTest		:= kE2BT+103
-?k2SampTTest		:= kE2BT+104
-?k1PropZTest		:= kE2BT+105
-?k2PropZTest		:= kE2BT+106
-?kChiTest		:= kE2BT+107
-?k2SampFTest		:= kE2BT+108
-?kZIntVal		:= kE2BT+109
-?kTIntVal		:= kE2BT+110
-?k2SampTInt		:= kE2BT+111
-?k2SampZInt		:= kE2BT+112
-?k1PropZInt		:= kE2BT+113
-?k2PropZInt		:= kE2BT+114
-?kDNormal		:= kE2BT+115
-?kInvNorm		:= kE2BT+116
-?kDT			:= kE2BT+117
-?kChi			:= kE2BT+118
-?kDF			:= kE2BT+119
-?kBinPDF			:= kE2BT+120
-?kBinCDF			:= kE2BT+121
-?kPoiPDF			:= kE2BT+122
-?kPoiCDF			:= kE2BT+123
-?kun			:= kE2BT+124
-?kvn			:= kE2BT+125
-?kwn			:= kE2BT+126
-?kRecn			:= kE2BT+127
-?kPlotStart		:= kE2BT+128
-?kZPlotStart		:= kE2BT+129 ;recursion n
-?kXFact			:= kE2BT+130 ;PlotStart
-?kYFact			:= kE2BT+131 ;ZPlotStart
-?kANOVA			:= kE2BT+132 ;XFact
-?kMaxY			:= kE2BT+133 ;YFact
-?kWebOn			:= kE2BT+134 ;MinY
-?kWebOff			:= kE2BT+135 ;MaxY
-?kTblInput		:= kE2BT+136 ;WEB ON
-?kGeoPDF			:= kE2BT+137 ;WEB OFF
-?kGeoCDF			:= kE2BT+138 ;WEB OFF
-?kShadeNorm		:= kE2BT+139
-?kShadeT			:= kE2BT+140
-?kShadeChi		:= kE2BT+141
-?kShadeF			:= kE2BT+142
-?kPlotStep		:= kE2BT+143
-?kZPlotStep		:= kE2BT+144
-?kLinRegtTest		:= kE2BT+145
-?KMGT			:= kE2BT+146 ;VERT SPLIT
-?kSelectA		:= kE2BT+147
-?kZFitA			:= kE2BT+148
-?kE2BT_End		:= kZFitA
+?kinfData		:= 119
+?kinfStats		:= 120
+?kinfYes			:= 121
+?kinfNo			:= 122
+?kinfCalc		:= 123
+?kinfDraw		:= 124
+?kinfAlt1ne		:= 125
+?kinfAlt1lt		:= 126
+?kinfAlt1gt		:= 127
+?kinfAlt2ne		:= 128
+?kinfAlt2lt		:= 129
+?kinfAlt2gt		:= 130
+?kinfAlt3ne		:= 131
+?kinfAlt3lt		:= 132
+?kinfAlt3gt		:= 133
+?kinfAlt4ne		:= 134
+?kinfAlt4lt		:= 135
+?kinfAlt4gt		:= 136
+?kinfAlt5ne		:= 137
+?kinfAlt5lt		:= 138
+?kinfAlt5gt		:= 139
+?kinfAlt6ne		:= 140
+?kinfAlt6lt		:= 141
+?kinfAlt6gt		:= 142
+?kMatA			:= 125
+?kMatB			:= 126
+?kMatC			:= 127
+?kMatD			:= 128
+?kMatE			:= 129
+?kXmin			:= 130
+?kXmax			:= 131
+?kXscl			:= 132
+?kYmin			:= 133
+?kYmax			:= 134
+?kYscl			:= 135
+?kTmin			:= 136
+?kTmax			:= 137
+?kTStep			:= 138
+?kOmin			:= 139
+?kOmax			:= 140
+?kOStep			:= 141
+?ku0			:= 142
+?kv0			:= 143
+?knMin			:= 144
+?knMax			:= 145
+?kDeltaY		:= 146
+?kDeltaX		:= 147
+?kZXmin			:= 148
+?kZXmax			:= 149
+?kZXscl			:= 150
+?kZYmin			:= 151
+?kZYmax			:= 152
+?kZYscl			:= 153
+?kZTmin			:= 154
+?kZTmax			:= 155
+?kZTStep		:= 156
+?kZOmin			:= 157
+?kZOmax			:= 158
+?kZOStep		:= 159
+?kZu0			:= 160
+?kZv0			:= 161
+?kZnMin			:= 162
+?kZnMax			:= 163
+?kDelLast		:= 164
+?kSinReg		:= 165
+?kConstE		:= 166
+?kPic1			:= 167
+?kPic2			:= 168
+?kPic3			:= 169
+?kDelVar		:= 170
+?kGetCalc		:= 171
+?kRealM			:= 172
+?kPolarM		:= 173
+?kRectM			:= 174
+?kuv			:= 175 ;U vs V
+?kvw			:= 176 ;V vs W
+?kuw			:= 177 ;U vs W
+?kFinPMTend		:= 178
+?kFinPMTbeg		:= 179
+?kGraphStyle	:= 180
+?kExprOn		:= 181
+?kExprOff		:= 182
+?kStatA			:= 183
+?kStatB			:= 184
+?kStatC			:= 185
+?kCorr			:= 186
+?kStatD			:= 187
+?kStatE			:= 188
+?kRegEq			:= 189
+?kMinX			:= 190
+?kQ1			:= 191
+?kMD			:= 192
+?kQ3			:= 193
+?kMaxX			:= 194
+?kStatX1		:= 195
+?kStatY1		:= 196
+?kStatX2		:= 197
+?kStatY2		:= 198
+?kStatX3		:= 199
+?kStatY3		:= 200
+?kTblMin		:= 201
+?kTblStep		:= 202
+?kSetupLst		:= 203
+?kClrAllLst		:= 204
+?kLogistic		:= 205
+?kZTest			:= 206
+?kTTest			:= 207
+?k2SampZTest	:= 208
+?k2SampTTest	:= 209
+?k1PropZTest	:= 210
+?k2PropZTest	:= 211
+?kChiTest		:= 212
+?k2SampFTest	:= 213
+?kZIntVal		:= 214
+?kTIntVal		:= 215
+?k2SampTInt		:= 216
+?k2SampZInt		:= 217
+?k1PropZInt		:= 218
+?k2PropZInt		:= 219
+?kDNormal		:= 220
+?kInvNorm		:= 221
+?kDT			:= 222
+?kChi			:= 223
+?kDF			:= 224
+?kBinPDF		:= 225
+?kBinCDF		:= 226
+?kPoiPDF		:= 227
+?kPoiCDF		:= 228
+?kun			:= 229
+?kvn			:= 230
+?kwn			:= 231
+?kRecn			:= 232
+?kPlotStart		:= 233
+?kZPlotStart	:= 234 ;recursion n
+?kXFact			:= 235 ;PlotStart
+?kYFact			:= 236 ;ZPlotStart
+?kANOVA			:= 237 ;XFact
+?kMaxY			:= 238 ;YFact
+?kWebOn			:= 239 ;MinY
+?kWebOff		:= 240 ;MaxY
+?kTblInput		:= 241 ;WEB ON
+?kGeoPDF		:= 242 ;WEB OFF
+?kGeoCDF		:= 243 ;WEB OFF
+?kShadeNorm		:= 244
+?kShadeT		:= 245
+?kShadeChi		:= 246
+?kShadeF		:= 247
+?kPlotStep		:= 248
+?kZPlotStep		:= 249
+?kLinRegtTest	:= 250
+?KMGT			:= 251 ;VERT SPLIT
+?kSelectA		:= 252
+?kZFitA			:= 253
+?kE2BT_End		:= 253
+
+; THIS KEY MEANS THAT IT IS A 2 BYTE KEYCODE
+; THERE ARE 3 OF THESE KEYS; BE CAREFUL WITH USAGE
+;--------------------------------------------------------
+?kExtendEcho2		:= 0FCh
 
 ;More 2 Byte Keys
 ;-------------------------------------
 ?kE2BT2			:= 00h
-?kGDB1			:= kE2BT2
-?kGDB2			:= kE2BT2+1
-?kGDB3			:= kE2BT2+2
-?kY1			:= kE2BT2+3
-?kY2			:= kE2BT2+4
-?kY3			:= kE2BT2+5
-?kY4			:= kE2BT2+6
-?kY5			:= kE2BT2+7
-?kY6			:= kE2BT2+8
-?kY7			:= kE2BT2+9
-?kY8			:= kE2BT2+10
-?kY9			:= kE2BT2+11
-?kY0			:= kE2BT2+12
-?kX1T			:= kE2BT2+13
-?kY1T			:= kE2BT2+14
-?kX2T			:= kE2BT2+15
-?kY2T			:= kE2BT2+16
-?kX3T			:= kE2BT2+17
-?kY3T			:= kE2BT2+18
-?kX4T			:= kE2BT2+19
-?kY4T			:= kE2BT2+20
-?kX5T			:= kE2BT2+21
-?kY5T			:= kE2BT2+22
-?kX6T			:= kE2BT2+23
-?kY6T			:= kE2BT2+24
-?kR1			:= kE2BT2+25
-?kR2			:= kE2BT2+26
-?kR3			:= kE2BT2+27
-?kR4			:= kE2BT2+28
-?kR5			:= kE2BT2+29
-?kR6			:= kE2BT2+30
-?kGDB4			:= kE2BT2+31
-?kGDB5			:= kE2BT2+32
-?kGDB6			:= kE2BT2+33
-?kPic4			:= kE2BT2+34
-?kPic5			:= kE2BT2+35
-?kPic6			:= kE2BT2+36
-?kGDB7			:= kE2BT2+37
-?kGDB8			:= kE2BT2+38
-?kGDB9			:= kE2BT2+39
-?kGDB0			:= kE2BT2+40
-?kPic7			:= kE2BT2+41
-?kPic8			:= kE2BT2+42
-?kPic9			:= kE2BT2+43
-?kPic0			:= kE2BT2+44
-?kStatN			:= kE2BT2+45
-?kXMean			:= kE2BT2+46
-?kConj			:= kE2BT2+47
-?kReal			:= kE2BT2+48
-?kFAngle			:= kE2BT2+49
-?kLCM			:= kE2BT2+50
-?kGCD			:= kE2BT2+51
-?kRandInt		:= kE2BT2+52
-?kRandNorm		:= kE2BT2+53
-?kToPolar		:= kE2BT2+54
-?kToRect			:= kE2BT2+55
-?kYMean			:= kE2BT2+56
-?kStdX			:= kE2BT2+57
-?kStdX1			:= kE2BT2+58
-?kw0			:= kE2BT2+59
-?kMatF			:= kE2BT2+60
-?kMatG			:= kE2BT2+61
-?kMatRH			:= kE2BT2+62
-?kMatI			:= kE2BT2+63
-?kMatJ			:= kE2BT2+64
-?kYMean1			:= kE2BT2+65
-?kStdY			:= kE2BT2+66
-?kStdY1			:= kE2BT2+67
-?kMatToLst		:= kE2BT2+68
-?kLstToMat		:= kE2BT2+69
-?kCumSum			:= kE2BT2+70
-?kDeltaLst		:= kE2BT2+71
-?kStdDev			:= kE2BT2+72
-?kVariance		:= kE2BT2+73
-?kLength			:= kE2BT2+74
-?kEquToStrng		:= kE2BT2+75
-?kStrngToequ 		:= kE2BT2+76
-?kExpr			:= kE2BT2+77
-?kSubStrng		:= kE2BT2+78
-?kInStrng		:= kE2BT2+79
-?kStr1			:= kE2BT2+80
-?kStr2			:= kE2BT2+81
-?kStr3			:= kE2BT2+82
-?kStr4		 	:= kE2BT2+83
-?kStr5		 	:= kE2BT2+84
-?kStr6		 	:= kE2BT2+85
-?kStr7		 	:= kE2BT2+86
-?kStr8		 	:= kE2BT2+87
-?kStr9		 	:= kE2BT2+88
-?kStr0		 	:= kE2BT2+89
-?kFinN		 	:= kE2BT2+90
-?kFinI		 	:= kE2BT2+91
-?kFinPV			:= kE2BT2+92
-?kFinPMT			:= kE2BT2+93
-?kFinFV			:= kE2BT2+94
-?kFinPY			:= kE2BT2+95
-?kFinCY			:= kE2BT2+96
-?kFinFPMT		:= kE2BT2+97
-?kFinFI			:= kE2BT2+98
-?kFinFPV			:= kE2BT2+99
-?kFinFN			:= kE2BT2+100
-?kFinFFV			:= kE2BT2+101
-?kFinNPV			:= kE2BT2+102
-?kFinIRR			:= kE2BT2+103
-?kFinBAL			:= kE2BT2+104
-?kFinPRN			:= kE2BT2+105
-?kFinINT			:= kE2BT2+106
-?kSumX		 	:= kE2BT2+107
-?kSumX2			:= kE2BT2+108
-?kFinToNom		:= kE2BT2+109
-?kFinToEff		:= kE2BT2+110
-?kFinDBD			:= kE2BT2+111
-?kStatVP			:= kE2BT2+112
-?kStatZ			:= kE2BT2+113
-?kStatT			:= kE2BT2+114
-?kStatChi		:= kE2BT2+115
-?kStatF			:= kE2BT2+116
-?kStatDF			:= kE2BT2+117
-?kStatPhat		:= kE2BT2+118
-?kStatPhat1		:= kE2BT2+119
-?kStatPhat2		:= kE2BT2+120
-?kStatMeanX1		:= kE2BT2+121
-?kStatMeanX2		:= kE2BT2+122
-?kStatStdX1		:= kE2BT2+123
-?kStatStdX2		:= kE2BT2+124
-?kStatStdXP		:= kE2BT2+125
-?kStatN1			:= kE2BT2+126
-?kStatN2			:= kE2BT2+127
-?kStatLower		:= kE2BT2+128
-?kStatUpper		:= kE2BT2+129
-?kuw0			:= kE2BT2+130
-?kImag			:= kE2BT2+131
-?kSumY			:= kE2BT2+132
-?kXres			:= kE2BT2+133
-?kStat_s			:= kE2BT2+134
-?kSumY2			:= kE2BT2+135
-?kSumXY			:= kE2BT2+136
-?kuXres			:= kE2BT2+137
-?kModBox			:= kE2BT2+138
-?kNormProb		:= kE2BT2+139
-?kNormalPDF		:= kE2BT2+140
-?kTPDF			:= kE2BT2+141
-?kChiPDF			:= kE2BT2+142
-?kFPDF			:= kE2BT2+143
-?kMinY			:= kE2BT2+144 ;MinY
-?kRandBin		:= kE2BT2+145
-?kRef			:= kE2BT2+146
-?kRRef			:= kE2BT2+147
-?kLRSqr			:= kE2BT2+148
-?kBRSqr			:= kE2BT2+149
-?kDiagOn			:= kE2BT2+150
-?kDiagOff		:= kE2BT2+151
-?kun1			:= kE2BT2+152 ;FOR RCL USE WHEN GOTTEN FROM 82
-?kvn1			:= kE2BT2+153 ;FOR RCL USE WHEN GOTTEN FROM 82
-?k83_00End		:= kvn1 ;end of original keys...
-?kArchive		:= k83_00End + 1
-?kUnarchive		:= k83_00End + 2
-?kAsm			:= k83_00End + 3 ;Asm(
-?kAsmPrgm		:= k83_00End + 4 ;AsmPrgm
-?kAsmComp		:= k83_00End + 5 ;AsmComp(
-?kcapAAcute		:= k83_00End + 6
-?kcapAGrave		:= k83_00End + 7
-?kcapACaret		:= k83_00End + 8
-?kcapADier		:= k83_00End + 9
-?kaAcute			:= k83_00End + 10
-?kaGrave			:= k83_00End + 11
-?kaCaret			:= k83_00End + 12
-?kaDier			:= k83_00End + 13
-?kcapEAcute		:= k83_00End + 14
-?kcapEGrave		:= k83_00End + 15
-?kcapECaret		:= k83_00End + 16
-?kcapEDier		:= k83_00End + 17
-?keAcute			:= k83_00End + 18
-?keGrave			:= k83_00End + 19
-?keCaret			:= k83_00End + 20
-?keDier			:= k83_00End + 21
-?kcapIAcute		:= k83_00End + 22
-?kcapIGrave		:= k83_00End + 23
-?kcapICaret		:= k83_00End + 24
-?kcapIDier		:= k83_00End + 25
-?kiAcute			:= k83_00End + 26
-?kiGrave			:= k83_00End + 27
-?kiCaret			:= k83_00End + 28
-?kiDier			:= k83_00End + 29
-?kcapOAcute		:= k83_00End + 30
-?kcapOGrave		:= k83_00End + 31
-?kcapOCaret		:= k83_00End + 32
-?kcapODier		:= k83_00End + 33
-?koAcute			:= k83_00End + 34
-?koGrave			:= k83_00End + 35
-?koCaret			:= k83_00End + 36
-?koDier			:= k83_00End + 37
-?kcapUAcute		:= k83_00End + 38
-?kcapUGrave		:= k83_00End + 39
-?kcapUCaret		:= k83_00End + 40
-?kcapUDier		:= k83_00End + 41
-?kuAcute			:= k83_00End + 42
-?kuGrave			:= k83_00End + 43
-?kuCaret			:= k83_00End + 44
-?kuDier			:= k83_00End + 45
-?kcapCCed		:= k83_00End + 46
-?kcCed			:= k83_00End + 47
-?kcapNTilde		:= k83_00End + 48
-?knTilde			:= k83_00End + 49
-?kaccent			:= k83_00End + 50
-?kgrave			:= k83_00End + 51
-?kdieresis		:= k83_00End + 52
-?kquesDown		:= k83_00End + 53
-?kexclamDown		:= k83_00End + 54
-?kalpha			:= k83_00End + 55
-?kbeta		 	:= k83_00End + 56
-?kgamma			:= k83_00End + 57
-?kcapDelta		:= k83_00End + 58
-?kdelta			:= k83_00End + 59
-?kepsilon		:= k83_00End + 60
-?klambda			:= k83_00End + 61
-?kmu			:= k83_00End + 62
-?kpi2			:= k83_00End + 63
-?krho			:= k83_00End + 64
-?kcapSigma		:= k83_00End + 65
-?ksigma			:= k83_00End + 66
-?ktau			:= k83_00End + 67
-?kphi			:= k83_00End + 68
-?kcapOmega		:= k83_00End + 69
-?kphat			:= k83_00End + 70
-?kchi2			:= k83_00End + 71
-?kstatF2			:= k83_00End + 72
-?kLa			:= k83_00End + 73
-?kLb			:= k83_00End + 74
-?kLc			:= k83_00End + 75
-?kLd			:= k83_00End + 76
-?kLe			:= k83_00End + 77
-?kLf			:= k83_00End + 78
-?kLg			:= k83_00End + 79
-?kLh			:= k83_00End + 80
-?kLi			:= k83_00End + 81
-?kLj			:= k83_00End + 82
-?kLk			:= k83_00End + 83
-?kLl			:= k83_00End + 84
-?kLm			:= k83_00End + 85
-?kLsmalln		:= k83_00End + 86
-?kLo			:= k83_00End + 87
-?kLp			:= k83_00End + 88
-?kLq			:= k83_00End + 89
-?kLsmallr		:= k83_00End + 90
-?kLs			:= k83_00End + 91
-?kLt			:= k83_00End + 92
-?kLu			:= k83_00End + 93
-?kLv			:= k83_00End + 94
-?kLw			:= k83_00End + 95
-?kLx			:= k83_00End + 96
-?kLy			:= k83_00End + 97
-?kLz			:= k83_00End + 98
-?kGarbageC		:= k83_00End + 99 ;GarbageCollect
-?kE2BT2_End		:= kGarbageC
+?kGDB1			:= 00h
+?kGDB2			:= 1
+?kGDB3			:= 2
+?kY1			:= 3
+?kY2			:= 4
+?kY3			:= 5
+?kY4			:= 6
+?kY5			:= 7
+?kY6			:= 8
+?kY7			:= 9
+?kY8			:= 10
+?kY9			:= 11
+?kY0			:= 12
+?kX1T			:= 13
+?kY1T			:= 14
+?kX2T			:= 15
+?kY2T			:= 16
+?kX3T			:= 17
+?kY3T			:= 18
+?kX4T			:= 19
+?kY4T			:= 20
+?kX5T			:= 21
+?kY5T			:= 22
+?kX6T			:= 23
+?kY6T			:= 24
+?kR1			:= 25
+?kR2			:= 26
+?kR3			:= 27
+?kR4			:= 28
+?kR5			:= 29
+?kR6			:= 30
+?kGDB4			:= 31
+?kGDB5			:= 32
+?kGDB6			:= 33
+?kPic4			:= 34
+?kPic5			:= 35
+?kPic6			:= 36
+?kGDB7			:= 37
+?kGDB8			:= 38
+?kGDB9			:= 39
+?kGDB0			:= 40
+?kPic7			:= 41
+?kPic8			:= 42
+?kPic9			:= 43
+?kPic0			:= 44
+?kStatN			:= 45
+?kXMean			:= 46
+?kConj			:= 47
+?kReal			:= 48
+?kFAngle			:= 49
+?kLCM			:= 50
+?kGCD			:= 51
+?kRandInt		:= 52
+?kRandNorm		:= 53
+?kToPolar		:= 54
+?kToRect			:= 55
+?kYMean			:= 56
+?kStdX			:= 57
+?kStdX1			:= 58
+?kw0			:= 59
+?kMatF			:= 60
+?kMatG			:= 61
+?kMatRH			:= 62
+?kMatI			:= 63
+?kMatJ			:= 64
+?kYMean1			:= 65
+?kStdY			:= 66
+?kStdY1			:= 67
+?kMatToLst		:= 68
+?kLstToMat		:= 69
+?kCumSum			:= 70
+?kDeltaLst		:= 71
+?kStdDev			:= 72
+?kVariance		:= 73
+?kLength			:= 74
+?kEquToStrng		:= 75
+?kStrngToequ 		:= 76
+?kExpr			:= 77
+?kSubStrng		:= 78
+?kInStrng		:= 79
+?kStr1			:= 80
+?kStr2			:= 81
+?kStr3			:= 82
+?kStr4		 	:= 83
+?kStr5		 	:= 84
+?kStr6		 	:= 85
+?kStr7		 	:= 86
+?kStr8		 	:= 87
+?kStr9		 	:= 88
+?kStr0		 	:= 89
+?kFinN		 	:= 90
+?kFinI		 	:= 91
+?kFinPV			:= 92
+?kFinPMT			:= 93
+?kFinFV			:= 94
+?kFinPY			:= 95
+?kFinCY			:= 96
+?kFinFPMT		:= 97
+?kFinFI			:= 98
+?kFinFPV			:= 99
+?kFinFN			:= 100
+?kFinFFV			:= 101
+?kFinNPV			:= 102
+?kFinIRR			:= 103
+?kFinBAL			:= 104
+?kFinPRN			:= 105
+?kFinINT			:= 106
+?kSumX		 	:= 107
+?kSumX2			:= 108
+?kFinToNom		:= 109
+?kFinToEff		:= 110
+?kFinDBD			:= 111
+?kStatVP			:= 112
+?kStatZ			:= 113
+?kStatT			:= 114
+?kStatChi		:= 115
+?kStatF			:= 116
+?kStatDF			:= 117
+?kStatPhat		:= 118
+?kStatPhat1		:= 119
+?kStatPhat2		:= 120
+?kStatMeanX1		:= 121
+?kStatMeanX2		:= 122
+?kStatStdX1		:= 123
+?kStatStdX2		:= 124
+?kStatStdXP		:= 125
+?kStatN1			:= 126
+?kStatN2			:= 127
+?kStatLower		:= 128
+?kStatUpper		:= 129
+?kuw0			:= 130
+?kImag			:= 131
+?kSumY			:= 132
+?kXres			:= 133
+?kStat_s			:= 134
+?kSumY2			:= 135
+?kSumXY			:= 136
+?kuXres			:= 137
+?kModBox			:= 138
+?kNormProb		:= 139
+?kNormalPDF		:= 140
+?kTPDF			:= 141
+?kChiPDF			:= 142
+?kFPDF			:= 143
+?kMinY			:= 144 ;MinY
+?kRandBin		:= 145
+?kRef			:= 146
+?kRRef			:= 147
+?kLRSqr			:= 148
+?kBRSqr			:= 149
+?kDiagOn			:= 150
+?kDiagOff		:= 151
+?kun1			:= 152 ;FOR RCL USE WHEN GOTTEN FROM 82
+?kvn1			:= 153 ;FOR RCL USE WHEN GOTTEN FROM 82
+?k83_00End		:= 153 ;end of original keys...
+?kArchive		:= 154
+?kUnarchive		:= 155
+?kAsm			:= 156 ;Asm(
+?kAsmPrgm		:= 157 ;AsmPrgm
+?kAsmComp		:= 158 ;AsmComp(
+?kcapAAcute		:= 159
+?kcapAGrave		:= 160
+?kcapACaret		:= 161
+?kcapADier		:= 162
+?kaAcute		:= 163
+?kaGrave		:= 164
+?kaCaret		:= 165
+?kaDier			:= 166
+?kcapEAcute		:= 167
+?kcapEGrave		:= 168
+?kcapECaret		:= 169
+?kcapEDier		:= 170
+?keAcute		:= 171
+?keGrave		:= 172
+?keCaret		:= 173
+?keDier			:= 174
+?kcapIAcute		:= 175
+?kcapIGrave		:= 176
+?kcapICaret		:= 177
+?kcapIDier		:= 178
+?kiAcute		:= 179
+?kiGrave		:= 180
+?kiCaret		:= 181
+?kiDier			:= 182
+?kcapOAcute		:= 183
+?kcapOGrave		:= 184
+?kcapOCaret		:= 185
+?kcapODier		:= 186
+?koAcute		:= 187
+?koGrave		:= 188
+?koCaret		:= 189
+?koDier			:= 190
+?kcapUAcute		:= 191
+?kcapUGrave		:= 192
+?kcapUCaret		:= 193
+?kcapUDier		:= 194
+?kuAcute		:= 195
+?kuGrave		:= 196
+?kuCaret		:= 197
+?kuDier			:= 198
+?kcapCCed		:= 199
+?kcCed			:= 200
+?kcapNTilde		:= 201
+?knTilde		:= 202
+?kaccent		:= 203
+?kgrave			:= 204
+?kdieresis		:= 205
+?kquesDown		:= 206
+?kexclamDown	:= 207
+?kalpha			:= 208
+?kbeta		 	:= 209
+?kgamma			:= 210
+?kcapDelta		:= 211
+?kdelta			:= 212
+?kepsilon		:= 213
+?klambda		:= 214
+?kmu			:= 215
+?kpi2			:= 216
+?krho			:= 217
+?kcapSigma		:= 218
+?ksigma			:= 219
+?ktau			:= 220
+?kphi			:= 221
+?kcapOmega		:= 222
+?kphat			:= 223
+?kchi2			:= 224
+?kstatF2		:= 225
+?kLa			:= 226
+?kLb			:= 227
+?kLc			:= 228
+?kLd			:= 229
+?kLe			:= 230
+?kLf			:= 231
+?kLg			:= 232
+?kLh			:= 233
+?kLi			:= 234
+?kLj			:= 235
+?kLk			:= 236
+?kLl			:= 237
+?kLm			:= 238
+?kLsmalln		:= 239
+?kLo			:= 240
+?kLp			:= 241
+?kLq			:= 242
+?kLsmallr		:= 243
+?kLs			:= 244
+?kLt			:= 245
+?kLu			:= 246
+?kLv			:= 247
+?kLw			:= 248
+?kLx			:= 249
+?kLy			:= 250
+?kLz			:= 251
+?kGarbageC		:= 252 ;GarbageCollect
+?kE2BT2_End		:= 252
+
+; THIS KEY MEANS THAT IT IS A 2 BYTE KEYCODE
+; UNLESS (EXTECHO) IS 0 THEN IT IS AN OLD 1 BYTE KEYCODE
+; THERE ARE 3 OF THESE KEYS; BE CAREFUL WITH USAGE
+;--------------------------------------------------------
+?kExtendEcho3		:= 0FBh
+
+;Even More 2 Byte Keys
+;-------------------------------------
+?kE2BT3			:= 00h
+?kSingleQuote		:= 1
+?kAt			:= 2
+?kHash			:= 3
+?kDollar			:= 4
+?kAmp			:= 5
+?kBackquote		:= 6
+?kSemicolon		:= 7
+?kBackslash		:= 8
+?kBar			:= 9
+?kUnderscore		:= 10
+?kTilde			:= 11
+?kPercent		:= 12
+?kEllipsis		:= 140
+?kAng			:= 141
+?kSS			:= 142
+?kSupX			:= 143
+?kSubT			:= 144
+?kSub0			:= 145
+?kSub1			:= 146
+?kSub2			:= 147
+?kSub3			:= 148
+?kSub4			:= 149
+?kSub5			:= 150
+?kSub6			:= 151
+?kSub7			:= 152
+?kSub8			:= 153
+?kSub9			:= 154
+?kSub10			:= 155
 
 ;TI-83 Plus Context Equates
 ;--------------------------------------------------------------
-?cxCmd			:= kQuit ;home screen
-?cxMatEdit		:= kMatrixEd ;matrix editor
-?cxPrgmEdit		:= kPrgmEd ;program editor
-?cxEquEdit		:= kYequ ;equation editor
-?cxGrRange		:= kWindow ;graph range editor
-?cxGrZfact		:= kZFactEd ;graph zoom factors editor
-?cxGraph			:= kGraph ;graph mode
-?cxStatEdit		:= kStatEd ;statistics list editor
-?cxPrgmInput		:= kPrgmInput ;programmed input
-?cxError			:= kError ;error handler
-?cxLinkIO		:= kLinkIO ;LINK I/O interface
-?cxMem			:= kResetMem ;reset memory
-?cxDefMem		:= kResetDef ;reset default
-?cxRAMApp		:= kChkRAM ;RAM usage screen
-?cxMode			:= kMode ;mode settings screen
-?cxErase			:= kDelMem ;memory erase
-?cxPrgmCreate		:= kPrgmCr ;PROGRAM CREATE
-?cxTableEditor		:= kTable ;TABLE EDITOR
-?cxTableSet		:= kTblSet ;TABLE SET UP
-?cxStatPlot		:= kStatP ;STAT PLOTS
-?cxInfStat		:= kInfStat ;Inferential Statistic
-?cxFormat		:= kFormat ;FORMAT CONTEXT
-?cxSolveTVM		:= kSolveTVM ;Solve TVM
-?cxSolveRoot		:= kSolveRoot ;Solve Root
-?lastOldApp		:= kExtApps ;external applications
-?cxextapps		:= kExtApps
-?cxNewApps		:= kNewApps ;new cerberus applications
-?cxGroup			:= cxNewApps+0 ;1st new app.
-?cxUnGroup		:= cxNewApps+1 ;2nd new app.
-?lastNewApp		:= cxUnGroup ;last new app for this ver
+?cxCmd			:= 040h ;home screen
+?cxMatEdit		:= 042h ;matrix editor
+?cxPrgmEdit		:= 046h ;program editor
+?cxEquEdit		:= 049h ;equation editor
+?cxGrRange		:= 048h ;graph range editor
+?cxGrZfact		:= 051h ;graph zoom factors editor
+?cxGraph			:= 044h ;graph mode
+?cxStatEdit		:= 043h ;statistics list editor
+?cxPrgmInput		:= 050h ;programmed input
+?cxError			:= 052h ;error handler
+?cxLinkIO		:= 041h ;LINK I/O interface
+?cxMem			:= 04Eh ;reset memory
+?cxDefMem		:= 04Fh ;reset default
+?cxRAMApp		:= 04Ch ;RAM usage screen
+?cxMode			:= 045h ;mode settings screen
+?cxErase			:= 04Dh ;memory erase
+?cxPrgmCreate		:= 047h ;PROGRAM CREATE
+?cxTableEditor		:= 04Ah ;TABLE EDITOR
+?cxTableSet		:= 04Bh ;TABLE SET UP
+?cxStatPlot		:= 055h ;STAT PLOTS
+?cxInfStat		:= 056h ;Inferential Statistic
+?cxFormat		:= 057h ;FORMAT CONTEXT
+?cxSolveTVM		:= 053h ;Solve TVM
+?cxSolveRoot		:= 054h ;Solve Root
+?lastOldApp		:= 058h ;external applications
+?cxextapps		:= 058h
+?cxNewApps		:= 059h ;new cerberus applications
+?cxGroup			:= 059h ;1st new app.
+?cxUnGroup		:= 05Ah ;2nd new app.
+?lastNewApp		:= 05Ah ;last new app for this ver
 
 ;Scan Code Equates
 ;------------------------------
@@ -4795,64 +4858,64 @@ namespace ti?
 ;
 ?DCONV			:= 01h
 ;
-?tToDMS			:= DCONV ;01h
-?tToDEC			:= DCONV+1 ;02h
-?tToAbc			:= DCONV+2 ;03h > A b/c
+?tToDMS			:= 01h
+?tToDEC			:= 02h
+?tToAbc			:= 03h ; > A b/c
 ;
-?tStore			:= DCONV+3 ;04h Lstore 01
+?tStore			:= 04h ; Lstore 01
 ;
 ?tBoxPlot		:= 05h
 ;
 ?BRACKS			:= 06h
 ;
-?tLBrack			:= BRACKS ;06h '['
-?tRBrack			:= BRACKS+1 ;07h ']'
-?tLBrace			:= BRACKS+2 ;08h '{'
-?tRBrace			:= BRACKS+3 ;09h '}'
+?tLBrack			:= 06h ; '['
+?tRBrack			:= 07h ; ']'
+?tLBrace			:= 08h ; '{'
+?tRBrace			:= 09h ; '}'
 ;
-?tPOST1			:= BRACKS+4
+?tPOST1			:= 0Ah
 ;
-?tFromRad		:= tPOST1 ;0Ah Lradian
-?tFromDeg		:= tPOST1+1 ;0Bh Ldegree
-?tRecip			:= tPOST1+2 ;0Ch Linverse
-?tSqr			:= tPOST1+3 ;0Dh Lsquare
-?tTrnspos		:= tPOST1+4 ;0Eh Ltranspose
-?tCube			:= tPOST1+5 ;0Fh ' xor 3'
+?tFromRad		:= 0Ah ; Lradian
+?tFromDeg		:= 0Bh ; Ldegree
+?tRecip			:= 0Ch ; Linverse
+?tSqr			:= 0Dh ; Lsquare
+?tTrnspos		:= 0Eh ; Ltranspose
+?tCube			:= 0Fh ; ' xor 3'
 ;
-?tLParen			:= 10h ;10h '('
-?tRParen			:= 11h ;11h ')'
+?tLParen			:= 10h ; '('
+?tRParen			:= 11h ; ')'
 ;
 ?IMUN			:= 12h
 ;
-?tRound			:= IMUN ;12h 'round'
-?tPxTst			:= IMUN+1 ;13h 'PXL-TEST'
-?tAug			:= IMUN+2 ;14h 'aug'
-?tRowSwap		:= IMUN+3 ;15h 'rSwap'
-?tRowPlus		:= IMUN+4 ;16h 'rAdd'
-?tmRow			:= IMUN+5 ;17h 'multR'
-?tmRowPlus		:= IMUN+6 ;18h 'mRAdd'
-?tMax			:= IMUN+7 ;19h 'max'
-?tMin			:= IMUN+8 ;1Ah 'min'
-?tRToPr			:= IMUN+9 ;1Bh 'R>Pr
-?tRToPo			:= IMUN+10 ;1Ch 'R>Po
-?tPToRx			:= IMUN+11 ;1Dh 'P>Rx
-?tPToRy			:= IMUN+12 ;1Eh 'P>Ry
-?tMedian			:= IMUN+13 ;1Fh 'MEDIAN
-?tRandM			:= IMUN+14 ;20h 'randM'
-?tMean			:= IMUN+15 ;21h
-?tRoot			:= IMUN+16 ;22h 'ROOT'
-?tSeries			:= IMUN+17 ;23h 'seq'
-?tFnInt			:= IMUN+18 ;24h 'fnInt'
-?tNDeriv			:= IMUN+19 ;25h 'fnIr'
-?tEvalF			:= IMUN+20 ;26h
-?tFmin			:= IMUN+21 ;27h
-?tFmax			:= IMUN+22 ;28h
+?tRound			:= 12h ; 'round'
+?tPxTst			:= 13h ; 'PXL-TEST'
+?tAug			:= 14h ; 'aug'
+?tRowSwap		:= 15h ; 'rSwap'
+?tRowPlus		:= 16h ; 'rAdd'
+?tmRow			:= 17h ; 'multR'
+?tmRowPlus		:= 18h ; 'mRAdd'
+?tMax			:= 19h ; 'max'
+?tMin			:= 1Ah ; 'min'
+?tRToPr			:= 1Bh ; 'R>Pr
+?tRToPo			:= 1Ch ; 'R>Po
+?tPToRx			:= 1Dh ; 'P>Rx
+?tPToRy			:= 1Eh ; 'P>Ry
+?tMedian		:= 1Fh ; 'MEDIAN
+?tRandM			:= 20h ; 'randM'
+?tMean			:= 21h
+?tRoot			:= 22h ; 'ROOT'
+?tSeries		:= 23h ; 'seq'
+?tFnInt			:= 24h ; 'fnInt'
+?tNDeriv		:= 25h ; 'fnIr'
+?tEvalF			:= 26h
+?tFmin			:= 27h
+?tFmax			:= 28h
 ;
-?tEOSEL			:= IMUN+23
+?tEOSEL			:= 29h
 ;
-?tSpace			:= tEOSEL ;29h ' '
-?tString			:= tEOSEL+1 ;2Ah '"'
-?tComma			:= tEOSEL+2 ;2Bh ','
+?tSpace			:= 29h ; ' '
+?tString			:= 2Ah ; '"'
+?tComma			:= 2Bh ; ','
 ;
 ?tii			:= 2Ch ;i
 
@@ -4860,27 +4923,27 @@ namespace ti?
 ;-----------------------------------------
 ?tPost			:= 2Dh
 ;
-?tFact			:= tPost ;2Dh '!'
+?tFact			:= 2Dh ; '!'
 ;
 ?tCubicR			:= 2Eh
 ?tQuartR			:= 2Fh
 
-;Number Tokens 
+;Number Tokens
 ;---------------------------------------
 ?NUMS			:= 30h
 ;
-?t0			:= NUMS ;30h
-?t1			:= NUMS+1 ;31h
-?t2			:= NUMS+2 ;32h
-?t3			:= NUMS+3 ;33h
-?t4			:= NUMS+4 ;34h
-?t5			:= NUMS+5 ;35h
-?t6			:= NUMS+6 ;36h
-?t7			:= NUMS+7 ;37h
-?t8			:= NUMS+8 ;38h
-?t9			:= NUMS+9 ;39h
-?tDecPt			:= NUMS+10 ;3Ah
-?tee			:= NUMS+11 ;3Bh
+?t0			:= 30h
+?t1			:= 31h
+?t2			:= 32h
+?t3			:= 33h
+?t4			:= 34h
+?t5			:= 35h
+?t6			:= 36h
+?t7			:= 37h
+?t8			:= 38h
+?t9			:= 39h
+?tDecPt		:= 3Ah
+?tee		:= 3Bh
 
 ;Binary OP
 ;-------------------------------------------
@@ -4894,34 +4957,34 @@ namespace ti?
 
 ;Letter Tokens
 ;--------------------------------------
-?LET			:= 41h
-?tA			:= LET ;41h
-?tB			:= LET+1 ;42h
-?tC			:= LET+2 ;43h
-?tD			:= LET+3 ;44h
-?tE			:= LET+4 ;45h
-?tF			:= LET+5 ;46h
-?tG			:= LET+6 ;47h
-?tH			:= LET+7 ;48h
-?tI			:= LET+8 ;49h
-?tJ			:= LET+9 ;4Ah
-?tK			:= LET+10 ;4Bh
-?tL			:= LET+11 ;4Ch
-?tM			:= LET+12 ;4Dh
-?tN			:= LET+13 ;4Eh
-?tO			:= LET+14 ;4Fh
-?tP			:= LET+15 ;50h
-?tQ			:= LET+16 ;51h
-?tR			:= LET+17 ;52h
-?tS			:= LET+18 ;53h
-?tT			:= LET+19 ;54h
-?tU			:= LET+20 ;55h
-?tV			:= LET+21 ;56h
-?tW			:= LET+22 ;57h
-?tX			:= LET+23 ;58h
-?tY			:= LET+24 ;59h
-?tZ			:= LET+25 ;5Ah
-?tTheta			:= LET+26 ;5Bh
+?LET		:= 41h
+?tA			:= 41h
+?tB			:= 42h
+?tC			:= 43h
+?tD			:= 44h
+?tE			:= 45h
+?tF			:= 46h
+?tG			:= 47h
+?tH			:= 48h
+?tI			:= 49h
+?tJ			:= 4Ah
+?tK			:= 4Bh
+?tL			:= 4Ch
+?tM			:= 4Dh
+?tN			:= 4Eh
+?tO			:= 4Fh
+?tP			:= 50h
+?tQ			:= 51h
+?tR			:= 52h
+?tS			:= 53h
+?tT			:= 54h
+?tU			:= 55h
+?tV			:= 56h
+?tW			:= 57h
+?tX			:= 58h
+?tY			:= 59h
+?tZ			:= 5Ah
+?tTheta		:= 5Bh
 
 ; Extended Tokens
 ;---------------------------
@@ -5016,47 +5079,47 @@ namespace ti?
 ;These Var Tokens Are 1st Of A Double Token
 ;-----------------------------------------------
 
-?vToks			:= LET+27
+?vToks			:= 5Ch
 
 ;User Matrix Token, 2nd Token Needed For Name
 ;
-?tVarMat			:= vToks ;5Ch
+?tVarMat			:= 5Ch
 ;
 ;User List Token, 2nd Token Needed For Name
 ;
-?tVarLst			:= vToks+1 ;5Dh
+?tVarLst			:= 5Dh
 ;
 ;User Equation Token, 2nd Token Needed For Name
 ;
-?tVarequ 		:= vToks+2 ;5Eh
-?tProg			:= vToks+3 ;5Fh
+?tVarequ 		:= 5Eh
+?tProg			:= 5Fh
 ;
 ;User Pict Token, 2nd Token Needed For Name
 ;
-?tVarPict		:= vToks+4 ;60h
+?tVarPict		:= 60h
 ;
 ;User GDB Token, 2nd Token Needed For Name
 ;
-?tVarGDB			:= vToks+5 ;61h
-?tVarOut			:= vToks+6 ;62h
-?tVarSys			:= vToks+7 ;63h
+?tVarGDB			:= 61h
+?tVarOut			:= 62h
+?tVarSys			:= 63h
 
 ;Mode Setting Commands
 ;-------------------------------------------------
-?MODESA			:= vToks+8 ;64h
-?tRad			:= MODESA ;64h 'Radian'
-?tDeg			:= MODESA+1 ;65h 'Degree'
-?tNormF			:= MODESA+2 ;66h 'Normal'
-?tSci			:= MODESA+3 ;67h 'Sci'
-?tEng			:= MODESA+4 ;68h 'Eng'
-?tFloat			:= MODESA+5 ;69h 'Float'
+?MODESA			:= 64h
+?tRad			:= 64h ; 'Radian'
+?tDeg			:= 65h ; 'Degree'
+?tNormF			:= 66h ; 'Normal'
+?tSci			:= 67h ; 'Sci'
+?tEng			:= 68h ; 'Eng'
+?tFloat			:= 69h ; 'Float'
 ?CMPS			:= 6Ah
-?tEQ			:= CMPS ;6Ah '=='
-?tLT			:= CMPS+1 ;6Bh '<'
-?tGT			:= CMPS+2 ;6Ch '>'
-?tLE			:= CMPS+3 ;6Dh LLE
-?tGE			:= CMPS+4 ;6Eh LGE
-?tNE			:= CMPS+5 ;6Fh LNE
+?tEQ			:= 6Ah ; '=='
+?tLT			:= 6Bh ; '<'
+?tGT			:= 6Ch ; '>'
+?tLE			:= 6Dh ; LLE
+?tGE			:= 6Eh ; LGE
+?tNE			:= 6Fh ; LNE
 
 ;Binary OP
 ;---------------------------------------
@@ -5067,21 +5130,21 @@ namespace ti?
 ;Mode Setting Commands
 ;------------------------------------------------------
 ?MODES			:= 73h
-?tFix			:= MODES ;73h 'Fix_'
-?tSplitOn		:= MODES+1 ;74h
-?tFullScreen		:= MODES+2 ;75h
-?tStndrd			:= MODES+3 ;76h 'Func'
-?tParam			:= MODES+4 ;77h 'Param'
-?tPolar			:= MODES+5 ;78h 'Pol'
-?tSeqG			:= MODES+6 ;79h
-?tAFillOn		:= MODES+7 ;7Ah 'AUTO FILL ON'
-?tAFillOff		:= MODES+8 ;7Bh
-?tACalcOn		:= MODES+9 ;7Ch
-?tACalcOff		:= MODES+10 ;7Dh 'AutoFill OFF'
+?tFix			:= 73h ; 'Fix_'
+?tSplitOn		:= 74h
+?tFullScreen	:= 75h
+?tStndrd		:= 76h ; 'Func'
+?tParam			:= 77h ; 'Param'
+?tPolar			:= 78h ; 'Pol'
+?tSeqG			:= 79h
+?tAFillOn		:= 7Ah ; 'AUTO FILL ON'
+?tAFillOff		:= 7Bh
+?tACalcOn		:= 7Ch
+?tACalcOff		:= 7Dh ; 'AutoFill OFF'
 
 ;Graph Format Tokens Are 2 Byte Tokens
 ;----------------------------------------
-?tGFormat		:= MODES+11 ;7Eh
+?tGFormat		:= 7Eh
 ?tBoxIcon		:= 7Fh
 ?tCrossIcon		:= 80h
 ?tDotIcon		:= 81h
@@ -5094,135 +5157,135 @@ namespace ti?
 ;Some Graph Commands
 ;-----------------------------------------------------
 ?GRCMDS			:= 84h
-?tTrace			:= GRCMDS ; 84h 'Trace'
-?tClDrw			:= GRCMDS+1 ; 85h 'ClDrw'
-?tZoomStd		:= GRCMDS+2 ; 86h 'ZStd'
-?tZoomtrg		:= GRCMDS+3 ; 87h 'Ztrg'
-?tZoomBox		:= GRCMDS+4 ; 88h 'ZBOX'
-?tZoomIn			:= GRCMDS+5 ; 89h 'ZIn'
-?tZoomOut		:= GRCMDS+6 ; 8Ah 'ZOut'
-?tZoomSqr		:= GRCMDS+7 ; 8Bh 'ZSqr'
-?tZoomInt		:= GRCMDS+8 ; 8Ch 'ZInt'
-?tZoomPrev		:= GRCMDS+9 ; 8Dh 'ZPrev'
-?tZoomDec		:= GRCMDS+10 ; 8Eh 'ZDecm'
-?tZoomStat		:= GRCMDS+11 ; 8Fh 'ZStat
-?tUsrZm			:= GRCMDS+12 ; 90h 'ZRcl'
-?tPrtScrn		:= GRCMDS+13 ; 91h 'PrtScrn'
-?tZoomSto		:= GRCMDS+14 ; 92h  ZOOM STORE
-?tText			:= GRCMDS+15 ; 93h
+?tTrace			:= 84h ; 'Trace'
+?tClDrw			:= 85h ; 'ClDrw'
+?tZoomStd		:= 86h ; 'ZStd'
+?tZoomtrg		:= 87h ; 'Ztrg'
+?tZoomBox		:= 88h ; 'ZBOX'
+?tZoomIn		:= 89h ; 'ZIn'
+?tZoomOut		:= 8Ah ; 'ZOut'
+?tZoomSqr		:= 8Bh ; 'ZSqr'
+?tZoomInt		:= 8Ch ; 'ZInt'
+?tZoomPrev		:= 8Dh ; 'ZPrev'
+?tZoomDec		:= 8Eh ; 'ZDecm'
+?tZoomStat		:= 8Fh ; 'ZStat
+?tUsrZm			:= 90h ; 'ZRcl'
+?tPrtScrn		:= 91h ; 'PrtScrn'
+?tZoomSto		:= 92h ; ZOOM STORE
+?tText			:= 93h
 
 ;Binary OP (Combination and Permutation)
 ;-------------------------------------------------
-?tnPr			:= GRCMDS+16 ;94h '_nPr_'
-?tnCr			:= GRCMDS+17 ;95h '_nCr_'
+?tnPr			:= 94h ; '_nPr_'
+?tnCr			:= 95h ; '_nCr_'
 
 ;More Graph Commands
 ;--------------------------------------------------
-?tYOn			:= GRCMDS+18 ;96h 'FnOn_'
-?tYOff			:= GRCMDS+19 ;97h 'FnOff_'
-?tStPic			:= GRCMDS+20 ;98h 'StPic_'
-?tRcPic			:= GRCMDS+21 ;99h 'RcPic_'
-?tStoDB			:= GRCMDS+22 ;9Ah 'StGDB_'
-?tRclDB			:= GRCMDS+23 ;9Bh 'RcGDB_'
-?tLine			:= GRCMDS+24 ;9Ch 'Line'
-?tVert			:= GRCMDS+25 ;9Dh 'Vert_'
-?tPtOn			:= GRCMDS+26 ;9Eh 'PtOn'
-?tPtOff			:= GRCMDS+27 ;9Fh 'PtOff'
+?tYOn			:= 96h ; 'FnOn_'
+?tYOff			:= 97h ; 'FnOff_'
+?tStPic			:= 98h ; 'StPic_'
+?tRcPic			:= 99h ; 'RcPic_'
+?tStoDB			:= 9Ah ; 'StGDB_'
+?tRclDB			:= 9Bh ; 'RcGDB_'
+?tLine			:= 9Ch ; 'Line'
+?tVert			:= 9Dh ; 'Vert_'
+?tPtOn			:= 9Eh ; 'PtOn'
+?tPtOff			:= 9Fh ; 'PtOff'
 
 ;Token A0 Cannot Be An EOS Function Since Low MULT=A0 Already
 ;-----------------------------------------------------
-?tPtChg			:= GRCMDS+28 ;A0h 'PtChg'
-?tPXOn			:= GRCMDS+29 ;A1h
-?tPXOff			:= GRCMDS+30 ;A2h
-?tPXChg			:= GRCMDS+31 ;A3h
-?tShade			:= GRCMDS+32 ;A4h 'Shade'
-?tCircl			:= GRCMDS+33 ;A5h 'Circl'
-?tHorz			:= GRCMDS+34 ;A6h 'HORIZONTAL'
-?tTanLn			:= GRCMDS+35 ;A7h 'TanLn'
-?tDrInv			:= GRCMDS+36 ;A8h 'DrInv_'
-?tDrawF			:= GRCMDS+37 ;A9h 'DrawF_'
+?tPtChg			:= A0h ; 'PtChg'
+?tPXOn			:= A1h
+?tPXOff			:= A2h
+?tPXChg			:= A3h
+?tShade			:= A4h ; 'Shade'
+?tCircl			:= A5h ; 'Circl'
+?tHorz			:= A6h ; 'HORIZONTAL'
+?tTanLn			:= A7h ; 'TanLn'
+?tDrInv			:= A8h ; 'DrInv_'
+?tDrawF			:= A9h ; 'DrawF_'
 ?tVarStrng		:= 0AAh
 
 ;Functions with No Arguments
 ;--------------------------------------------------
 ?NOARG			:= 0ABh
-?tRand			:= NOARG ;ABh 'rand'
-?tPi			:= NOARG+1 ;ACh  Lpi
-?tGetKey			:= NOARG+2 ;ADh 'getKy'
-?tAPost			:= tGetKey+1 ;APOSTROPHY
-?tQuest			:= tAPost+1 ;QUESTION MARK
-?UNARY			:= tQuest+1 ;B0h
-?tChs			:= UNARY ;B0h
-?tInt			:= UNARY+1 ;B1h
-?tAbs			:= UNARY+2 ;B2h
-?tDet			:= UNARY+3 ;B3h
-?tIdent			:= UNARY+4 ;B4h
-?tDim			:= UNARY+5 ;B5h
-?tSum			:= UNARY+6 ;B6h
-?tProd			:= UNARY+7 ;B7h
-?tNot			:= UNARY+8 ;B8h
-?tIPart			:= UNARY+9 ;B9h
-?tFPart			:= UNARY+10 ;BAh
+?tRand			:= ABh ; 'rand'
+?tPi			:= ACh ; Lpi
+?tGetKey		:= ADh ; 'getKy'
+?tAPost			:= AEh ;APOSTROPHY
+?tQuest			:= AFh ;QUESTION MARK
+?UNARY			:= B0h
+?tChs			:= B0h
+?tInt			:= B1h
+?tAbs			:= B2h
+?tDet			:= B3h
+?tIdent			:= B4h
+?tDim			:= B5h
+?tSum			:= B6h
+?tProd			:= B7h
+?tNot			:= B8h
+?tIPart			:= B9h
+?tFPart			:= BAh
 
 ;New 2 Byte Tokens
 ;------------------------------------------
 ?t2ByteTok		:= 0BBh
-?UNARYLR			:= UNARY+12
-?tSqrt			:= UNARYLR ;BCh
-?tCubRt			:= UNARYLR+1 ;BDh
-?tLn			:= UNARYLR+2 ;BEh
-?tExp			:= UNARYLR+3 ;BFh
-?tLog			:= UNARYLR+4 ;C0h
-?tALog			:= UNARYLR+5 ;C1h
-?tSin			:= UNARYLR+6 ;C2h
-?tASin			:= UNARYLR+7 ;C3h
-?tCos			:= UNARYLR+8 ;C4h
-?tACos			:= UNARYLR+9 ;C5h
-?tTan			:= UNARYLR+10 ;C6h
-?tATan			:= UNARYLR+11 ;C7h
-?tSinH			:= UNARYLR+12 ;C8h
-?tASinH			:= UNARYLR+13 ;C9h
-?tCoshH			:= UNARYLR+14 ;CAh
-?tACosH			:= UNARYLR+15 ;CBh
-?tTanH			:= UNARYLR+16 ;CCh
-?tATanH			:= UNARYLR+17 ;CDh
+?UNARYLR		:= BCh
+?tSqrt			:=BCh
+?tCubRt			:=BDh
+?tLn			:=BEh
+?tExp			:=BFh
+?tLog			:=C0h
+?tALog			:=C1h
+?tSin			:=C2h
+?tASin			:=C3h
+?tCos			:=C4h
+?tACos			:=C5h
+?tTan			:=C6h
+?tATan			:=C7h
+?tSinH			:=C8h
+?tASinH			:=C9h
+?tCoshH			:=CAh
+?tACosH			:=CBh
+?tTanH			:=CCh
+?tATanH			:=CDh
 
 ;Some Programming Commands
 ;---------------------------------------------------
-?PROGTOK			:= UNARYLR+18
-?tIf			:= PROGTOK ;CEh
-?tThen			:= PROGTOK+1 ;CFh
-?tElse			:= PROGTOK+2 ;D0h
-?tWhile			:= PROGTOK+3 ;D1h
-?tRepeat			:= PROGTOK+4 ;D2h
-?tFor			:= PROGTOK+5 ;D3h
-?tEnd			:= PROGTOK+6 ;D4h
-?tReturn			:= PROGTOK+7 ;D5h
-?tLbl			:= PROGTOK+8 ;D6h 'Lbl_'
-?tGoto			:= PROGTOK+9 ;D7h 'Goto_'
-?tPause			:= PROGTOK+10 ;D8h 'Pause_'
-?tStop			:= PROGTOK+11 ;D9h 'Stop'
-?tISG			:= PROGTOK+12 ;DAh 'IS>'
-?tDSL			:= PROGTOK+13 ;DBh 'DS<'
-?tInput			:= PROGTOK+14 ;DCh 'Input_'
-?tPrompt			:= PROGTOK+15 ;DDh 'Prompt_'
-?tDisp			:= PROGTOK+16 ;DEh 'Disp_'
-?tDispG			:= PROGTOK+17 ;DFh 'DispG'
-?tOutput			:= PROGTOK+18 ;E0h 'Outpt'
-?tClLCD			:= PROGTOK+19 ;E1h 'ClLCD'
-?tConst			:= PROGTOK+20 ;E2h 'Fill'
-?tSortA			:= PROGTOK+21 ;E3h 'sortA_'
-?tSortD			:= PROGTOK+22 ;E4h 'sortD_'
-?tDispTab		:= PROGTOK+23 ;E5h 'Disp Table
-?tMenu			:= PROGTOK+24 ;E6h 'Menu'
-?tSendMBL		:= PROGTOK+25 ;E7h 'SEND'
-?tGetMBL			:= PROGTOK+26 ;E8h 'GET'
+?PROGTOK		:= CEh
+?tIf			:= CEh
+?tThen			:= CFh
+?tElse			:= D0h
+?tWhile			:= D1h
+?tRepeat		:= D2h
+?tFor			:= D3h
+?tEnd			:= D4h
+?tReturn		:= D5h
+?tLbl			:= D6h ; 'Lbl_'
+?tGoto			:= D7h ; 'Goto_'
+?tPause			:= D8h ; 'Pause_'
+?tStop			:= D9h ; 'Stop'
+?tISG			:= DAh ; 'IS>'
+?tDSL			:= DBh ; 'DS<'
+?tInput			:= DCh ; 'Input_'
+?tPrompt		:= DDh ; 'Prompt_'
+?tDisp			:= DEh ; 'Disp_'
+?tDispG			:= DFh ; 'DispG'
+?tOutput		:= E0h ; 'Outpt'
+?tClLCD			:= E1h ; 'ClLCD'
+?tConst			:= E2h ; 'Fill'
+?tSortA			:= E3h ; 'sortA_'
+?tSortD			:= E4h ; 'sortD_'
+?tDispTab		:= E5h ; 'Disp Table
+?tMenu			:= E6h ; 'Menu'
+?tSendMBL		:= E7h ; 'SEND'
+?tGetMBL		:= E8h ; 'GET'
 
 ;Stat Plot Commands
 ;-----------------------------------------------------
-?statPCmd		:= PROGTOK+27
-?tPlotOn			:= statPCmd ;E9h ' PLOTSON'
-?tPlotOff		:= statPCmd+1 ;EAh ' PLOTSOFF
+?statPCmd		:= E9h
+?tPlotOn		:= E9h ; ' PLOTSON'
+?tPlotOff		:= EAh ; ' PLOTSOFF
 ?tListName		:= 0EBh ;LIST DESignATOR
 ?tPlot1			:= 0ECh
 ?tPlot2			:= 0EDh
@@ -5230,45 +5293,45 @@ namespace ti?
 ?tUnused01		:= 0EFh ;available?
 ?tPower			:= 0F0h ;' xor '
 ?tXRoot			:= 0F1h ;LsupX,Lroot
-?STATCMD			:= 0F2h
-?tOneVar			:= STATCMD ;F2h 'OneVar_'
-?tTwoVar			:= STATCMD+1 ;F3h
-?tLR			:= STATCMD+2 ;F4h 'LinR(A+BX
-?tLRExp			:= STATCMD+3 ;F5h 'ExpR_'
-?tLRLn			:= STATCMD+4 ;F6h 'LnR_'
-?tLRPwr			:= STATCMD+5 ;F7h 'PwrR_'
-?tMedMed			:= STATCMD+6 ;F8h
-?tQuad			:= STATCMD+7 ;F9h
-?tClrLst			:= STATCMD+8 ;FAh 'CLEAR LIST
-?tClrTbl			:= STATCMD+9 ;FBh CLEAR TABLE
-?tHist			:= STATCMD+10 ;FCh 'Hist_'
-?txyLine			:= STATCMD+11 ;FDh 'xyline_'
-?tScatter		:= STATCMD+12 ;FEh 'Scatter_'
-?tLR1			:= STATCMD+13 ;FFh 'LINR(AX+B
+?STATCMD		:= 0F2h
+?tOneVar		:= F2h ; 'OneVar_'
+?tTwoVar		:= F3h
+?tLR			:= F4h ; 'LinR(A+BX
+?tLRExp			:= F5h ; 'ExpR_'
+?tLRLn			:= F6h ; 'LnR_'
+?tLRPwr			:= F7h ; 'PwrR_'
+?tMedMed		:= F8h
+?tQuad			:= F9h
+?tClrLst		:= FAh ; CLEAR LIST
+?tClrTbl		:= FBh ; CLEAR TABLE
+?tHist			:= FCh ; 'Hist_'
+?txyLine		:= FDh ; 'xyline_'
+?tScatter		:= FEh ; 'Scatter_'
+?tLR1			:= FFh ; 'LINR(AX+B
 
 ;2nd Half Of Graph Format Tokens
 ;Format settings commands
 ;---------------------------------------------
 ?GFMT			:= 00h
-?tSeq			:= GFMT ; 'SeqG'
-?tSimulG			:= GFMT+1 ; 'SimulG'
-?tPolarG			:= GFMT+2 ; 'PolarGC'
-?tRectG			:= GFMT+3 ; 'RectGC'
-?tCoordOn		:= GFMT+4 ; 'CoordOn'
-?tCoordOff		:= GFMT+5 ; 'CoordOff'
-?tDrawLine		:= GFMT+6 ; 'DrawLine'
-?tDrawDot		:= GFMT+7 ; 'DrawDot'
-?tAxisOn			:= GFMT+8 ; 'AxesOn'
-?tAxisOff		:= GFMT+9 ; 'AxesOff'
-?tGridOn			:= GFMT+10 ; 'GridOn'
-?tGridOff		:= GFMT+11 ; 'GridOff'
-?tLblOn			:= GFMT+12 ; 'LabelOn'
-?tLblOff			:= GFMT+13 ; 'LabelOff'
-?tWebOn			:= GFMT+14 ; 'WebOn'
-?tWebOff			:= GFMT+15 ; 'WebOFF'
-?tuv			:= GFMT+16 ; U vs V
-?tvw			:= GFMT+17 ; V vs W
-?tuw			:= GFMT+18 ; U vs W
+?tSeq			:= 0 ; 'SeqG'
+?tSimulG		:= 1 ; 'SimulG'
+?tPolarG		:= 2 ; 'PolarGC'
+?tRectG			:= 3 ; 'RectGC'
+?tCoordOn		:= 4 ; 'CoordOn'
+?tCoordOff		:= 5 ; 'CoordOff'
+?tDrawLine		:= 6 ; 'DrawLine'
+?tDrawDot		:= 7 ; 'DrawDot'
+?tAxisOn		:= 8 ; 'AxesOn'
+?tAxisOff		:= 9 ; 'AxesOff'
+?tGridOn		:= 10 ; 'GridOn'
+?tGridOff		:= 11 ; 'GridOff'
+?tLblOn			:= 12 ; 'LabelOn'
+?tLblOff		:= 13 ; 'LabelOff'
+?tWebOn			:= 14 ; 'WebOn'
+?tWebOff		:= 15 ; 'WebOFF'
+?tuv			:= 16 ; U vs V
+?tvw			:= 17 ; V vs W
+?tuw			:= 18 ; U vs W
 
 ;2nd Half Of User Matrix Tokens
 ;-------------------------------------
@@ -5714,6 +5777,10 @@ namespace ti?
 
 ;Data Type Equates
 ;---------------------------------------------------------------------
+?varTypeMask        := 1Fh
+?varGraphRef        := 6
+?dataTypeMask       := 3Fh
+
 ?RealObj			:= 0
 ?ListObj			:= 1
 ?MatObj			:= 2
@@ -5738,63 +5805,79 @@ namespace ti?
 ?AppVarObj		:= 15h	;application variable
 ?TempProgObj		:= 16h ;program, home deletes when finished
 ?GroupObj		:= 17h ;group.
+?FracObj        := 18h
+;               := 19h
+?ImageObj       := 1Ah
+?CFracObj       := 1Bh
+?RadObj         := 1Ch
+?CRadObj        := 1Dh
+?CPiObj         := 1Eh
+?CPiFracObj     := 1Fh
+?PiObj          := 20h
+?PiFracObj      := 21h
 
 ;System Error Codes
 ;-----------------------------------------------------------
 ?E_EDITF			:= 7 ;allow re-entering application
-?E_EDIT			:= 1 shl E_EDITF
+?E_EDIT			:= 128
 ?E_Mask			:= 7Fh
-?E_Overflow		:= 1+E_EDIT
-?E_DivBy0		:= 2+E_EDIT
-?E_SingularMat		:= 3+E_EDIT
-?E_Domain		:= 4+E_EDIT
-?E_Increment		:= 5+E_EDIT
-?E_Break			:= 6+E_EDIT
-?E_NonReal		:= 7+E_EDIT
-?E_Syntax		:= 8+E_EDIT
-?E_DataType		:= 9+E_EDIT
-?E_Argument		:= 10+E_EDIT
-?E_DimMismatch		:= 11+E_EDIT
-?E_Dimension		:= 12+E_EDIT
-?E_Undefined		:= 13+E_EDIT
-?E_Memory		:= 14+E_EDIT		; 142
-?E_Invalid		:= 15+E_EDIT		; 143
-?E_IllegalNest		:= 16+E_EDIT		; 144
-?E_Bound			:= 17+E_EDIT		; 145
-?E_GraphRange		:= 18+E_EDIT		; 146
-?E_Zoom			:= 19+E_EDIT		; 147
-?E_Label			:= 20			; 148
+?E_Overflow		:= 129
+?E_DivBy0		:= 130
+?E_SingularMat	:= 131
+?E_Domain		:= 132
+?E_Increment	:= 133
+?E_Break		:= 134
+?E_NonReal		:= 135
+?E_Syntax		:= 136
+?E_DataType		:= 137
+?E_Argument		:= 138
+?E_DimMismatch	:= 139
+?E_Dimension	:= 140
+?E_Undefined	:= 141
+?E_Memory		:= 142
+?E_Invalid		:= 143
+?E_IllegalNest	:= 144
+?E_Bound		:= 145
+?E_GraphRange	:= 146
+?E_Zoom			:= 147
+?E_Label		:= 20			; 148
 ?E_Stat			:= 21			; 149
-?E_Solver		:= 22+E_EDIT
-?E_Singularity		:= 23+E_EDIT
-?E_SignChange		:= 24+E_EDIT
-?E_Iterations		:= 25+E_EDIT
-?E_BadGuess		:= 26+E_EDIT
+?E_Solver		:= 150
+?E_Singularity	:= 151
+?E_SignChange	:= 152
+?E_Iterations	:= 153
+?E_BadGuess		:= 154
 ?E_StatPlo		:= 27
-?E_TolTooSmall		:= 28+E_EDIT
-?E_Reserved		:= 29+E_EDIT
-?E_Mode			:= 30+E_EDIT
-?E_LnkErr		:= 31+E_EDIT
-?E_LnkMemErr		:= 32+E_EDIT
-?E_LnkTransErr		:= 33+E_EDIT
-?E_LnkDupErr		:= 34+E_EDIT
-?E_LnkMemFull		:= 35+E_EDIT
-?E_Unknown		:= 36+E_EDIT
-?E_Scale			:= 37+E_EDIT
-?E_IdNotFound		:= 38
-?E_NoMode		:= 39+E_EDIT
-?E_Validation		:= 40
-?E_Length		:= 41+E_EDIT
-?E_Application		:= 42+E_EDIT
-?E_AppErr1		:= 43+E_EDIT
-?E_AppErr2		:= 44+E_EDIT
-?E_ExpiredApp		:= 45
+?E_TolTooSmall	:= 156
+?E_Reserved		:= 157
+?E_Mode			:= 158
+?E_LnkErr		:= 159
+?E_LnkMemErr	:= 160
+?E_LnkTransErr	:= 161
+?E_LnkDupErr	:= 162
+?E_LnkMemFull	:= 163
+?E_Unknown		:= 164
+?E_Scale		:= 165
+?E_IdNotFound	:= 38
+?E_NoMode		:= 167
+?E_Validation	:= 40
+?E_Length		:= 168
+?E_Application	:= 169
+?E_AppErr1		:= 170
+?E_AppErr2		:= 171
+?E_ExpiredApp	:= 45
 ?E_BadAdd		:= 46
-?E_Archived		:= 47+E_EDIT
+?E_Archived		:= 174
 ?E_Version		:= 48
 ?E_ArchFull		:= 49
-?E_Variable		:= 50+E_EDIT
-?E_Duplicate		:= 51+E_EDIT
+?E_Variable		:= 177
+?E_Duplicate	:= 178
+?E_Date         := 179
+?E_UnknownCmd   := 180
+?E_OverLimit    := 54
+?E_Disabled     := 55
+?E_Xmit         := 56
+?E_MemFull      := 57
 
 ;System Variable Equates
 ;------------------------------
@@ -5832,65 +5915,64 @@ namespace ti?
 ;Equates To RAM Locations For Stat Vars
 ;----------------------------------------------------------------
 ?FPLEN			:= 9 ;Length of a floating-point number.
-?StatN			:= statVars
-?XMean			:= StatN + FPLEN
-?SumX			:= XMean + FPLEN
-?SumXSqr			:= SumX + FPLEN
-?StdX			:= SumXSqr + FPLEN
-?StdPX			:= StdX + FPLEN
-?MinX			:= StdPX + FPLEN
-?MaxX			:= MinX + FPLEN
-?MinY			:= MaxX + FPLEN
-?MaxY			:= MinY + FPLEN
-?YMean			:= MaxY + FPLEN
-?SumY			:= YMean + FPLEN
-?SumYSqr			:= SumY + FPLEN
-?StdY			:= SumYSqr + FPLEN
-?StdPY			:= StdY + FPLEN
-?SumXY			:= StdPY + FPLEN
-?Corr			:= SumXY + FPLEN
-?MedX			:= Corr + FPLEN
-?Q1			:= MedX + FPLEN
-?Q3			:= Q1 + FPLEN
-?QuadA			:= Q3 + FPLEN
-?QuadB			:= QuadA + FPLEN
-?QuadC			:= QuadB + FPLEN
-?CubeD			:= QuadC + FPLEN
-?QuartE			:= CubeD + FPLEN
-?MedX1			:= QuartE + FPLEN
-?MedX2			:= MedX1 + FPLEN
-?MedX3			:= MedX2 + FPLEN
-?MedY1			:= MedX3 + FPLEN
-?MedY2			:= MedY1 + FPLEN
-?MedY3			:= MedY2 + FPLEN
-?PStat			:= MedY3 + (2*FPLEN)
-?ZStat			:= PStat + FPLEN
-?TStat			:= ZStat + FPLEN
-?ChiStat			:= TStat + FPLEN
-?FStat			:= ChiStat + FPLEN
-?DF			:= FStat + FPLEN
-?Phat			:= DF + FPLEN
-?Phat1			:= Phat + FPLEN
-?Phat2			:= Phat1 + FPLEN
-?MeanX1			:= Phat2 + FPLEN
-?StdX1			:= MeanX1 + FPLEN
-?StatN1			:= StdX1 + FPLEN
-?MeanX2			:= StatN1 + FPLEN
-?StdX2			:= MeanX2 + FPLEN
-?StatN2			:= StdX2 + FPLEN
-?StdXP2			:= StatN2 + FPLEN
-?SLower			:= StdXP2 + FPLEN
-?SUpper			:= SLower + FPLEN
-?SStat			:= SUpper + FPLEN
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-; Bloody hell
-;?F_DF			:= anovaf_vars
-;?F_SS			:= F_DF + FPLEN
-;?F_MS			:= F_SS + FPLEN
-;?E_DF			:= F_MS + FPLEN
-;?E_SS			:= E_DF + FPLEN
-;?E_MS			:= E_SS + FPLEN
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+?StatN			:= 0D01191h
+?XMean			:= D0119Ah
+?SumX			:= D011A3h
+?SumXSqr		:= D011ACh
+?StdX			:= D011B5h
+?StdPX			:= D011BEh
+?MinX			:= D011C7h
+?MaxX			:= D011D0h
+?MinY			:= D011D9h
+?MaxY			:= D011E2h
+?YMean			:= D011EBh
+?SumY			:= D011F4h
+?SumYSqr		:= D011FDh
+?StdY			:= D01206h
+?StdPY			:= D0120Fh
+?SumXY			:= D01218h
+?Corr			:= D01221h
+?MedX			:= D0122Ah
+?Q1				:= D01233h
+?Q3				:= D0123Ch
+?QuadA			:= D01245h
+?QuadB			:= D0124Eh
+?QuadC			:= D01257h
+?CubeD			:= D01260h
+?QuartE			:= D01269h
+?MedX1			:= D01272h
+?MedX2			:= D0127Bh
+?MedX3			:= D01284h
+?MedY1			:= D0128Dh
+?MedY2			:= D01296h
+?MedY3			:= D0129Fh
+?PStat			:= D012B1h
+?ZStat			:= D012BAh
+?TStat			:= D012C3h
+?ChiStat		:= D012CCh
+?FStat			:= D012D5h
+?DF				:= D012DEh
+?Phat			:= D012E7h
+?Phat1			:= D012F0h
+?Phat2			:= D012F9h
+?MeanX1			:= D01302h
+?StdX1			:= D0130Bh
+?StatN1			:= D01314h
+?MeanX2			:= D0131Dh
+?StdX2			:= D01326h
+?StatN2			:= D0132Fh
+?StdXP2			:= D01338h
+?SLower			:= D01341h
+?SUpper			:= D0134Ah
+?SStat			:= D01353h
+?anovaf_vars	:= D0135Ch
+?F_DF			:= D0135Ch
+?F_SS			:= D01365h
+?F_MS			:= D0136Eh
+?E_DF			:= D01377h
+?E_SS			:= D01380h
+?E_MS			:= D01389h
+
 
 ;System Flags
 ;----------------------------------------------------------------------
@@ -6015,14 +6097,14 @@ namespace ti?
 ?appCurWord		:= 6		;1=text cursor covers entire word
 ?appExit 		:= 7		;1=application handles [EXIT] key itself
 
-?appWantIntrptF		:= 1 shl appWantIntrpt
-?appTextSaveF		:= 1 shl appTextSave
-?appAutoScrollF		:= 1 shl appAutoScroll
-?appMenusF		:= 1 shl appMenus
-?appLockMenusF		:= 1 shl appLockMenus
-?appCurGraphicF		:= 1 shl appCurGraphic
-?appCurWordF		:= 1 shl appCurWord
-?appExitF		:= 1 shl appExit
+?appWantIntrptF		:= 1
+?appTextSaveF		:= 2
+?appAutoScrollF		:= 4
+?appMenusF			:= 8
+?appLockMenusF		:= 16
+?appCurGraphicF		:= 32
+?appCurWordF		:= 64
+?appExitF			:= 128
 ;----------------------------------------------------------------------
 ?rclFlag			:= 0Eh		;OS recall queue flags
 ?enableQueue		:= 7		;1 = enable recall queue
@@ -6095,9 +6177,6 @@ namespace ti?
 ;There is a flag 1Dh.
 ;----------------------------------------------------------------------
 ;There is a flag 1Eh.
-;----------------------------------------------------------------------
-?varTypeMask		:= 1Fh		;is this a flag byte? yes
-?varGraphRef		:= 6
 ;----------------------------------------------------------------------
 ?graphFlags2		:= 1Fh
 ?splitOverride		:= 3		;0 = force full screen with ParseInp, or something
@@ -6228,10 +6307,18 @@ namespace ti?
 ?mathprintEnabled	:= 5		;1 = use mathprint styling
 ;----------------------------------------------------------------------
 ?InitialBootMenuFlags	:= 45h
+?statWizards            := 2        ; 1 = stat wizards off
 ?dispinitialBootMenu	:= 4		; 1 = don't display the initial boot menu
 ;----------------------------------------------------------------------
 ?backlightFlags		:= 46h
 ?restoreBrightness	:= 0		;1 = restore lcd brightness when needed
+;----------------------------------------------------------------------
+?asymptoteFlags     := 47h
+?detectAsymptotes   := 0        ; 1 = detect asymptotes off
+;----------------------------------------------------------------------
+?fracFlags          := 48h
+?mixedFractions     := 0        ; 1 = display mixed fractions (Un/d)
+?answersAuto        := 1        ; 1 = display decimal answers
 ;----------------------------------------------------------------------
 ?grFlags			:= 4Ah
 ?drawGrLbls		:= 0		;1 = don't draw Graph Labels (this is usually reset anyway)
@@ -6242,6 +6329,9 @@ namespace ti?
 ;----------------------------------------------------------------------
 ?graphDispFlags		:= 4Bh
 ?backgroundValid		:= 4		;1 = items in graph background are still valid
+;----------------------------------------------------------------------
+?graphBgFlags        := 4Fh
+?drawGrBackground   := 0            ; 1 = graphBG is a solid color or an image that exists
 ;----------------------------------------------------------------------
 
 
