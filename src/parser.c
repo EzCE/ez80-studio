@@ -239,7 +239,7 @@ long parser_F(void) {
     parseNum = nextToken;
     nextToken = parser_GetTokStart(nextToken - 1);
 
-    if (hlight_Number(parseNum, util_GetStringEnd(parseNum, inputEnd))) {
+    if (hlight_Number(parseNum, util_GetStringEnd(parseNum, inputEnd, true))) {
         dbg_printf("%p | %s\n", parseNum, parseNum);
         uint8_t base = NUMBER_DEC;
 
@@ -286,8 +286,8 @@ long parser_F(void) {
     }
 
     static char symbol[MAX_LINE_LENGTH_ASM];
-    strncpy(symbol, parseNum, util_GetStringEnd(parseNum, inputEnd) - parseNum);
-    symbol[util_GetStringEnd(parseNum, inputEnd) - parseNum] = '\0';
+    strncpy(symbol, parseNum, util_GetStringEnd(parseNum, inputEnd, true) - parseNum);
+    symbol[util_GetStringEnd(parseNum, inputEnd, true) - parseNum] = '\0';
 
     unsigned int includeCount;
     char *table = (char *)SYMBOL_TABLE;

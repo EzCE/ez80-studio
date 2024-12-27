@@ -63,8 +63,12 @@ void util_GetFiles(unsigned int *fileCount, char *header) {
 
 }
 
-char *util_GetStringEnd(char *string, char *openEOF) {
+char *util_GetStringEnd(char *string, char *openEOF, bool parser) {
     bool singleChar = true;
+
+    if (!parser && *string == '.') {
+        string++;
+    }
 
     while (string <= openEOF) {
         if (*string == ' ' ||
@@ -82,7 +86,8 @@ char *util_GetStringEnd(char *string, char *openEOF) {
             *string == '>' ||
             *string == '&' ||
             *string == '^' ||
-            *string == '|') {
+            *string == '|' ||
+            (!parser && *string == '.')) {
 
             return string + singleChar;
         }
@@ -103,6 +108,7 @@ char *util_GetStringStart(char *string) {
             *string == ';' ||
             *string == '(' ||
             *string == ')' ||
+            *string == '.' ||
             *string == ',' ||
             *string == '=' ||
             *string == '+' ||

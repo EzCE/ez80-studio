@@ -71,7 +71,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             break;
         }
 
-        stringEnd = util_GetStringEnd(string, endOfFile);
+        stringEnd = util_GetStringEnd(string, endOfFile, false);
 
         uint8_t lexerType = asm_lexer_TokType(string, stringEnd);
 
@@ -80,7 +80,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             strcpy(line, hlight_GetTokenString(string, stringEnd));
             line += stringEnd - string;
             string = stringEnd;
-            stringEnd = util_GetStringEnd(string, endOfFile);
+            stringEnd = util_GetStringEnd(string, endOfFile, false);
 
             if (*string != '.' || !pass2) {
                 *(line++) = ' '; // Separate arguments
@@ -335,7 +335,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     uint8_t dataOffset = 0;
 
     while (line <= endOfLine + 1) {
-        tokEnd = util_GetStringEnd(line, endOfLine);
+        tokEnd = util_GetStringEnd(line, endOfLine, false);
 
         if (asm_lexer_TokType(line, tokEnd) == TEXT_REGISTER) {
             line = tokEnd;

@@ -48,9 +48,10 @@ void util_GetFiles(unsigned int *fileCount, char *header);
  * 
  * @param string String to search.
  * @param openEOF End of the currently opened file.
+ * @param parser Whether or not the parser is active.
  * @return char* Pointer to the end of the token.
  */
-char *util_GetStringEnd(char *string, char *openEOF);
+char *util_GetStringEnd(char *string, char *openEOF, bool parser);
 
 /**
  * @brief Returns a pointer to the start of a token.

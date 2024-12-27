@@ -159,7 +159,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
     bool highlightComment = false;
     bool highlightString = false;
     bool highlightInstruction = false;
-    char *stringEnd = util_GetStringEnd(string, studioContext->openEOF);
+    char *stringEnd = util_GetStringEnd(string, studioContext->openEOF, false);
 
     fontlib_SetCursorPosition(0, 2 + row * 16);
 
@@ -204,7 +204,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
                         fontlib_SetForegroundColor(TEXT_STRING);
                         highlightString = true;
                     } else if (highlightString) {
-                        stringEnd = util_GetStringEnd(string, studioContext->openEOF);
+                        stringEnd = util_GetStringEnd(string, studioContext->openEOF, false);
                         fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
                         highlightString = false;
                     }
@@ -212,7 +212,7 @@ static char *ui_PrintLine(struct context_t *studioContext, char *string, bool hi
             }
 
             if (!highlightComment && !highlightString) {
-                stringEnd = util_GetStringEnd(string, studioContext->openEOF);
+                stringEnd = util_GetStringEnd(string, studioContext->openEOF, false);
                 fontlib_SetForegroundColor(hlight_GetHighlightColor(string, stringEnd, highlighting));
             }
 
