@@ -315,7 +315,7 @@ long parser_F(void) {
                 table += ((uint16_t *)(table + 8))[symbol[0] - 'A'];
             } else if ((unsigned)symbol[0] - 'a' < 26) {
                 table += ((uint16_t *)(table + 8))[26 + symbol[0] - 'a'];
-            } else if (symbol[0] == '.') {
+            } else if (symbol[0] == '_') {
                 table += ((uint16_t *)(table + 8))[52];
             } else {
                 table += ((uint16_t *)(table + 8))[53];
