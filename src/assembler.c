@@ -37,6 +37,7 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
     uint8_t nestParens = 0;
     bool inInstruction = false;
     char *stringEnd;
+    char *start = line;
 
     while (*string != '\n' && string <= endOfFile) {
         if ((*string == '\'' || *string == '\"') && *(string - 1) != '\\' && (!assembler_IsChar(string) || pass2)) {
@@ -89,6 +90,10 @@ static void assembler_SanitizeLine(char *line, char *string, char *endOfFile, bo
             strcpy(line, hlight_GetTokenString(string, stringEnd));
             line += stringEnd - string;
             string = stringEnd;
+
+            if (!pass2 && *(line - 2) == 'i' && ((*(line - 3) == '(' && *start != 'j') || (*(start + 1) == 'e' && *(line - 3) == ','))) {
+                *(line++) = '#';
+            }
         } else if (inInstruction && lexerType == TEXT_MODIFIER) {
             if (pass2) {
                 strcpy(line, hlight_GetTokenString(string, stringEnd));
@@ -361,7 +366,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
             }
 
             if (!nestParens && dataOffset) {
-                arg = parser_Eval(data, &error);
+                unsigned long arg = parser_Eval(data, &error);
                 memset(data, 0, MAX_LINE_LENGTH_ASM - 4);
                 dataOffset = 0;
 
