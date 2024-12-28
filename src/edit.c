@@ -56,7 +56,7 @@ static void edit_Scroll(struct context_t *studioContext, struct preferences_t *s
 
     ui_UpdateText(studioContext, studioPreferences, direction);
     gfx_SetClipRegion(0, 0, 320, 240);
-    ui_DrawScrollbar(312, 0, 209, studioContext->totalLines, studioContext->lineStart, 14);
+    ui_DrawScrollbar(312, 14, 209, studioContext->totalLines, studioContext->lineStart, 14);
 }
 
 static bool edit_CursorUp(struct context_t *studioContext) {

@@ -1,4 +1,8 @@
 Include conversion script for BASM-3 by beckadamtheinventor: https://github.com/beckadamtheinventor/BASM-3/
 
 The conversion script has been modified to support lowercase letters and the '_' and '.' characters, along with a modified header.
+It has also been updated to fix a bug with data size detection.
 The original can be found here: https://github.com/beckadamtheinventor/BASM-3/blob/master/data/conv-inc.py
+
+TI84PCEG_smaller.inc, TIOSFLAG.inc, TIOSKBEQ.inc, TIOSRAMA.inc, and TIOSRTNS.inc have all been modified to include updated names
+and to fix some symbol definitions.

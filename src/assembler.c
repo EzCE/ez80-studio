@@ -312,8 +312,11 @@ uint8_t assembler_WriteData(char *output, char *line) {
 
 static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opcode, uint8_t suffix) {
     bool relative = false;
+    bool bit = false;
 
-    if (!strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
+    if ((opcode >= &asm_opcodes_AfterFDCB || (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD))) {
+        bit = (line[0] == 'b' || line[1] == 'e');
+    } else if (!strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
         relative = true;
     }
 
@@ -358,7 +361,9 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
             }
 
             if (!nestParens && dataOffset) {
-                unsigned long arg = parser_Eval(data, &error);
+                arg = parser_Eval(data, &error);
+                memset(data, 0, MAX_LINE_LENGTH_ASM - 4);
+                dataOffset = 0;
 
                 if (opcode->size == 4) {
                     if (suffix == SUFFIX_SIS || suffix == SUFFIX_LIS) {
@@ -369,8 +374,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
 
                     return error;
                 } else if (opcode->size == 3) {
-                    *(uint8_t *)(output + 1) = (uint8_t)arg;
-                    output++;
+                    *(uint8_t *)(++output) = (uint8_t)arg;
                 } else if (opcode->size == 2) {
                     if (relative) {
                         arg = ((uint8_t *)arg - (os_userMem + ((uint8_t *)output - OUTPUT)));
@@ -385,6 +389,18 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
                         *(uint8_t *)(output + 1) = (uint8_t)arg;
                     }
 
+                    return error;
+                } else if (bit) {
+                    error = (uint8_t)arg < 8 ? ERROR_SUCCESS : ERROR_INVAL_EXPR;
+                    *(uint8_t *)output |= (uint8_t)arg << 3;
+
+                    if (opcode < &asm_opcodes_AfterDDCB) {
+                        return error;
+                    }
+
+                    bit = false;
+                } else if (opcode >= &asm_opcodes_AfterDDCB) {
+                    *(uint8_t *)(output - 1) = (uint8_t)arg;
                     return error;
                 }
             }
@@ -635,9 +651,11 @@ struct error_t assembler_Main(struct context_t *studioContext) {
             } else if (opcode >= &asm_opcodes_AfterDDCB && opcode < &asm_opcodes_AfterFDCB) {
                 *(output++) = 0xDD;
                 *(output++) = 0xCB;
+                output++;
             } else if (opcode >= &asm_opcodes_AfterFDCB) {
                 *(output++) = 0xFD;
                 *(output++) = 0xCB;
+                output++;
             }
 
             memcpy(output, &opcode->data, opcode->size);

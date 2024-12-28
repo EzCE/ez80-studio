@@ -2013,7 +2013,7 @@ _asm_opcodes_AfterED:
 
     db 4
     db $53, $00, $00, $00
-    db "ld (#),de"
+    db "ld (#),de", 0
 
     db 2
     db $54, $00
@@ -2759,42 +2759,42 @@ _asm_opcodes_AfterFDCB:
 
     db 1
     db $06
-    db "rlc (ix#)", 0
+    db "rlc (iy#)", 0
 
     db 1
     db $0E
-    db "rrc (ix#)", 0
+    db "rrc (iy#)", 0
 
     db 1
     db $16
-    db "rl (ix#)", 0
+    db "rl (iy#)", 0
 
     db 1
     db $1E
-    db "rr (ix#)", 0
+    db "rr (iy#)", 0
 
     db 1
     db $26
-    db "sla (ix#)", 0
+    db "sla (iy#)", 0
 
     db 1
     db $2E
-    db "sra (ix#)", 0
+    db "sra (iy#)", 0
 
     db 1
     db $3E
-    db "srl (ix#)", 0
+    db "srl (iy#)", 0
 
     db 1
     db $46
-    db "bit #,(ix#)", 0
+    db "bit #,(iy#)", 0
 
     db 1
     db $86
-    db "res #,(ix#)", 0
+    db "res #,(iy#)", 0
 
     db 1
     db $C6
-    db "set #,(ix#)", 0
+    db "set #,(iy#)", 0
 
 _asm_opcodes_TableEnd:

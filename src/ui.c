@@ -73,7 +73,6 @@ void ui_DrawUIMain(uint8_t button, unsigned int totalLines, unsigned int startLi
     fontlib_SetCursorPosition(260, 227);
     fontlib_DrawString("Settings");
 
-    // ui_DrawScrollbar(312, 0, 223, totalLines, startLine, 14);
     ui_DrawScrollbar(312, 14, 209, totalLines, startLine, 14);
 }
 
