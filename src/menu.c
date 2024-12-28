@@ -70,9 +70,9 @@ void menu_Error(struct error_t error) {
             fontlib_SetCursorPosition(86, 112);
             fontlib_DrawString("Invalid instruction.");
             break;
-        case ERROR_INVAL_EXPR:
-            fontlib_SetCursorPosition(89, 112);
-            fontlib_DrawString("Invalid expression.");
+        case ERROR_INVAL_SYMBOL:
+            fontlib_SetCursorPosition(103, 112);
+            fontlib_DrawString("Invalid symbol.");
             break;
         case ERROR_MAX_SYMBOLS:
             fontlib_SetCursorPosition(96, 112);
@@ -81,6 +81,10 @@ void menu_Error(struct error_t error) {
         case ERROR_TOO_LARGE:
             fontlib_SetCursorPosition(96, 112);
             fontlib_DrawString("Output too large.");
+            break;
+        case ERROR_RANGE:
+            fontlib_SetCursorPosition(111, 112);
+            fontlib_DrawString("Out of range.");
             break;
         default:
             break;
@@ -172,9 +176,8 @@ bool menu_Warning(uint8_t warning) {
 }
 
 static bool menu_MiniMenu(bool *initialOption, unsigned int x, uint8_t y, unsigned int width, uint8_t height, char *option1, char *option2) {
-    ui_DrawMenuBox(x, y, width, height, 0, 2, option1, option2);
-
-    bool optionSelected = false;
+    bool optionSelected = !(*initialOption);
+    ui_DrawMenuBox(x, y, width, height, optionSelected, 2, option1, option2);
 
     while (!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyEnter) && !kb_IsDown(kb_Key2nd) && !kb_IsDown(kb_KeyLeft)) {
         kb_Scan();
@@ -768,6 +771,8 @@ void menu_Settings(struct context_t *studioContext, struct preferences_t *studio
             }
 
             if (kb_IsDown(kb_KeyRight) || kb_IsDown(kb_KeyEnter) || kb_IsDown(kb_Key2nd)) {
+                while (kb_AnyKey());
+
                 switch (option) {
                     case 0: // Themes
                         if (menu_MiniMenu(&(studioPreferences->theme), 158, 151, 47, 40, "Dark", "Light")) {

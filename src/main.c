@@ -6,7 +6,7 @@
  * Copyright 2022 - 2024
  * License: GPL-3.0
  * Last Build: December 28, 2024
- * Version: 0.9.2
+ * Version: 0.9.3
  * 
  * --------------------------------------
 **/

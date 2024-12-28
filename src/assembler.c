@@ -319,7 +319,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
     bool relative = false;
     bool bit = false;
 
-    if ((opcode >= &asm_opcodes_AfterFDCB || (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD))) {
+    if ((opcode >= &asm_opcodes_AfterDDCB || (opcode >= &asm_opcodes_AfterCB && opcode < &asm_opcodes_AfterDD))) {
         bit = (line[0] == 'b' || line[1] == 'e');
     } else if (!strncmp(line, "djnz", 4) || (*line == 'j' && *(line + 1) == 'r')) {
         relative = true;
@@ -385,7 +385,7 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
                         arg = ((uint8_t *)arg - (os_userMem + ((uint8_t *)output - OUTPUT)));
 
                         if ((int)arg < -128 || (int)arg > 127) {
-                            error = ERROR_INVAL_EXPR;
+                            error = ERROR_RANGE;
                         }
 
                         *(int8_t *)(output + 1) = (int8_t)arg;
@@ -396,7 +396,10 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
 
                     return error;
                 } else if (bit) {
-                    error = (uint8_t)arg < 8 ? ERROR_SUCCESS : ERROR_INVAL_EXPR;
+                    if ((uint8_t)arg >= 8) {
+                        error = ERROR_RANGE;
+                    }
+
                     *(uint8_t *)output |= (uint8_t)arg << 3;
 
                     if (opcode < &asm_opcodes_AfterDDCB) {
@@ -405,6 +408,10 @@ static uint8_t assembler_PutArgs(char *output, char *line, struct opcode_t *opco
 
                     bit = false;
                 } else if (opcode >= &asm_opcodes_AfterDDCB) {
+                    if ((int)arg < -128 || (int)arg > 127) {
+                        error = ERROR_RANGE;
+                    }
+
                     *(uint8_t *)(output - 1) = (uint8_t)arg;
                     return error;
                 }

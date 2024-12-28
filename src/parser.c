@@ -273,7 +273,7 @@ long parser_F(void) {
             nextToken = parser_GetTokStart(nextToken - 1);
             return BR;
         } else {
-            *retErr = ERROR_INVAL_EXPR;
+            *retErr = ERROR_INVAL_SYMBOL;
             return 0;
         }
     } else if (*parseNum == '-') {
@@ -323,7 +323,7 @@ long parser_F(void) {
         }
     }
 
-    *retErr = ERROR_INVAL_EXPR;
+    *retErr = ERROR_INVAL_SYMBOL;
     return 0;
 }
 

@@ -148,9 +148,10 @@ extern struct opcode_t asm_opcodes_TableEnd;
 #define ERROR_UNKNOWN       1       /* The action failed for an unknown reason. (Not sure if this will be used?) */
 #define ERROR_NO_MEM        2       /* There is not enough memory to perform the requested action. */
 #define ERROR_INVAL_TOK     3       /* A token was invalid. */
-#define ERROR_INVAL_EXPR    4       /* An expression was invalid. */
+#define ERROR_INVAL_SYMBOL  4       /* A symbol / expression was invalid. */
 #define ERROR_MAX_SYMBOLS   5       /* Symbols or labels in the assembly source overflowed the symbol table. */
 #define ERROR_TOO_LARGE     6       /* Assembly output produced was too large. */
+#define ERROR_RANGE         7       /* Argument out of range. */
 
 /**
  * Warning codes used in the editor and assembler.
