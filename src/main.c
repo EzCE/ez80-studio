@@ -5,7 +5,7 @@
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2024
  * License: GPL-3.0
- * Last Build: December 28, 2024
+ * Last Build: December 30, 2024
  * Version: 1.0.0
  * 
  * --------------------------------------
@@ -90,7 +90,7 @@ int main(void) {
         if (studioContext.fileIsOpen) {
             edit_OpenEditor(&studioContext, &studioPreferences);
             studioContext.fileIsOpen = false;
-
+            studioContext.fileIsSaved = true;
             studioContext.lineStart = 0;
             studioContext.newlineStart = 0;
             studioContext.totalLines = 0;
