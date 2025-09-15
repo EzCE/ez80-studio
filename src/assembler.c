@@ -11,10 +11,10 @@
 
 #include "assembler.h"
 #include "highlight.h"
-#include "lexer.h"
 #include "parser.h"
 #include "utility.h"
 #include "asm/files.h"
+#include "asm/lexer.h"
 #include "asm/misc.h"
 #include "asm/spi.h"
 

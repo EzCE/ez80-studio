@@ -261,6 +261,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 }
             } else if (kb_IsDown(kb_KeyRight)) {
                 ui_DrawCursor(studioContext->row, studioContext->column, cursorActive, true); // Erase old cursor
+
                 if (edit_CursorRight(studioContext)) {
                     edit_Scroll(studioContext, studioPreferences, UPDATE_BOTTOM);
                 }

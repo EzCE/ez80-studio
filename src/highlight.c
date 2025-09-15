@@ -10,8 +10,8 @@
 **/
 
 #include "highlight.h"
-#include "lexer.h"
 #include "defines.h"
+#include "asm/lexer.h"
 
 #include <stdlib.h>
 #include <stdint.h>
