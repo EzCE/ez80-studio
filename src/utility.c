@@ -1,11 +1,11 @@
 /**
  * --------------------------------------
- * 
+ *
  * eZ80 Studio Source Code - utility.c
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2025
  * License: GPL-3.0
- * 
+ *
  * --------------------------------------
 **/
 
@@ -146,6 +146,8 @@ bool util_InsertChar(char character, struct context_t *studioContext) {
         studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
 
         if (character == '\n') {
+            // get the number of spaces at the start of the previous line
+            uint8_t requiredSpacesNumber = asm_files_GetStartSpacesNumber(studioContext->rowDataStart, studioContext->openEOF);
             studioContext->column = 0;
 
             if (studioContext->row < 13 && studioContext->lineStart + studioContext->row + 1 != studioContext->totalLines) {
@@ -159,6 +161,20 @@ bool util_InsertChar(char character, struct context_t *studioContext) {
                 studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
                 studioContext->newlineStart += (*(studioContext->pageDataStart - 1) == '\n');
             }
+
+            // compute current number of spaces
+            uint8_t currentSpacesNumber = asm_files_GetStartSpacesNumber(studioContext->rowDataStart, studioContext->openEOF);
+
+            // insert required number of spaces
+            if (currentSpacesNumber < requiredSpacesNumber) {
+                for (uint8_t i = 0; i < requiredSpacesNumber - currentSpacesNumber; i++) {
+                    asm_files_InsertChar(' ', studioContext->openEOF, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column) + 1);
+                    studioContext->column++;
+                }
+            }
+
+            // update total row length
+            studioContext->rowLength = asm_files_GetLineLength(studioContext->rowDataStart, studioContext->openEOF);
         } else {
             if (studioContext->column < studioContext->rowLength) {
                 studioContext->column++;
