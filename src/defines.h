@@ -220,7 +220,6 @@ struct context_t {
     unsigned int newlineStart;      /* First line of the page, before word-wrap (using newline characters). */
     unsigned int lineStart;         /* First line of the page, after calculating word-wrap. */
     unsigned int row;               /* Current row of the editor selected by the cursor (0 - 13). */
-    uint8_t previousColumn;
     uint8_t column;                 /* Current column of the editor selected by the cursor. */
     uint8_t rowLength;              /* Length of the currently selected row, in columns. */
     uint8_t inputMode;              /* Current text input mode (A, a, 1). */

@@ -170,6 +170,8 @@ bool util_InsertChar(char character, struct context_t *studioContext) {
                 for (uint8_t i = 0; i < requiredSpacesNumber - currentSpacesNumber; i++) {
                     asm_files_InsertChar(' ', studioContext->openEOF, studioContext->openEOF - (studioContext->rowDataStart + studioContext->column) + 1);
                     studioContext->column++;
+                    studioContext->fileSize++;
+                    studioContext->openEOF++;
                 }
             }
 
