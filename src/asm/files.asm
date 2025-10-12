@@ -18,6 +18,7 @@ include 'include/equates.inc'
     public _asm_files_CheckFileExists
     public _asm_files_CountLines
     public _asm_files_GetLineLength
+    public _asm_files_GetStartSpacesNumber
     public _asm_files_NextLine
     public _asm_files_PreviousLine
     public _asm_files_InsertChar
@@ -221,6 +222,37 @@ _asm_files_GetLineLength:
     inc c
     inc hl
     djnz .loop
+
+.return:
+    ld a, c
+    ret
+
+_asm_files_GetStartSpacesNumber:
+    ld iy, 0
+    add iy, sp
+    ld hl, (iy + 6) ; EOF
+    ld (EOF), hl
+    ld hl, (iy + 3) ; line start address
+    ld bc, 0 ; c = counter
+    ld b, 38 ; max chars per line
+
+.loop:
+    ld a, $20
+    cp a, (hl)
+    jr nz, .return
+
+.loopNext:
+    push bc
+    push hl
+    pop bc
+    call _checkEOF
+    push bc
+    pop hl
+    pop bc
+    jr z, .return ; return if EOF
+    inc c
+    inc hl
+    djnz .loop ; decrease max chars and loop
 
 .return:
     ld a, c
