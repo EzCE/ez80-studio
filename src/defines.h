@@ -1,11 +1,11 @@
 /**
  * --------------------------------------
- * 
+ *
  * eZ80 Studio Source Code - defines.h
  * By RoccoLox Programs and TIny_Hacker
  * Copyright 2022 - 2025
  * License: GPL-3.0
- * 
+ *
  * --------------------------------------
 **/
 
@@ -25,13 +25,13 @@ extern "C" {
 
 /**
  * @brief PixelShadow RAM location.
- * 
+ *
  */
 #define os_PixelShadow      ((uint8_t *)0xD031F6)
 
 /**
  * @brief userMem RAM location.
- * 
+ *
  */
 #define os_userMem          ((uint8_t *)0xD1A881)
 
@@ -225,7 +225,7 @@ struct context_t {
     uint8_t inputMode;              /* Current text input mode (A, a, 1). */
 };
 
-/** 
+/**
  * Opcode struct which holds the size and bytes associated with an opcode.
 */
 struct opcode_t {
