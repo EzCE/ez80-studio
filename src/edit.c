@@ -203,6 +203,7 @@ void edit_OpenEditor(struct context_t *studioContext, struct preferences_t *stud
                 if (!studioContext->fileIsSaved) {
                     if (menu_Warning(WARNING_UNSAVED)) {
                         studioContext->fileIsOpen = false;
+                        studioContext->fileIsSaved = true;
                     } else {
                         redraw = true;
                         edit_RedrawEditor(studioContext, studioPreferences);

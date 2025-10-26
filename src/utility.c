@@ -198,7 +198,6 @@ bool util_InsertChar(char character, struct context_t *studioContext) {
         }
     }
 
-
     return character != '\0';
 }
 
