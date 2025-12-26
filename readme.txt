@@ -86,7 +86,9 @@ help on the discord or in the Cemetech topic (https://ceme.tech/t19925) as well!
 Credits
 --------------------
 
-Thanks to beckadamtheinventor (https://github.com/beckadamtheinventor/) for help with the assembler
-portion of the program and to Cemetech (https://cemetech.net) members for feedback!
+eZ80 Studio uses a modified version of turquoise-hexagon's cherry font
+(https://github.com/turquoise-hexagon/cherry). Thanks to beckadamtheinventor
+(https://github.com/beckadamtheinventor/) for help with the assembler portion of the program and to
+Cemetech (https://cemetech.net) members for feedback!
 
 © 2022 - 2025 RoccoLox Programs and TIny_Hacker
