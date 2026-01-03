@@ -86,9 +86,11 @@ help on the discord or in the Cemetech topic (https://ceme.tech/t19925) as well!
 Credits
 --------------------
 
-eZ80 Studio uses a modified version of turquoise-hexagon's cherry font
-(https://github.com/turquoise-hexagon/cherry). Thanks to beckadamtheinventor
-(https://github.com/beckadamtheinventor/) for help with the assembler portion of the program and to
-Cemetech (https://cemetech.net) members for feedback!
+## Credits
+
+ - Auto-indentation as of v1.1.0, thanks to Ti64CLi (https://github.com/Ti64CLi). 
+ - Modified version of turquoise-hexagon's cherry font (https://github.com/turquoise-hexagon/cherry).
+ - Thanks to beckadamtheinventor (https://github.com/beckadamtheinventor/) for help with the
+   assembler portion of the program and to [Cemetech](https://cemetech.net) members for feedback!
 
 © 2022 - 2026 RoccoLox Programs and TIny_Hacker
