@@ -3,9 +3,9 @@
  * 
  * eZ80 Studio Source Code - main.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2025
+ * Copyright 2022 - 2026
  * License: GPL-3.0
- * Last Build: October 25, 2025
+ * Last Build: January 2, 2026
  * Version: 1.1.0
  * 
  * --------------------------------------

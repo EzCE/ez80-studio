@@ -3,7 +3,7 @@
  * 
  * eZ80 Studio Source Code - menu.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2025
+ * Copyright 2022 - 2026
  * License: GPL-3.0
  * 
  * --------------------------------------
@@ -717,7 +717,7 @@ static void menu_About(void) {
     gfx_HorizLine_NoClip(87, 125, 136);
 
     fontlib_SetCursorPosition(87, 127);
-    fontlib_DrawString("\xA9 2022 - 2025");
+    fontlib_DrawString("\xA9 2022 - 2026");
     fontlib_SetCursorPosition(87, 139);
     fontlib_DrawString("RoccoLox Programs,");
     fontlib_SetCursorPosition(87, 151);

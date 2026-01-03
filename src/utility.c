@@ -3,7 +3,7 @@
  *
  * eZ80 Studio Source Code - utility.c
  * By RoccoLox Programs and TIny_Hacker
- * Copyright 2022 - 2025
+ * Copyright 2022 - 2026
  * License: GPL-3.0
  *
  * --------------------------------------
@@ -45,7 +45,6 @@ void util_WritePrefs(struct preferences_t *studioPreferences) {
 }
 
 void util_GetFiles(unsigned int *fileCount, char *header) {
-    uint8_t fileType = '\0';
     char *fileName;
     void *vatPtr = NULL;
     *fileCount = 0;
@@ -53,14 +52,11 @@ void util_GetFiles(unsigned int *fileCount, char *header) {
 
     asm_misc_SortVAT();
 
-    while ((fileName = ti_DetectAny(&vatPtr, header, &fileType))) {
-        if (fileType == OS_TYPE_APPVAR) {
-            strcpy(&((char *)os_PixelShadow)[currentOffset], fileName);
-            currentOffset += 9;
-            *fileCount = *fileCount + 1;
-        }
+    while ((fileName = ti_Detect(&vatPtr, header))) {
+        strcpy(&((char *)os_PixelShadow)[currentOffset], fileName);
+        currentOffset += 9;
+        *fileCount = *fileCount + 1;
     }
-
 }
 
 char *util_GetStringEnd(char *string, char *openEOF, bool parser) {

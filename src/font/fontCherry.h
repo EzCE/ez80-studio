@@ -7,7 +7,7 @@
  * Cherry font by turquoise-hexagon
  * Slighly modified from the original
  * 
- * Copyright 2022 - 2025
+ * Copyright 2022 - 2026
  * License: GPL-3.0
  * 
  * --------------------------------------

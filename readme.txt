@@ -21,7 +21,7 @@ Installation
 1. Download the latest version of eZ80 Studio from the GitHub releases page:
    https://github.com/EzCE/ez80-studio/releases/latest
 2. Send EZSTUDIO.8xp along with any include files (Found in includes/*.8xv) to your calculator using
-   TI-Connect CE or TiLP. If you don't have the [CE C libraries](https://tiny.cc/clibs), you'll need
+   TI-Connect CE or TiLP. If you don't have the CE C libraries (https://tiny.cc/clibs), you'll need
    to download and send those as well.
 3. Run **prgmEZSTUDIO** from the programs menu. You will need to use the arTIfiCE jailbreak
    (https://yvantt.github.io/arTIfiCE) if you are on an OS version 5.5 and above.
@@ -91,4 +91,4 @@ eZ80 Studio uses a modified version of turquoise-hexagon's cherry font
 (https://github.com/beckadamtheinventor/) for help with the assembler portion of the program and to
 Cemetech (https://cemetech.net) members for feedback!
 
-© 2022 - 2025 RoccoLox Programs and TIny_Hacker
+© 2022 - 2026 RoccoLox Programs and TIny_Hacker
