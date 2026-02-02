@@ -403,6 +403,7 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
     }
 
     if (!util_OpenFile(studioContext, &fileNames[(fileStartLoc + fileSelected) * 9])) {
+        asm_spi_BeginFrame();
         gfx_ZeroScreen();
         ui_DrawUIMain(0, studioContext->totalLines, studioContext->lineStart);
 
@@ -413,9 +414,9 @@ static void menu_FileOpen(struct context_t *studioContext, struct preferences_t 
             ui_NoFile();
         }
 
-        ui_DrawMenuBox(0, 168, 73, 55, 1, 3, "New file", "Open file", "Save file");
         struct error_t error = {0, ERROR_NO_MEM};
         menu_Error(error);
+        asm_spi_EndFrame();
     }
 
     //dbg_printf("-----\nfileIsOpen: %d\nfileIsSaved: %d\npageDataStart: %p\nrowDataStart: %p\nfileName: %s\nfileSize: %d\nopenEOF: %p\nnewlineCount: %d\ntotalLines: %d\nnewlineStart: %d\nlineStart: %d\nrow: %d\ncolumn: %d\nrowLength: %d\n-----\n", studioContext->fileIsOpen, studioContext->fileIsSaved, studioContext->pageDataStart, studioContext->rowDataStart, studioContext->fileName, studioContext->fileSize, studioContext->openEOF, studioContext->newlineCount, studioContext->totalLines, studioContext->newlineStart, studioContext->lineStart, studioContext->row, studioContext->column, studioContext->rowLength);
